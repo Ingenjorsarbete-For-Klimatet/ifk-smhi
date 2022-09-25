@@ -7,6 +7,7 @@ from typing import Union
 from collections import defaultdict
 
 
+BASE_URL = "https://opendata-download-metobs.smhi.se/api.json"
 TYPE_MAP = defaultdict(lambda: "application/json", json="application/json")
 
 
@@ -20,22 +21,86 @@ class SMHI:
         Initialise the class with a data type format.
 
         Args:
-            type: type of data to fetch
+            type: type of request
         """
         self.type = TYPE_MAP[type]
-        self.base_url = "https://opendata-download-metobs.smhi.se/api.json"
+        response = requests.get(BASE_URL)
+        self.headers = response.headers
+        self.content = json.loads(response.content)
+        self.available_versions = self.content["version"]
 
-        response = requests.get(self.base_url)
-        self.base = json.loads(response.content)
-        self.versions = [x["key"] for x in self.base["version"]]
+        self.version = None
+        self.parameter = None
+        self.station = None
+        self.period = None
+        self.data = None
+        self.table = None
 
-        self.selected_version = None
-        self.selected_parameter = None
-        self.selected_station_set = None
-        self.selected_station = None
-        self.selected_period = None
-        self.selected_data_url = None
-        self.selected_data = None
+    def fetch_parameters(self, version: Union[str, int] = "latest"):
+        """
+        Fetch SMHI API parameters from version.
+
+        Args:
+            version: selected API version
+        """
+        self.version = version
+        self.parameter = SMHIParameter(self.type, self.available_versions, version)
+
+    def fetch_stations(self, parameter: str = None, parameter_title: str = None):
+        """
+        Fetch SMHI API stations from given parameter.
+
+        Args:
+            parameter: id of data
+            parameter_title: exact title of data
+        """
+        if parameter is None and parameter_title is None:
+            raise Exception("Both arguments None.")
+
+        if self.parameter is None:
+            raise Exception("Fetch parameters first.")
+
+        if parameter_title is None:
+            self.station = SMHIStation(
+                self.type, self.parameter.resource, parameter=parameter
+            )
+
+        if parameter is None:
+            self.station = SMHIStation(
+                self.type, self.parameter.resource, parameter_title=parameter_title
+            )
+
+    def fetch_periods(self, station: str = None, station_set: str = None):
+        """
+        Fetch SMHI API periods from given station.
+
+        Args:
+            station: id of data
+            station_set: exact title of data
+        """
+        if station is None and station_set is None:
+            raise Exception("Both arguments None.")
+
+        if self.station is None:
+            raise Exception("Fetch stations first.")
+
+        if station_set is None:
+            self.period = SMHIPeriod(self.type, self.station.station, station=station)
+
+        if station is None:
+            self.period = SMHIPeriod(
+                self.type, self.station.station, station_set=station_set
+            )
+
+    def fetch_data(self, period: str = "corrected-archive"):
+        """
+        Fetch SMHI API data from given period.
+
+        Args:
+            period: period
+        """
+        self.data = SMHIData(self.type, self.period.period, period)
+        self.table = self.data.fetch()
 
     def inspect(self, num_print: int = 10):
         """
@@ -44,151 +109,62 @@ class SMHI:
         Args:
             num_print: number of items to print
         """
-        print("API base")
-        print(self.base)
-        print()
-
         print("API version")
-        print("Available versions: ", self.versions)
-        print("Selected version: ", self.selected_version)
+        print("Available versions: ", [x["key"] for x in self.available_versions])
+        print("Selected version: ", self.version)
         print()
 
-        print("API parameter")
-        print("Available parameters ({0} first): ".format(num_print))
-        print(self.parameters_key[:num_print])
-        print("See all parameters with ´client.parameters_key´")
-        print("Selected parameter: ", self.selected_parameter)
-        print()
-
-        print("API station")
-        print("Available stations ({0} first): ".format(num_print))
-        print(self.stations_key[:num_print])
-        print("See all stations with ´client.stations_key")
-        print(
-            "Selected station: {0} {1}".format(
-                self.selected_station,
-                [x[2] for x in self.stations_key if x[1] == self.selected_station][0],
+        if self.parameter is not None:
+            print("API parameter")
+            print("Available parameters ({0} first): ".format(num_print))
+            print(self.parameter.key_title_map[:num_print])
+            print(
+                "See all ({0}) parameters with ´client.parameter.key_title_map".format(
+                    len(self.parameter.key_title_map)
+                )
             )
-        )
-        print()
+            if self.station is not None:
+                print("Selected parameter: ", self.station.selected_parameter)
+            print()
 
-        print("API period")
-        print("Available periods: ")
-        print(self.periods_key)
-        print("Selected period: ", self.selected_period)
-        print()
+        if self.station is not None:
+            print("API station")
+            print("Available stations ({0} first): ".format(num_print))
+            print(self.station.id_name_map[:num_print])
+            print(
+                "See all ({0}) stations with ´client.station.id_name_map".format(
+                    len(self.station.id_name_map)
+                )
+            )
+            if self.period is not None:
+                print(
+                    "Selected station: {0} {1}".format(
+                        self.period.selected_station,
+                        [
+                            x[2]
+                            for x in self.station.id_name_map
+                            if x[1] == self.period.selected_station
+                        ][0],
+                    )
+                )
+            print()
 
-    def select_version(self, version: Union[str, int] = "latest"):
+        if self.period is not None:
+            print("API period")
+            print("Available periods: ")
+            print(self.period.period_key)
+            if self.data is not None:
+                print("Selected period: ", self.data.selected_period)
+            print()
+
+    def find_from_coordinates(self, radius: int = 1):
         """
-        Select version of SMHI API to read.
+        Find all data near coordinates.
 
         Args:
-            version: selected API version
+            radius: radius from coordinates, inclusive
         """
-        self.selected_version = version
-        requested_version = [x for x in self.base["version"] if x["key"] == version][0]
-        url = [x["href"] for x in requested_version["link"] if x["type"] == self.type][
-            0
-        ]
-
-        response = requests.get(url)
-        self.parameters = sorted(
-            json.loads(response.content)["resource"], key=lambda x: x["key"]
-        )
-        self.parameters_key = tuple((x["key"], x["title"]) for x in self.parameters)
-
-    def select_parameter(self, parameter: str, parameter_title: str = None):
-        """
-        Select the data to read, also called parameter.
-
-        Args:
-            parameter: data to read
-            parameter_title: exact title of data
-        """
-        self.selected_parameter = parameter
-        if parameter_title is not None:
-            requested_parameter = [
-                x for x in self.parameters if x["title"] == parameter_title
-            ][0]
-        else:
-            requested_parameter = [
-                x for x in self.parameters if x["key"] == str(parameter)
-            ][0]
-        url = [
-            x["href"] for x in requested_parameter["link"] if x["type"] == self.type
-        ][0]
-
-        response = requests.get(url)
-        response_content = json.loads(response.content)
-        self.station_sets = response_content["stationSet"]
-        self.stations = sorted(response_content["station"], key=lambda x: x["id"])
-
-        self.stations_key = tuple(
-            (i, x["id"], x["name"]) for i, x in enumerate(self.stations)
-        )
-
-    def select_station(self, station: int, station_name: str = None):
-        """
-        Selection station.
-
-        Args:
-            station: station id, not key
-            station_name: station name
-        """
-        self.selected_station = station
-        if self.stations is None:
-            raise Exception("Station is empty, try station set.")
-
-        if station_name is not None:
-            requested_station = [
-                x for x in self.stations if x["title"] == station_name
-            ][0]
-        else:
-            requested_station = [x for x in self.stations if x["id"] == station][0]
-        url = [x["href"] for x in requested_station["link"] if x["type"] == self.type][
-            0
-        ]
-
-        response = requests.get(url)
-        self.periods = sorted(
-            json.loads(response.content)["period"], key=lambda x: x["key"]
-        )
-
-        self.periods_key = [x["key"] for x in self.periods]
-
-    def select_station_set(self, station_set: int):
-        if self.station_set is None:
-            raise Exception("Station set is empty, try station.")
-
-    def select_period(self, period: str = "corrected-archive"):
-        """
-        Select period of data.
-
-        Args:
-            period: select period from: latest-hour, latest-day, latest-months or corrected-archive
-        """
-        self.selected_period = period
-        requested_period = [x for x in self.periods if x["key"] == period][0]
-        url = [x["href"] for x in requested_period["link"] if x["type"] == self.type][0]
-
-        response = requests.get(url)
-        self.data_urls = json.loads(response.content)["data"]
-
-    def get_data(self, data_type: str = "text/plain"):
-        """
-        Get the selected data
-
-        Args:
-            data_type:
-        """
-        self.data = []
-        for x in self.data_urls:
-            for y in x["link"]:
-                if type(y) is not list:
-                    y = [y]
-
-                url = [z for z in y if z["type"] == data_type][0]["href"]
-                self.data.append(requests.get(url).content)
+        pass
 
     def get_explicit_data(
         self,
@@ -210,11 +186,182 @@ class SMHI:
         """
         pass
 
-    def find_from_coordinates(self, radius: int = 1):
+
+class SMHIParameter:
+    """
+    Fetch parameter for given version.
+    """
+
+    def __init__(
+        self,
+        type: str = "application/json",
+        data: list = None,
+        version: Union[str, int] = "latest",
+    ):
         """
-        Find all data near coordinates.
+        Fetch parameter from version.
 
         Args:
-            radius: radius from coordinates, inclusive
+            type: type of request
+            data: available API versions
+            version: selected API version
         """
-        pass
+        self.selected_version = version
+        requested_version = [x for x in data if x["key"] == version][0]
+        url = [x["href"] for x in requested_version["link"] if x["type"] == type][0]
+        response = requests.get(url)
+        content = json.loads(response.content)
+
+        self.headers = response.headers
+        self.key = content["key"]
+        self.updated = content["updated"]
+        self.title = content["title"]
+        self.summary = content["summary"]
+        self.link = content["link"]
+        self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
+        self.key_title_map = tuple((x["key"], x["title"]) for x in self.resource)
+
+
+class SMHIStation:
+    """
+    Fetch stations from parameter.
+    """
+
+    def __init__(
+        self,
+        type: str = "application/json",
+        data: list = None,
+        parameter: str = None,
+        parameter_title: str = None,
+    ):
+        """
+        Fetch stations from parameter.
+
+        Args:
+            type: type of request
+            data: available API parameters
+            parameter: data to read
+            parameter_title: exact title of data
+        """
+        self.selected_parameter = parameter
+        if parameter_title is not None:
+            requested_parameter = [x for x in data if x["title"] == parameter_title][0]
+        else:
+            requested_parameter = [x for x in data if x["key"] == str(parameter)][0]
+        url = [x["href"] for x in requested_parameter["link"] if x["type"] == type][0]
+        response = requests.get(url)
+        content = json.loads(response.content)
+
+        self.headers = response.headers
+        self.key = content["key"]
+        self.updated = content["updated"]
+        self.title = content["title"]
+        self.summary = content["summary"]
+        self.valuetype = content["valueType"]
+        self.link = content["link"]
+        self.stationset = content["stationSet"]
+        self.station = sorted(content["station"], key=lambda x: int(x["id"]))
+        self.id_name_map = tuple(
+            (i, x["id"], x["name"]) for i, x in enumerate(self.station)
+        )
+
+
+class SMHIPeriod:
+    """
+    Fetch periods from station.
+    """
+
+    def __init__(
+        self,
+        type: str = "application/json",
+        data: list = None,
+        station: int = None,
+        station_name: str = None,
+    ):
+        """
+        Fetch periods from station.
+
+        Args:
+            type: type of request
+            data: available API stations
+            station: station id, not key
+            station_name: station name
+        """
+        self.selected_station = station
+        if station_name is not None:
+            requested_station = [x for x in data if x["title"] == station_name][0]
+        else:
+            requested_station = [x for x in data if x["id"] == station][0]
+        url = [x["href"] for x in requested_station["link"] if x["type"] == type][0]
+        response = requests.get(url)
+        content = json.loads(response.content)
+
+        self.headers = response.headers
+        self.key = content["key"]
+        self.updated = content["updated"]
+        self.title = content["title"]
+        self.owner = content["owner"]
+        self.ownercategory = content["ownerCategory"]
+        self.measuringstations = content["measuringStations"]
+        self.active = content["active"]
+        self.summary = content["summary"]
+        self.time_from = content["from"]
+        self.time_to = content["to"]
+        self.position = content["position"]
+        self.link = content["link"]
+        self.period = sorted(content["period"], key=lambda x: x["key"])
+        self.period_key = [x["key"] for x in self.period]
+
+
+class SMHIData:
+    """
+    Fetch data from period.
+    """
+
+    def __init__(
+        self,
+        type: str = "application/json",
+        data: list = None,
+        period: str = "corrected-archive",
+    ):
+        """
+        Fetch data from period.
+
+        Args:
+            type: type of request
+            data: available API periods
+            period: select period from: latest-hour, latest-day, latest-months or corrected-archive
+        """
+        self.selected_period = period
+        requested_period = [x for x in data if x["key"] == period][0]
+        url = [x["href"] for x in requested_period["link"] if x["type"] == type][0]
+        response = requests.get(url)
+        content = json.loads(response.content)
+
+        self.headers = response.headers
+
+        self.key = content["key"]
+        self.updated = content["updated"]
+        self.title = content["title"]
+        self.summary = content["summary"]
+        self.time_from = content["from"]
+        self.time_to = content["to"]
+        self.link = content["link"]
+        self.data = content["data"]
+
+    def fetch(self, type: str = "text/plain"):
+        """
+        Fetch the selected data file.
+
+        Args:
+            type: type of request
+        """
+        for item in self.data:
+            print(item)
+            for link in item["link"]:
+                print(link)
+                if link["type"] != type:
+                    continue
+
+                response = requests.get(link["href"])
+                return response.content
