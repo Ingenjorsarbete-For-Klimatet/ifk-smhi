@@ -13,7 +13,7 @@ class TestUnitSMHI:
 
     @patch("smhi.smhi.requests.get")
     @patch("smhi.smhi.json.loads")
-    def test_smhi_init(self, mock_requests_get, mock_json_loads):
+    def test_unit_smhi_init(self, mock_requests_get, mock_json_loads):
         """
         Unit test for SMHI init method.
 
