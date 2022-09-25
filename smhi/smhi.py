@@ -23,10 +23,9 @@ class SMHI:
             type: type of data to fetch
         """
         self.type = TYPE_MAP[type]
-        self.session = requests.Session()
         self.base_url = "https://opendata-download-metobs.smhi.se/api.json"
 
-        response = self.session.get(self.base_url)
+        response = requests.get(self.base_url)
         self.versions = json.loads(response.content)["version"]
 
     def select_version(self, version: Union[str, int] = "latest"):
