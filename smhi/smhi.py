@@ -11,7 +11,7 @@ BASE_URL = "https://opendata-download-metobs.smhi.se/api.json"
 TYPE_MAP = defaultdict(lambda: "application/json", json="application/json")
 
 
-class SMHI:
+class SMHIClient:
     """
     SMHI data class.
     """
@@ -156,15 +156,6 @@ class SMHI:
             if self.data is not None:
                 print("Selected period: ", self.data.selected_period)
             print()
-
-    def find_from_coordinates(self, radius: int = 1):
-        """
-        Find all data near coordinates.
-
-        Args:
-            radius: radius from coordinates, inclusive
-        """
-        pass
 
     def get_explicit_data(
         self,
@@ -365,3 +356,28 @@ class SMHIData:
 
                 response = requests.get(link["href"])
                 return response.content
+
+
+class SMHI:
+    """
+    SMHI class with high-level functions.
+    """
+
+    def __init__(self, type: str = "json", version: Union[str, int] = "latest"):
+        self.type = TYPE_MAP[type]
+        self.client = SMHIClient(type)
+        self.client.fetch_parameters(version)
+
+    @property
+    def parameters(self):
+        return self.client.parameter.key_title_map
+
+    def get_stations(self, parameter: str = None):
+        self.client.fetch_stations(parameter)
+        return self.client.station.id_name_map
+
+    def find_stations_from_gps(self):
+        pass
+
+    def find_stations_from_gps(self):
+        pass
