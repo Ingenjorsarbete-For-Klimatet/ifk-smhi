@@ -374,5 +374,9 @@ class SMHI:
         self.client.fetch_stations(parameter)
         return self.client.station.data
 
+    def get_stations_from_title(self, parameter: str = None):
+        self.client.fetch_stations(None, parameter)
+        return self.client.station.data
+
     def find_stations_from_gps(self):
         pass
