@@ -378,6 +378,3 @@ class SMHI:
 
     def find_stations_from_gps(self):
         pass
-
-    def find_stations_from_gps(self):
-        pass
