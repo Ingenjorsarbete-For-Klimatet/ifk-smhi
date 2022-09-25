@@ -117,10 +117,10 @@ class SMHIClient:
         if self.parameter is not None:
             print("API parameter")
             print("Available parameters ({0} first): ".format(num_print))
-            print(self.parameter.key_title_map[:num_print])
+            print(self.parameter.data[:num_print])
             print(
-                "See all ({0}) parameters with ´client.parameter.key_title_map".format(
-                    len(self.parameter.key_title_map)
+                "See all ({0}) parameters with ´client.parameter.data".format(
+                    len(self.parameter.data)
                 )
             )
             if self.station is not None:
@@ -130,10 +130,10 @@ class SMHIClient:
         if self.station is not None:
             print("API station")
             print("Available stations ({0} first): ".format(num_print))
-            print(self.station.id_name_map[:num_print])
+            print(self.station.data[:num_print])
             print(
-                "See all ({0}) stations with ´client.station.id_name_map".format(
-                    len(self.station.id_name_map)
+                "See all ({0}) stations with ´client.station.data".format(
+                    len(self.station.data)
                 )
             )
             if self.period is not None:
@@ -142,7 +142,7 @@ class SMHIClient:
                         self.period.selected_station,
                         [
                             x[2]
-                            for x in self.station.id_name_map
+                            for x in self.station.data
                             if x[1] == self.period.selected_station
                         ][0],
                     )
@@ -152,7 +152,7 @@ class SMHIClient:
         if self.period is not None:
             print("API period")
             print("Available periods: ")
-            print(self.period.period_key)
+            print(self.period.data)
             if self.data is not None:
                 print("Selected period: ", self.data.selected_period)
             print()
@@ -210,7 +210,7 @@ class SMHIParameter:
         self.summary = content["summary"]
         self.link = content["link"]
         self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
-        self.key_title_map = tuple((x["key"], x["title"]) for x in self.resource)
+        self.data = tuple((x["key"], x["title"]) for x in self.resource)
 
 
 class SMHIStation:
@@ -252,9 +252,7 @@ class SMHIStation:
         self.link = content["link"]
         self.stationset = content["stationSet"]
         self.station = sorted(content["station"], key=lambda x: int(x["id"]))
-        self.id_name_map = tuple(
-            (i, x["id"], x["name"]) for i, x in enumerate(self.station)
-        )
+        self.data = tuple((i, x["id"], x["name"]) for i, x in enumerate(self.station))
 
 
 class SMHIPeriod:
@@ -301,7 +299,7 @@ class SMHIPeriod:
         self.position = content["position"]
         self.link = content["link"]
         self.period = sorted(content["period"], key=lambda x: x["key"])
-        self.period_key = [x["key"] for x in self.period]
+        self.data = [x["key"] for x in self.period]
 
 
 class SMHIData:
@@ -370,11 +368,11 @@ class SMHI:
 
     @property
     def parameters(self):
-        return self.client.parameter.key_title_map
+        return self.client.parameter.data
 
     def get_stations(self, parameter: str = None):
         self.client.fetch_stations(parameter)
-        return self.client.station.id_name_map
+        return self.client.station.data
 
     def find_stations_from_gps(self):
         pass
