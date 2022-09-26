@@ -12,7 +12,7 @@ class SMHI:
     SMHI class with high-level functions.
     """
 
-    def __init__(self, type: str = "json", version: Union[str, int] = "latest"):
+    def __init__(self, type: str = "json", version: str = "1.0"):
         self.type = TYPE_MAP[type]
         self.client = MetObs(type)
         self.client.fetch_parameters(version)
