@@ -2,8 +2,10 @@
 Read SMHI data.
 """
 import json
+import math
 import requests
 from typing import Union
+from geopy import distance
 from collections import defaultdict
 
 
@@ -378,5 +380,16 @@ class SMHI:
         self.client.fetch_stations(None, parameter)
         return self.client.station.data
 
-    def find_stations_from_gps(self):
-        pass
+    def find_stations_from_gps(
+        self, parameter: int, dist: float, latitude: float, longitude: float
+    ):
+        user_position = (latitude, longitude)
+        self.get_stations(parameter)
+        self.d = []
+
+        for station in self.client.station.station:
+            station_position = (station["latitude"], station["longitude"])
+            station_distance = distance.distance(user_position, station_position)
+
+            if station_distance <= dist:
+                self.d.append(distance.distance(user_position, station_position))
