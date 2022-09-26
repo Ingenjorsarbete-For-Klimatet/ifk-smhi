@@ -49,7 +49,9 @@ class MetObs:
             version: selected API version
         """
         if version != "1.0":
-            raise Exception("Only supports version = 1.0.")
+            raise NotImplementedError(
+                "Version {} not supported. Only supports version = 1.0.".format(version)
+            )
 
         self.version = version
         self.parameter = SMHIParameterV1(self.type, self.available_versions, version)

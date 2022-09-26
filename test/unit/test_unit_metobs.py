@@ -4,7 +4,7 @@ SMHI MetObs unit tests.
 import pytest
 import unittest
 from unittest.mock import patch
-from smhi.metobs import MetObs
+from smhi.metobs import MetObs, SMHIParameterV1
 
 
 class TestUnitMetObs:
@@ -14,7 +14,7 @@ class TestUnitMetObs:
 
     @pytest.mark.parametrize(
         "data_type, expected_type",
-        [(None, "application/json"), ("json", "application/json")],
+        [(None, "application/json"), ("json", "application/json"), ("yaml", None)],
     )
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.json.loads")
@@ -32,6 +32,10 @@ class TestUnitMetObs:
         """
         if data_type is None:
             client = MetObs()
+        if data_type != "json":
+            with pytest.raises(NotImplementedError):
+                MetObs("yaml")
+            return None
         else:
             client = MetObs(data_type)
 
@@ -46,9 +50,42 @@ class TestUnitMetObs:
         mock_requests_get.assert_called_once()
         mock_json_loads.assert_called_once()
 
-    def test_unit_smhi_init_raise(self):
+    @pytest.mark.parametrize(
+        "version, expected_type",
+        [("1.0", "application/json"), ("latest", "application/json")],
+    )
+    @patch("smhi.metobs.SMHIParameterV1")
+    @patch("smhi.metobs.requests.get")
+    @patch("smhi.metobs.json.loads")
+    def test_unit_smhi_fetch_parameters(
+        self,
+        mock_requests_get,
+        mock_json_loads,
+        mock_smhiparameterv1,
+        version,
+        expected_type,
+    ):
         """
-        Unit test for MetObs init method raising error.
+        Unit test for MetObs fetch_parameters method.
+
+        Args:
+            mock_requests_get: mock requests get method
+            mock_json_loads: mock json loads method
+            mock_smhiparameterv1: mock of SMHIParameterV1
+            version: version of api
+            expected_type: expected result
         """
-        with pytest.raises(NotImplementedError, match=""):
-            MetObs("yaml")
+        client = MetObs()
+
+        if version is None:
+            client.fetch_parameters()
+        if version != "1.0":
+            with pytest.raises(NotImplementedError):
+                client.fetch_parameters(version)
+            return None
+        else:
+            client.fetch_parameters(version)
+
+        assert client.version == version
+        assert client.parameter == mock_smhiparameterv1.return_value
+        mock_smhiparameterv1.assert_called_once()
