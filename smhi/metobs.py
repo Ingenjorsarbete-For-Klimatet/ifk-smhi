@@ -1,8 +1,10 @@
 """
 SMHI Meteorological Observations client.
 """
+import io
 import json
 import requests
+import pandas as pd
 from typing import Union
 from smhi.constants import METOBS_URL, TYPE_MAP
 
@@ -342,11 +344,11 @@ class SMHIData:
             type: type of request
         """
         for item in self.data:
-            print(item)
             for link in item["link"]:
-                print(link)
                 if link["type"] != type:
                     continue
 
                 response = requests.get(link["href"])
-                return response.content
+                return pd.read_csv(
+                    io.StringIO(response.content.decode("utf-8")), on_bad_lines="skip"
+                )
