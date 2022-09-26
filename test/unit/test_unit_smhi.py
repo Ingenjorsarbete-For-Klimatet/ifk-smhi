@@ -3,25 +3,25 @@ SMHI unit tests.
 """
 
 from unittest.mock import patch
-from smhi.smhi import SMHIClient
+from smhi.metobs import MetObs
 
 
-class TestUnitSMHIClient:
+class TestUnitMetObs:
     """
     Unit tests for SMHI class.
     """
 
-    @patch("smhi.smhi.requests.get")
-    @patch("smhi.smhi.json.loads")
+    @patch("smhi.MetObs.requests.get")
+    @patch("smhi.MetObs.json.loads")
     def test_unit_smhi_init(self, mock_requests_get, mock_json_loads):
         """
-        Unit test for SMHIClient init method.
+        Unit test for MetObs init method.
 
         Args:
             mock_requests_get: mock requests get method
             mock_json_loads: mock json loads method
         """
-        client = SMHIClient()
+        client = MetObs()
 
         assert client.type == "application/json"
         mock_requests_get.assert_called_once()
