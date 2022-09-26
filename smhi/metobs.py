@@ -32,6 +32,7 @@ class MetObs:
         self.station = None
         self.period = None
         self.data = None
+        self.table_raw = None
         self.table = None
 
     def fetch_parameters(self, version: Union[str, int] = "latest"):
@@ -98,7 +99,8 @@ class MetObs:
             period: period
         """
         self.data = SMHIData(self.type, self.period.period, period)
-        self.table = self.data.fetch()
+        self.table_raw = self.data.fetch()
+        self.table = pd.read_csv(io.StringIO(self.table_raw), on_bad_lines="skip")
 
     def inspect(self, num_print: int = 10):
         """
@@ -349,6 +351,4 @@ class SMHIData:
                     continue
 
                 response = requests.get(link["href"])
-                return pd.read_csv(
-                    io.StringIO(response.content.decode("utf-8")), on_bad_lines="skip"
-                )
+                return response.content.decode("utf-8")
