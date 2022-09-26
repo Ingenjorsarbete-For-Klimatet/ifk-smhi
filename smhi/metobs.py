@@ -22,6 +22,11 @@ class MetObs:
         Args:
             type: type of request
         """
+        if type != "json":
+            raise NotImplementedError(
+                "API for type {0} is not supported for now. Use json".format(type)
+            )
+
         self.type = TYPE_MAP[type]
         response = requests.get(METOBS_URL)
         self.headers = response.headers
