@@ -29,42 +29,38 @@ def check_date_validity(
 
     Args:
         parameter: selected parameter
-        url:
-        time_url:
-        time_from:
-        time_to:
-        time_interval:
+        url: base url
+        time_url: time and date part of url
+        time_from: from time
+        time_to: to time
+        time_interval: time interval
     """
-    if time_from is not None:
-        if time_from is None:
-            raise NotImplementedError("All time arguments must be set.")
+    if time_to is None:
+        raise TypeError("All time arguments must be set.")
 
-        time_now = parameter.time_to()
+    time_now = parameter.time_to()
 
-        try:
-            time_from_parsed = datetime.strptime(time_from, STRANG_DATE_FORMAT)
-            time_to_parsed = datetime.strptime(time_to, STRANG_DATE_FORMAT)
-        except ValueError:
-            raise ValueError("Wrong format of from date, use %Y-%m-%d.")
+    try:
+        time_from_parsed = datetime.strptime(time_from, STRANG_DATE_FORMAT)
+        time_to_parsed = datetime.strptime(time_to, STRANG_DATE_FORMAT)
+    except ValueError:
+        raise ValueError("Wrong format of from date, use %Y-%m-%d.")
 
-        if (
-            time_from_parsed < parameter.time_from
-            or time_to_parsed < parameter.time_from
-        ):
-            raise ValueError("Data does not exist that far back.")
-        if time_from_parsed > time_now or time_to_parsed > time_now:
-            raise ValueError("Data does not exist for the future.")
+    if time_from_parsed < parameter.time_from or time_to_parsed < parameter.time_from:
+        raise ValueError("Data does not exist that far back.")
+    if time_from_parsed > time_now or time_to_parsed > time_now:
+        raise ValueError("Data does not exist for the future.")
 
-        if time_interval not in STRANG_TIME_INTERVALS:
-            raise ValueError("Time interval must be hourly, daily, monthly.")
+    if time_interval not in STRANG_TIME_INTERVALS:
+        raise ValueError("Time interval must be hourly, daily, monthly.")
 
-        url = url + time_url.format(
-            time_from=time_from,
-            time_to=time_to,
-            time_interval=time_interval,
-        )
+    url = url + time_url.format(
+        time_from=time_from,
+        time_to=time_to,
+        time_interval=time_interval,
+    )
 
-        return url
+    return url
 
 
 def fetch_and_load_strang_data(url: str):
@@ -138,8 +134,8 @@ class Strang:
             time_to: get data to (optional),
             time_interval: interval of data [valid values: hourly, daily, monthly] (optional)
         """
-        self.latitude = latitude
         self.longitude = longitude
+        self.latitude = latitude
         self.parameter = [
             p for p in self.available_parameters if p.parameter == parameter
         ]
@@ -156,12 +152,14 @@ class Strang:
             parameter=self.parameter.parameter,
         )
 
-        self.url = check_date_validity(
-            self.parameter,
-            self.url,
-            self.time_url,
-            time_from,
-            time_to,
-            time_interval,
-        )
+        if time_from is not None:
+            self.url = check_date_validity(
+                self.parameter,
+                self.url,
+                self.time_url,
+                time_from,
+                time_to,
+                time_interval,
+            )
+
         self.status, self.headers, self.data = fetch_and_load_strang_data(self.url)
