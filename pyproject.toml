@@ -16,4 +16,11 @@ requires-python = ">=3.10"
 dependencies = ["requests ~= 2.28", "pandas ~= 1.5", "geopy ~= 2.2"]
 
 [project.optional-dependencies]
-dev = ["pytest ~= 7.1", "black ~= 22.8", "flake8 ~= 5.0", "pre-commit ~= 2.20"]
+dev = [
+    "pytest ~= 7.1",
+    "black ~= 22.8",
+    "flake8 ~= 5.0",
+    "pre-commit ~= 2.20",
+    "coverage ~= 6.4",
+    "pytest-cov ~= 4.0",
+]
