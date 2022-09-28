@@ -1,6 +1,7 @@
 """
 Constans.
 """
+from datetime import datetime
 from collections import defaultdict
 from collections import namedtuple
 
@@ -15,12 +16,45 @@ STRANG_URL = (
     + "{lat}/parameter/{parameter}/data.json"
 )
 STRANG_URL_TIME = "?from={time_from}&to={time_to}&interval={time_interval}"
-STRANG = namedtuple("STRANG", "parameter meaning availability")
+STRANG = namedtuple("STRANG", "parameter meaning time_from time_to")
+STRANG_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+STRANG_DATE_FORMAT = "%Y-%m-%d"
+STRANG_TIME_INTERVALS = ["hourly", "daily", "monthly"]
 STRANG_PARAMETERS = [
-    STRANG(116, "CIE UV irradiance [mW/m²]", "1999-01-01 - present"),
-    STRANG(117, "Global irradiance [W/m²]", "1999-01-01 - present"),
-    STRANG(118, "Direct normal irradiance [W/m²]", "1999-01-01 - present"),
-    STRANG(120, "PAR [W/m²]", "1999-01-01 - present"),
-    STRANG(121, "Direct horizontal irradiance [W/m²]", "2017-04-18 - present"),
-    STRANG(122, "Diffuse irradiance [W/m²]", "2017-04-18 - present"),
+    STRANG(
+        116,
+        "CIE UV irradiance [mW/m²]",
+        datetime.strptime("1999-01-01", STRANG_DATE_FORMAT),
+        lambda: datetime.now().strftime(STRANG_DATE_FORMAT),
+    ),
+    STRANG(
+        117,
+        "Global irradiance [W/m²]",
+        datetime.strptime("1999-01-01", STRANG_DATE_FORMAT),
+        lambda: datetime.now().strftime(STRANG_DATE_FORMAT),
+    ),
+    STRANG(
+        118,
+        "Direct normal irradiance [W/m²]",
+        datetime.strptime("1999-01-01", STRANG_DATE_FORMAT),
+        lambda: datetime.now().strftime(STRANG_DATE_FORMAT),
+    ),
+    STRANG(
+        120,
+        "PAR [W/m²]",
+        datetime.strptime("1999-01-01", STRANG_DATE_FORMAT),
+        lambda: datetime.now().strftime(STRANG_DATE_FORMAT),
+    ),
+    STRANG(
+        121,
+        "Direct horizontal irradiance [W/m²]",
+        datetime.strptime("2017-04-18", STRANG_DATE_FORMAT),
+        lambda: datetime.now().strftime(STRANG_DATE_FORMAT),
+    ),
+    STRANG(
+        122,
+        "Diffuse irradiance [W/m²]",
+        datetime.strptime("2017-04-18", STRANG_DATE_FORMAT),
+        lambda: datetime.now().strftime(STRANG_DATE_FORMAT),
+    ),
 ]
