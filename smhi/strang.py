@@ -39,7 +39,7 @@ def check_date_validity(
         if time_from is None:
             raise NotImplementedError("All time arguments must be set.")
 
-        time_now = datetime.now()
+        time_now = parameter.time_to()
 
         try:
             time_from_parsed = datetime.strptime(time_from, STRANG_DATE_FORMAT)
