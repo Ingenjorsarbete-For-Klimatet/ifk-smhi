@@ -141,9 +141,9 @@ class StrangPoint:
             return date
 
         try:
-            date = arrow.get(date)
+            date = arrow.get(date).datetime
         except ValueError:
-            raise ValueError("Wrong format of from date.")
+            raise ValueError("Wrong format of date.")
 
         if self.parameter.date_from < date < self.parameter.date_to():
             return date
