@@ -10,16 +10,19 @@ TYPE_MAP = defaultdict(lambda: "application/json", json="application/json")
 
 METOBS_URL = "https://opendata-download-metobs.smhi.se/api.json"
 
-STRANG_URL = (
+
+STRANG_POINT_URL = (
     "https://opendata-download-metanalys.smhi.se/api/category/"
     + "{category}/version/{version}/geotype/point/lon/{lon}/lat/"
     + "{lat}/parameter/{parameter}/data.json"
 )
-STRANG_URL_TIME = "?from={time_from}&to={time_to}&interval={time_interval}"
-STRANG = namedtuple("STRANG", "parameter meaning time_from time_to")
+STRANG_POINT_URL_TIME = "?from={time_from}&to={time_to}&interval={time_interval}"
+
+
 STRANG_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 STRANG_DATE_FORMAT = "%Y-%m-%d"
 STRANG_TIME_INTERVALS = ["hourly", "daily", "monthly"]
+STRANG = namedtuple("STRANG", "parameter meaning time_from time_to")
 STRANG_PARAMETERS = [
     STRANG(
         116,
