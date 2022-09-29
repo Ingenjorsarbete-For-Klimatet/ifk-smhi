@@ -1,19 +1,16 @@
 """
 SMHI unit tests.
 """
+import arrow
 import pytest
 from datetime import datetime
 from functools import partial
 from unittest.mock import patch
-from smhi.strang import StrangPoint, check_date_validity, fetch_and_load_strang_data
+from smhi.strang import StrangPoint
 from smhi.constants import (
     STRANG,
     STRANG_POINT_URL,
-    STRANG_POINT_URL_TIME,
     STRANG_PARAMETERS,
-    STRANG_DATE_FORMAT,
-    STRANG_DATETIME_FORMAT,
-    STRANG_TIME_INTERVALS,
 )
 
 
@@ -26,7 +23,7 @@ class TestUnitStrangPoint:
     Unit tests for STRÅNG Point class.
     """
 
-    def test_unit_strang_init(self):
+    def test_unit_strang_point_init(self):
         """
         Unit test for STRÅNG Point init method.
 
@@ -45,13 +42,7 @@ class TestUnitStrangPoint:
         assert client.status is None
         assert client.header is None
         assert client.data is None
-
-        assert (
-            all(
-                [x == y for x, y in zip(client.available_parameters, STRANG_PARAMETERS)]
-            )
-            is True
-        )
+        assert client.available_parameters == STRANG_PARAMETERS
 
         raw_url_dict = {"category": CATEGORY, "version": VERSION}
         for k1, k2 in zip(
@@ -60,17 +51,14 @@ class TestUnitStrangPoint:
             assert k1 == k2
             assert raw_url_dict[k1] == client.raw_url.keywords[k2]
 
-        assert client.time_url is STRANG_POINT_URL_TIME
         assert client.url is None
 
-    def test_unit_strang_parameters(self):
+    def test_unit_strang_point_parameters(self):
         """
         Unit test for STRÅNG Point parameters get property.
         """
         client = StrangPoint()
-        assert (
-            all([x == y for x, y in zip(client.parameters, STRANG_PARAMETERS)]) is True
-        )
+        assert client.available_parameters == STRANG_PARAMETERS
 
     @pytest.mark.parametrize(
         "lon, lat, parameter, time_from, time_to, time_interval",
@@ -79,7 +67,7 @@ class TestUnitStrangPoint:
                 0,
                 0,
                 STRANG(
-                    0,
+                    None,
                     None,
                     None,
                     None,
@@ -106,12 +94,12 @@ class TestUnitStrangPoint:
             ),
         ],
     )
-    @patch("smhi.strang.check_date_validity")
-    @patch("smhi.strang.fetch_and_load_strang_data", return_value=(1, 2, 3))
-    def test_unit_strang_fetch_data(
+    @patch("smhi.strang.StrangPoint._fetch_and_load_strang_data")
+    @patch("smhi.strang.StrangPoint._build_date_url", return_value=(1, 2, 3))
+    def test_unit_strang_point_fetch_data(
         self,
+        mock_build_date_url,
         mock_fetch_and_load_strang_data,
-        mock_check_date_validity,
         lon,
         lat,
         parameter,
@@ -123,8 +111,8 @@ class TestUnitStrangPoint:
         Unit test for STRÅNG Point fetch_data method.
 
         Args:
-            mock_check_date_validity: mock check_date_validity method
-            mock_fetch_and_load_strang_data: mock fetch_and_load_strang_data method
+            mock_build_date_url: mock _build_date_url method
+            mock_fetch_and_load_strang_data: mock _fetch_and_load_strang_data method
             lon: longitude
             lat: latitude
             parameter: parameter
@@ -134,9 +122,8 @@ class TestUnitStrangPoint:
         """
         client = StrangPoint()
         url = partial(STRANG_POINT_URL.format, category=CATEGORY, version=VERSION)
-        time_url = STRANG_POINT_URL_TIME
 
-        if parameter.parameter == 0:
+        if parameter.parameter is None:
             with pytest.raises(NotImplementedError):
                 client.fetch_data(
                     lon,
@@ -158,109 +145,26 @@ class TestUnitStrangPoint:
 
             assert client.longitude == lon
             assert client.latitude == lat
-            assert (
-                client.parameter
-                == [p for p in STRANG_PARAMETERS if p.parameter == parameter.parameter][
-                    0
-                ]
-            )
+            assert client.parameter == parameter.parameter
 
             url = url(lon=lon, lat=lat, parameter=parameter.parameter)
-            if time_from is not None:
-                mock_check_date_validity.assert_called_once_with(
-                    parameter,
-                    url.format(
-                        category=CATEGORY,
-                        version=VERSION,
-                        lon=lon,
-                        lat=lat,
-                        parameter=parameter.parameter,
-                    ),
-                    time_url,
-                    time_from,
-                    time_to,
-                    time_interval,
-                )
-                mock_fetch_and_load_strang_data.assert_called_once_with(
-                    mock_check_date_validity.return_value
-                )
-            else:
-                assert url == client.url
-                mock_fetch_and_load_strang_data.assert_called_once_with(url)
 
-    def test_unit_strang_check_date_validity(self):
+            mock_build_date_url.assert_called_once()
+            mock_fetch_and_load_strang_data.assert_called_once()
+
+    @patch("smhi.strang.StrangPoint._parse_date")
+    def test_unit_strang_point_build_date_url(self, mock_parse_date):
         """
-        Unit test for STRANG Point check_date_validity function, type error and interval error.
-        """
-        parameter = STRANG_PARAMETERS[0]
-        url = "URL"
-        time_url = "URL_TIME"
-
-        with pytest.raises(TypeError):
-            time_from = "2020-01-01"
-            time_to = None
-            time_interval = "hourly"
-            check_date_validity(
-                parameter, url, time_url, time_from, time_to, time_interval
-            )
-
-        with pytest.raises(ValueError):
-            time_from = "2020-01-01"
-            time_to = "2022-01-01"
-            time_interval = "minutly"
-            check_date_validity(
-                parameter, url, time_url, time_from, time_to, time_interval
-            )
-
-    @pytest.mark.parametrize(
-        "time_from, time_to",
-        [
-            ("20222-01-01", "2022-01-01"),
-            ("2022-012-01", "2022-01-01"),
-            ("2022-01-012", "2022-01-01"),
-            ("2022-01-01", "20222-01-01"),
-            ("2022-01-01", "2022-012-01"),
-            ("2022-01-01", "2022-01-012"),
-            ("1900-01-01", "2022-01-01"),
-            ("2010-01-01", "3000-01-01"),
-            ("2010-01-01", "1900-01-01"),
-            ("3000-01-01", "2022-01-01"),
-        ],
-    )
-    def test_unit_strang_check_date_validity_valueerror(self, time_from, time_to):
-        """
-        Unit test for STRANG Point check_date_validity function, value error, bounds and format.
+        Unit test for STRANG Point _build_date_url method
 
         Args:
-            time_from: time from
-            time_to: time to
+            mock_parse_date: mock of _parse_date method
         """
-        parameter = STRANG_PARAMETERS[0]
-        url = "URL"
-        time_url = "URL_TIME"
-        time_interval = "hourly"
-
-        with pytest.raises(ValueError):
-            check_date_validity(
-                parameter, url, time_url, time_from, time_to, time_interval
-            )
-
-    def test_unit_strang_check_date_validity_correct(self):
-        """
-        Unit test for STRANG Point check_date_validity function, correct input.
-        """
-        parameter = STRANG_PARAMETERS[0]
-        url = "URL"
-        time_url = "{time_from} {time_to} {time_interval}"
-        time_from = "2020-01-01"
-        time_to = "2020-01-02"
-        time_interval = "hourly"
-
-        returned_url = check_date_validity(
-            parameter, url, time_url, time_from, time_to, time_interval
-        )
-
-        assert returned_url == "URL2020-01-01 2020-01-02 hourly"
+        pass
+        # client = StrangPoint()
+        # client.date_from = self._parse_date(self.date_from)
+        # client.date_to = self._parse_date(self.date_to)
+        # client.date_interval = self.date_interval.
 
     @pytest.mark.parametrize(
         "ok, date_time",
@@ -280,11 +184,11 @@ class TestUnitStrangPoint:
     @patch(
         "smhi.strang.json.loads", return_value=[{"date_time": "2020-01-01T00:00:00Z"}]
     )
-    def test_unit_strang_fetch_and_load_strang_data(
+    def test_unit_strang_point_fetch_and_load_strang_data(
         self, mock_json_loads, mock_requests_get, ok, date_time
     ):
         """
-        Unit test for STRANG Point fetch_and_load_strang_data function.
+        Unit test for STRANG Point fetch_and_load_strang_data method.
 
         Args:
             mock_requests_get: mock requests get method
@@ -292,11 +196,12 @@ class TestUnitStrangPoint:
             ok: request status
             date_time: date
         """
-        url = "URL"
+        client = StrangPoint()
+        client.url = "URL"
         mock_json_loads.return_value = date_time
         mock_requests_get.return_value.ok = ok
-        status, headers, data = fetch_and_load_strang_data(url)
-        mock_requests_get.assert_called_once_with(url)
+        status, headers, data = client._fetch_and_load_strang_data()
+        mock_requests_get.assert_called_once_with(client.url)
 
         if ok is True:
             mock_json_loads.assert_called_once_with(
@@ -304,11 +209,36 @@ class TestUnitStrangPoint:
             )
             assert status is ok
             assert headers == "header"
-            assert data[0]["date_time"] == datetime.strptime(
-                "2020-01-01T00:00:00Z", STRANG_DATETIME_FORMAT
-            )
+            assert data[0]["date_time"] == arrow.get("2020-01-01T00:00:00Z").datetime
 
         else:
             assert status is ok
             assert headers == "header"
             assert data is None
+
+    @pytest.mark.parametrize(
+        "parameter, date, expected",
+        [
+            (STRANG_PARAMETERS[0], None, None),
+            (STRANG_PARAMETERS[0], "Q", None),
+            (STRANG_PARAMETERS[116], "1900", None),
+            (STRANG_PARAMETERS[116], "2000", arrow.get("2000").datetime),
+        ],
+    )
+    def test_unit_strang_point_parse_date(self, parameter, date, expected):
+        """
+        Unit test for STRANG Point _parse_date method.
+
+        Args:
+            parameter: selected parameter
+            date: input data to parse
+            expected: expected result
+        """
+        client = StrangPoint()
+        client.parameter = parameter
+
+        if date == "Q" or date == "1900":
+            with pytest.raises(ValueError):
+                client._parse_date(date)
+        else:
+            assert client._parse_date(date) == expected
