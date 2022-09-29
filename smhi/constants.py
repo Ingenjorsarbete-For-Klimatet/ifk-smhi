@@ -1,7 +1,7 @@
 """
 Constans.
 """
-from datetime import datetime
+import arrow
 from collections import defaultdict
 from collections import namedtuple
 
@@ -15,46 +15,44 @@ STRANG_POINT_URL = (
     + "{lat}/parameter/{parameter}/data.json"
 )
 
-STRANG_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-STRANG_DATE_FORMAT = "%Y-%m-%d"
 STRANG_DATE_INTERVALS = ["hourly", "daily", "monthly"]
 STRANG = namedtuple("STRANG", "parameter meaning date_from date_to")
-STRANG_GET_NOW = lambda: datetime.utcnow()  # .isoformat("T", "seconds") + "Z"
+STRANG_GET_NOW = lambda: arrow.utcnow().datetime  # .isoformat("T", "seconds") + "Z"
 STRANG_PARAMETERS = defaultdict(lambda: STRANG(None, "Missing", None, None))
 STRANG_PARAMETERS[116] = STRANG(
     116,
     "CIE UV irradiance [mW/m²]",
-    datetime.strptime("1999-01-01", STRANG_DATE_FORMAT),
+    arrow.get("1999-01-01"),
     STRANG_GET_NOW,
 )
 
 STRANG_PARAMETERS[117] = STRANG(
     117,
     "Global irradiance [W/m²]",
-    datetime.strptime("1999-01-01", STRANG_DATE_FORMAT),
+    arrow.get("1999-01-01"),
     STRANG_GET_NOW,
 )
 STRANG_PARAMETERS[118] = STRANG(
     118,
     "Direct normal irradiance [W/m²]",
-    datetime.strptime("1999-01-01", STRANG_DATE_FORMAT),
+    arrow.get("1999-01-01"),
     STRANG_GET_NOW,
 )
 STRANG_PARAMETERS[120] = STRANG(
     120,
     "PAR [W/m²]",
-    datetime.strptime("1999-01-01", STRANG_DATE_FORMAT),
+    arrow.get("1999-01-01"),
     STRANG_GET_NOW,
 )
 STRANG_PARAMETERS[121] = STRANG(
     121,
     "Direct horizontal irradiance [W/m²]",
-    datetime.strptime("2017-04-18", STRANG_DATE_FORMAT),
+    arrow.get("2017-04-18"),
     STRANG_GET_NOW,
 )
 STRANG_PARAMETERS[122] = STRANG(
     122,
     "Diffuse irradiance [W/m²]",
-    datetime.strptime("2017-04-18", STRANG_DATE_FORMAT),
+    arrow.get("2017-04-18"),
     STRANG_GET_NOW,
 )

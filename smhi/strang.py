@@ -2,15 +2,13 @@
 SMHI STRÅNG client.
 """
 import json
+import arrow
 import requests
-from datetime import datetime
 from functools import partial
 from smhi.constants import (
     STRANG,
     STRANG_POINT_URL,
     STRANG_PARAMETERS,
-    STRANG_DATE_FORMAT,
-    STRANG_DATETIME_FORMAT,
     STRANG_DATE_INTERVALS,
 )
 
@@ -105,10 +103,10 @@ class StrangPoint:
             if date_interval not in STRANG_DATE_INTERVALS:
                 raise ValueError("Time interval must be hourly, daily or monthly.")
             url = url + "&interval={date_interval}".format(date_interval=date_interval)
-        else:
-            raise NotImplementedError(
-                "Date from and to not specified but interval is. Be more explicit."
-            )
+        # else:
+        #    raise NotImplementedError(
+        #        "Date from and to not specified but interval is. Be more explicit."
+        #    )
 
         return url
 
@@ -125,15 +123,13 @@ class StrangPoint:
             data = json.loads(response.content)
 
             for entry in data:
-                entry["date_time"] = datetime.strptime(
-                    entry["date_time"], STRANG_DATETIME_FORMAT
-                )
+                entry["date_time"] = arrow.get(entry["date_time"]).datetime
 
         return status, headers, data
 
     def _parse_date(self, date):
         """
-        Parse date given as string into a datetime format.
+        Parse date into a datetime format given as string and check bounds.
 
         Args:
             date: date as string
@@ -145,21 +141,12 @@ class StrangPoint:
             return date
 
         try:
-            date = datetime.strptime(date, STRANG_DATE_FORMAT)
-            self._check_date(date)
-            return date
+            date = arrow.get(date)
         except ValueError:
-            raise ValueError("Wrong format of from date, use %Y-%m-%d.")
+            raise ValueError("Wrong format of from date.")
 
-    def _check_date(self, date):
-        """
-        Check date bounds.
-
-        Args:
-            date: date to check
-        """
         if self.parameter.date_from < date < self.parameter.date_to():
-            pass
+            return date
         else:
             raise ValueError(
                 "Date not in allowed interval: {date_from} to {date_to}.".format(
