@@ -2,12 +2,12 @@
 STRÅNG integration tests.
 """
 import pytest
-from smhi.strang import Strang
+from smhi.strang import StrangPoint
 
 
-class TestIntegrationStrang:
+class TestIntegrationStrangPoint:
     """
-    Integration tests for STRÅNG class.
+    Integration tests for STRÅNG Point class.
     """
 
     @pytest.mark.parametrize(
@@ -18,7 +18,7 @@ class TestIntegrationStrang:
         self, lon, lat, parameter, time_from, time_to, time_interval
     ):
         """
-        STRÅNG class integration tests. These tests require internet connectivity.
+        STRÅNG Point class integration tests. These tests require internet connectivity.
 
         Args:
             lon: latitude
@@ -28,4 +28,5 @@ class TestIntegrationStrang:
             time_to: to
             time_interval: interval
         """
-        pass
+        client = StrangPoint()
+        # client.fetch_data(lon, lat, parameter)

@@ -7,8 +7,8 @@ from datetime import datetime
 from functools import partial
 from smhi.constants import (
     STRANG,
-    STRANG_URL,
-    STRANG_URL_TIME,
+    STRANG_POINT_URL,
+    STRANG_POINT_URL_TIME,
     STRANG_PARAMETERS,
     STRANG_DATE_FORMAT,
     STRANG_DATETIME_FORMAT,
@@ -86,9 +86,9 @@ def fetch_and_load_strang_data(url: str):
     return status, headers, data
 
 
-class Strang:
+class StrangPoint:
     """
-    SMHI STRÅNG class. Only supports category strang1g and version 1.
+    SMHI STRÅNG  Pointclass. Only supports category strang1g and version 1.
     """
 
     def __init__(self):
@@ -107,9 +107,9 @@ class Strang:
 
         self.available_parameters = STRANG_PARAMETERS
         self.raw_url = partial(
-            STRANG_URL.format, category=self._category, version=self._version
+            STRANG_POINT_URL.format, category=self._category, version=self._version
         )
-        self.time_url = STRANG_URL_TIME
+        self.time_url = STRANG_POINT_URL_TIME
         self.url = None
 
     @property

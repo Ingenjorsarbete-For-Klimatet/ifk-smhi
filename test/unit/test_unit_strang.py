@@ -1,15 +1,15 @@
 """
 SMHI unit tests.
 """
-from datetime import datetime
 import pytest
+from datetime import datetime
 from functools import partial
 from unittest.mock import patch
-from smhi.strang import Strang, check_date_validity, fetch_and_load_strang_data
+from smhi.strang import StrangPoint, check_date_validity, fetch_and_load_strang_data
 from smhi.constants import (
     STRANG,
-    STRANG_URL,
-    STRANG_URL_TIME,
+    STRANG_POINT_URL,
+    STRANG_POINT_URL_TIME,
     STRANG_PARAMETERS,
     STRANG_DATE_FORMAT,
     STRANG_DATETIME_FORMAT,
@@ -21,20 +21,20 @@ CATEGORY = "strang1g"
 VERSION = 1
 
 
-class TestUnitStrang:
+class TestUnitStrangPoint:
     """
-    Unit tests for STRÅNG class.
+    Unit tests for STRÅNG Point class.
     """
 
     def test_unit_strang_init(self):
         """
-        Unit test for STRÅNG init method.
+        Unit test for STRÅNG Point init method.
 
         Args:
             mock_requests_get: mock requests get method
             mock_json_loads: mock json loads method
         """
-        client = Strang()
+        client = StrangPoint()
 
         assert client._category == CATEGORY
         assert client._version == VERSION
@@ -60,14 +60,14 @@ class TestUnitStrang:
             assert k1 == k2
             assert raw_url_dict[k1] == client.raw_url.keywords[k2]
 
-        assert client.time_url is STRANG_URL_TIME
+        assert client.time_url is STRANG_POINT_URL_TIME
         assert client.url is None
 
     def test_unit_strang_parameters(self):
         """
-        Unit test for STRÅNG parameters get property.
+        Unit test for STRÅNG Point parameters get property.
         """
-        client = Strang()
+        client = StrangPoint()
         assert (
             all([x == y for x, y in zip(client.parameters, STRANG_PARAMETERS)]) is True
         )
@@ -120,7 +120,7 @@ class TestUnitStrang:
         time_interval,
     ):
         """
-        Unit test for STRÅNG fetch_data method.
+        Unit test for STRÅNG Point fetch_data method.
 
         Args:
             mock_check_date_validity: mock check_date_validity method
@@ -132,9 +132,9 @@ class TestUnitStrang:
             time_to: to time
             time_interval: time interval
         """
-        client = Strang()
-        url = partial(STRANG_URL.format, category=CATEGORY, version=VERSION)
-        time_url = STRANG_URL_TIME
+        client = StrangPoint()
+        url = partial(STRANG_POINT_URL.format, category=CATEGORY, version=VERSION)
+        time_url = STRANG_POINT_URL_TIME
 
         if parameter.parameter == 0:
             with pytest.raises(NotImplementedError):
@@ -190,7 +190,7 @@ class TestUnitStrang:
 
     def test_unit_strang_check_date_validity(self):
         """
-        Unit test for STRANG check_date_validity function, type error and interval error.
+        Unit test for STRANG Point check_date_validity function, type error and interval error.
         """
         parameter = STRANG_PARAMETERS[0]
         url = "URL"
@@ -229,7 +229,7 @@ class TestUnitStrang:
     )
     def test_unit_strang_check_date_validity_valueerror(self, time_from, time_to):
         """
-        Unit test for STRANG check_date_validity function, value error, bounds and format.
+        Unit test for STRANG Point check_date_validity function, value error, bounds and format.
 
         Args:
             time_from: time from
@@ -247,7 +247,7 @@ class TestUnitStrang:
 
     def test_unit_strang_check_date_validity_correct(self):
         """
-        Unit test for STRANG check_date_validity function, correct input.
+        Unit test for STRANG Point check_date_validity function, correct input.
         """
         parameter = STRANG_PARAMETERS[0]
         url = "URL"
@@ -284,7 +284,7 @@ class TestUnitStrang:
         self, mock_json_loads, mock_requests_get, ok, date_time
     ):
         """
-        Unit test for STRANG fetch_and_load_strang_data function.
+        Unit test for STRANG Point fetch_and_load_strang_data function.
 
         Args:
             mock_requests_get: mock requests get method
