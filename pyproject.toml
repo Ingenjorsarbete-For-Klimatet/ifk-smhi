@@ -13,7 +13,12 @@ authors = [
     { name = "Mladen Gibanica", email = "11275336+mgcth@users.noreply.github.com" },
 ]
 requires-python = ">=3.10"
-dependencies = ["requests ~= 2.28", "pandas ~= 1.5", "geopy ~= 2.2"]
+dependencies = [
+    "requests ~= 2.28",
+    "pandas ~= 1.5",
+    "geopy ~= 2.2",
+    "arrow ~= 1.2",
+]
 
 [project.optional-dependencies]
 dev = [
