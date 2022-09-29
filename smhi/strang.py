@@ -73,10 +73,12 @@ def fetch_and_load_strang_data(url: str):
     response = requests.get(url)
     status = response.ok
     headers = response.headers
+    data = None
+
     if status is True:
         data = json.loads(response.content)
 
-        for entry in self.data:
+        for entry in data:
             entry["date_time"] = datetime.strptime(
                 entry["date_time"], STRANG_DATETIME_FORMAT
             )
@@ -118,7 +120,7 @@ class Strang:
         self,
         longitude: float,
         latitude: float,
-        parameter: int,
+        parameter: STRANG,
         time_from: str = None,
         time_to: str = None,
         time_interval: str = "hourly",
@@ -137,7 +139,7 @@ class Strang:
         self.longitude = longitude
         self.latitude = latitude
         self.parameter = [
-            p for p in self.available_parameters if p.parameter == parameter
+            p for p in self.available_parameters if p.parameter == parameter.parameter
         ]
         if len(self.parameter) != 0:
             self.parameter = self.parameter[0]
