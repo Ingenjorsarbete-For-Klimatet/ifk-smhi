@@ -16,77 +16,6 @@ from smhi.constants import (
 )
 
 
-def check_date(date):
-    time_now = parameter.date_to()
-
-    try:
-        date_from_parsed = datetime.strptime(date_from, STRANG_DATE_FORMAT)
-        date_to_parsed = datetime.strptime(date_to, STRANG_DATE_FORMAT)
-    except ValueError:
-        raise ValueError("Wrong format of from date, use %Y-%m-%d.")
-
-    if date_from_parsed < parameter.date_from or date_to_parsed < parameter.date_from:
-        raise ValueError("Data does not exist that far back.")
-    if date_from_parsed > time_now or date_to_parsed > time_now:
-        raise ValueError("Data does not exist for the future.")
-
-
-def build_date_url(
-    url: str,
-    date_from: str,
-    date_to: str,
-    date_interval: str,
-):
-    """
-    Build date part of the API url.
-
-    Args:
-        url: base url
-        date_from: from time
-        date_to: to time
-        date_interval: time interval
-    """
-    url = url + "?"
-
-    if date_from is not None:
-        check_date(date_from)
-        url = url + "from={date_from}".format(date_from=date_from)
-
-    if date_to is not None:
-        check_date(date_to)
-        url = url + "&to={date_to}".format(date_to=date_to)
-
-    if date_interval is not None:
-        if date_interval not in STRANG_DATE_INTERVALS:
-            raise ValueError("Time interval must be hourly, daily or monthly.")
-        url = url + "&interval={date_interval}".format(date_interval=date_interval)
-
-    return url
-
-
-def fetch_and_load_strang_data(url: str):
-    """
-    Fetch requested data and parse it with datetime.
-
-    Args:
-        url: url to fetch data
-    """
-    response = requests.get(url)
-    status = response.ok
-    headers = response.headers
-    data = None
-
-    if status is True:
-        data = json.loads(response.content)
-
-        for entry in data:
-            entry["date_time"] = datetime.strptime(
-                entry["date_time"], STRANG_DATETIME_FORMAT
-            )
-
-    return status, headers, data
-
-
 class StrangPoint:
     """
     SMHI STRÅNG Pointclass. Only supports category strang1g and version 1.
@@ -138,6 +67,9 @@ class StrangPoint:
         self.longitude = longitude
         self.latitude = latitude
         self.parameter = self.available_parameters[parameter]
+        self.date_from = date_from
+        self.date_to = date_to
+        self.date_interval = date_interval
 
         if self.parameter.parameter is None:
             raise NotImplementedError(
@@ -150,10 +82,79 @@ class StrangPoint:
             parameter=self.parameter.parameter,
         )
 
-        self.url = build_date_url(
-            self.url,
-            date_from,
-            date_to,
-            date_interval,
-        )
-        self.status, self.headers, self.data = fetch_and_load_strang_data(self.url)
+        self.url = self._build_date_url()
+        self.status, self.headers, self.data = self._fetch_and_load_strang_data()
+
+    def _build_date_url(self):
+        """
+        Build date part of the API url.
+        """
+        date_from = self._parse_date(self.date_from)
+        date_to = self._parse_date(self.date_to)
+        date_interval = self.date_interval
+        url = self.url + "?"
+
+        if date_from is not None:
+            url = url + "from={date_from}".format(date_from=date_from)
+
+        if date_to is not None:
+            if date_from is not None:
+                url = url + "&"
+            url = url + "to={date_to}".format(date_to=date_to)
+
+        if date_interval is not None and (date_from is not None or date_to is not None):
+            if date_interval not in STRANG_DATE_INTERVALS:
+                raise ValueError("Time interval must be hourly, daily or monthly.")
+            url = url + "&interval={date_interval}".format(date_interval=date_interval)
+
+        return url
+
+    def _fetch_and_load_strang_data(self):
+        """
+        Fetch requested data and parse it with datetime.
+        """
+        response = requests.get(self.url)
+        status = response.ok
+        headers = response.headers
+        data = None
+
+        if status is True:
+            data = json.loads(response.content)
+
+            for entry in data:
+                entry["date_time"] = datetime.strptime(
+                    entry["date_time"], STRANG_DATETIME_FORMAT
+                )
+
+        return status, headers, data
+
+    def _parse_date(self, date):
+        """
+        Parse date given as string into a datetime format.
+
+        Args:
+            date: date as string
+
+        Returns:
+            parsed date
+        """
+        try:
+            date = datetime.strptime(date, STRANG_DATE_FORMAT)
+            self._check_date(date)
+            return date
+        except ValueError:
+            raise ValueError("Wrong format of from date, use %Y-%m-%d.")
+
+    def _check_date(self, date):
+        """
+        Check date bounds.
+
+        Args:
+            date: date to check
+        """
+        if self.parameter.date_from < date < self.parameter.date_to():
+            raise ValueError(
+                "Date not in allowed interval: {date_from} to {date_to}.".format(
+                    date_from=self.parameter.date_from, date_to=self.parameter.date_to()
+                )
+            )
