@@ -8,7 +8,6 @@ from functools import partial
 from smhi.constants import (
     STRANG,
     STRANG_POINT_URL,
-    STRANG_POINT_URL_TIME,
     STRANG_PARAMETERS,
     STRANG_DATE_FORMAT,
     STRANG_DATETIME_FORMAT,
@@ -54,7 +53,7 @@ class StrangPoint:
         date_interval: str = None,
     ):
         """
-        Get data for given lat, long and parameter.
+        Get data for given lon, lat and parameter.
 
         Args:
             longitude: longitude
@@ -106,6 +105,10 @@ class StrangPoint:
             if date_interval not in STRANG_DATE_INTERVALS:
                 raise ValueError("Time interval must be hourly, daily or monthly.")
             url = url + "&interval={date_interval}".format(date_interval=date_interval)
+        else:
+            raise NotImplementedError(
+                "Date from and to not specified but interval is. Be more explicit."
+            )
 
         return url
 
@@ -138,6 +141,9 @@ class StrangPoint:
         Returns:
             parsed date
         """
+        if date is None:
+            return date
+
         try:
             date = datetime.strptime(date, STRANG_DATE_FORMAT)
             self._check_date(date)
@@ -153,6 +159,8 @@ class StrangPoint:
             date: date to check
         """
         if self.parameter.date_from < date < self.parameter.date_to():
+            pass
+        else:
             raise ValueError(
                 "Date not in allowed interval: {date_from} to {date_to}.".format(
                     date_from=self.parameter.date_from, date_to=self.parameter.date_to()
