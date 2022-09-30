@@ -14,20 +14,20 @@ class MetObs:
     SMHI data class.
     """
 
-    def __init__(self, type: str = "json"):
+    def __init__(self, data_type: str = "json"):
         """
         Initialise the SMHI MetObs class with a data type format used to fetch data.
         For now, only supports `json` and version 1.
 
         Args:
-            type: type of request
+            data_type: type of request
         """
-        if type != "json":
+        if data_type != "json":
             raise NotImplementedError(
-                "API for type {0} is not supported for now. Use json".format(type)
+                "API for type {0} is not supported for now. Use json".format(data_type)
             )
 
-        self.type = TYPE_MAP[type]
+        self.data_type = TYPE_MAP[data_type]
         response = requests.get(METOBS_URL)
         self.headers = response.headers
         self.content = json.loads(response.content)
@@ -57,7 +57,7 @@ class MetObs:
             )
 
         self.version = version
-        self.parameter = MetObsParameterV1(self.type, self.available_versions, version)
+        self.parameter = MetObsParameterV1(self.available_versions)
 
     def fetch_stations(self, parameter: str = None, parameter_title: str = None):
         """
@@ -70,13 +70,11 @@ class MetObs:
         if parameter is None and parameter_title is None:
             raise NotImplementedError("Both arguments None.")
 
-        if self.parameter is not None:
-            self.station = MetObsStationV1(
-                self.type, self.parameter.resource, parameter=parameter
-            )
+        if parameter:
+            self.station = MetObsStationV1(self.parameter.resource, parameter=parameter)
         else:
             self.station = MetObsStationV1(
-                self.type, self.parameter.resource, parameter_title=parameter_title
+                self.parameter.resource, parameter_title=parameter_title
             )
 
     def fetch_periods(self, station: str = None, stationset: str = None):
@@ -90,14 +88,10 @@ class MetObs:
         if station is None and stationset is None:
             raise NotImplementedError("Both arguments None.")
 
-        if station is not None:
-            self.period = MetObsPeriodV1(
-                self.type, self.station.station, station=station
-            )
+        if station:
+            self.period = MetObsPeriodV1(self.station.station, station)
         else:
-            self.period = MetObsPeriodV1(
-                self.type, self.station.station, stationset=stationset
-            )
+            self.period = MetObsPeriodV1(self.station.station, stationset=stationset)
 
     def fetch_data(self, period: str = "corrected-archive"):
         """
@@ -106,7 +100,7 @@ class MetObs:
         Args:
             period: period
         """
-        self.data = MetObsDataV1(self.type, self.period.period, period)
+        self.data = MetObsDataV1(self.period.period, period)
         self.table_raw = self.data.fetch()
         self.table = pd.read_csv(io.StringIO(self.table_raw), on_bad_lines="skip")
 
@@ -122,7 +116,7 @@ class MetObs:
         print("Selected version: ", self.version)
         print()
 
-        if self.parameter is not None:
+        if self.parameter:
             print("API parameter")
             print("Available parameters ({0} first): ".format(num_print))
             print(self.parameter.data[:num_print])
@@ -131,11 +125,11 @@ class MetObs:
                     len(self.parameter.data)
                 )
             )
-            if self.station is not None:
+            if self.station:
                 print("Selected parameter: ", self.station.selected_parameter)
             print()
 
-        if self.station is not None:
+        if self.station:
             print("API station")
             print("Available stations ({0} first): ".format(num_print))
             print(self.station.data[:num_print])
@@ -144,7 +138,7 @@ class MetObs:
                     len(self.station.data)
                 )
             )
-            if self.period is not None:
+            if self.period:
                 print(
                     "Selected station: {0} {1}".format(
                         self.period.selected_station,
@@ -157,11 +151,11 @@ class MetObs:
                 )
             print()
 
-        if self.period is not None:
+        if self.period:
             print("API period")
             print("Available periods: ")
             print(self.period.data)
-            if self.data is not None:
+            if self.data:
                 print("Selected period: ", self.data.selected_period)
             print()
 
@@ -206,6 +200,32 @@ class MetObs:
         self.fetch_data(period)
 
 
+def fetch_and_parse_request(
+    data: list, data_type: str, p1: str, p2: str = None, p3: str = None
+):
+    """
+    Fetch and parse API request. Only JSON supported.
+
+    Args:
+        data: list of data to fetch from
+        data_type: type of data to fetch
+        p1: parameter 1
+        p2: parameter 2
+        p3: parameter 3
+
+    Returns:
+        request header and jsonified content
+    """
+    if p2:
+        requested_data = [x for x in data if x["title"] == p2][0]
+    else:
+        requested_data = [x for x in data if x["key"] == str(p1)][0]
+
+    url = [x["href"] for x in requested_data["link"] if x["type"] == data_type][0]
+    response = requests.get(url)
+    return response.headers, json.loads(response.content)
+
+
 class MetObsParameterV1:
     """
     Fetch parameter for version 1 of MetObs API.
@@ -213,25 +233,26 @@ class MetObsParameterV1:
 
     def __init__(
         self,
-        type: str = "application/json",
         data: list = None,
-        version: Union[str, int] = "latest",
+        version: Union[str, int] = "1.0",
+        data_type: str = "application/json",
     ):
         """
         Fetch parameter from version.
 
         Args:
-            type: type of request
             data: available API versions
             version: selected API version
+            data_type: data_type of request
         """
-        self.selected_version = version
-        requested_version = [x for x in data if x["key"] == version][0]
-        url = [x["href"] for x in requested_version["link"] if x["type"] == type][0]
-        response = requests.get(url)
-        content = json.loads(response.content)
+        if version != 1 and version != "1.0":
+            raise NotImplementedError("Only supports version 1.0.")
 
-        self.headers = response.headers
+        if data_type != TYPE_MAP["json"]:
+            raise TypeError("Only json supported.")
+
+        self.selected_version = "1.0" if version == 1 else version
+        self.headers, content = fetch_and_parse_request(data, data_type, version)
         self.key = content["key"]
         self.updated = content["updated"]
         self.title = content["title"]
@@ -248,30 +269,35 @@ class MetObsStationV1:
 
     def __init__(
         self,
-        type: str = "application/json",
-        data: list = None,
+        data: list,
         parameter: str = None,
         parameter_title: str = None,
+        data_type: str = "application/json",
     ):
         """
         Fetch stations from parameter.
 
         Args:
-            type: type of request
             data: available API parameters
             parameter: data to read
             parameter_title: exact title of data
+            data_type: data_type of request
         """
-        self.selected_parameter = parameter
-        if parameter_title is not None:
-            requested_parameter = [x for x in data if x["title"] == parameter_title][0]
-        else:
-            requested_parameter = [x for x in data if x["key"] == str(parameter)][0]
-        url = [x["href"] for x in requested_parameter["link"] if x["type"] == type][0]
-        response = requests.get(url)
-        content = json.loads(response.content)
+        if data_type != TYPE_MAP["json"]:
+            raise TypeError("Only json supported.")
 
-        self.headers = response.headers
+        if parameter is None and parameter_title is None:
+            raise NotImplementedError("No parameter selected.")
+
+        if parameter and parameter_title:
+            raise NotImplementedError("Can't decide which input to select.")
+
+        self.selected_parameter = (
+            parameter if parameter_title is None else parameter_title
+        )
+        self.headers, content = fetch_and_parse_request(
+            data, data_type, parameter, parameter_title
+        )
         self.key = content["key"]
         self.updated = content["updated"]
         self.title = content["title"]
@@ -286,34 +312,41 @@ class MetObsStationV1:
 class MetObsPeriodV1:
     """
     Fetch periods from station for version 1 of MetObs API.
+    Note that stationset_title is not supported
     """
 
     def __init__(
         self,
-        type: str = "application/json",
-        data: list = None,
+        data: list,
         station: int = None,
         station_name: str = None,
+        stationset: str = None,
+        data_type: str = "application/json",
     ):
         """
         Fetch periods from station.
 
         Args:
-            type: type of request
             data: available API stations
-            station: station id, not key
-            station_name: station name
+            station: station key to fetch
+            station_name: station name to fetch
+            stationset: station set to fetch
+            data_type: data_type of request
         """
-        self.selected_station = station
-        if station_name is not None:
-            requested_station = [x for x in data if x["title"] == station_name][0]
-        else:
-            requested_station = [x for x in data if x["id"] == station][0]
-        url = [x["href"] for x in requested_station["link"] if x["type"] == type][0]
-        response = requests.get(url)
-        content = json.loads(response.content)
+        if data_type != TYPE_MAP["json"]:
+            raise TypeError("Only json supported.")
 
-        self.headers = response.headers
+        if station is None and station_name is None and stationset is None:
+            raise NotImplementedError("No station selected.")
+
+        if [bool(x) for x in [station, station_name, stationset]].count(True) > 1:
+            raise NotImplementedError("Can't decide which input to select.")
+
+        selected_station = station_name if station_name else stationset
+        self.selected_station = station if station else selected_station
+        self.headers, content = fetch_and_parse_request(
+            data, data_type, station, station_name, stationset
+        )
         self.key = content["key"]
         self.updated = content["updated"]
         self.title = content["title"]
@@ -337,26 +370,25 @@ class MetObsDataV1:
 
     def __init__(
         self,
-        type: str = "application/json",
-        data: list = None,
+        data: list,
         period: str = "corrected-archive",
+        data_type: str = "application/json",
     ):
         """
         Fetch data from period.
 
         Args:
-            type: type of request
             data: available API periods
             period: select period from: latest-hour, latest-day, latest-months or corrected-archive
+            data_type: data_type of request
         """
+        if data_type != TYPE_MAP["json"]:
+            raise TypeError("Only json supported.")
+
         self.selected_period = period
-        requested_period = [x for x in data if x["key"] == period][0]
-        url = [x["href"] for x in requested_period["link"] if x["type"] == type][0]
-        response = requests.get(url)
-        content = json.loads(response.content)
-
-        self.headers = response.headers
-
+        # requested_period = [x for x in data if x["key"] == period][0]
+        # url = [x["href"] for x in requested_period["link"] if x["type"] == data_type][0]
+        self.headers, content = fetch_and_parse_request(data, data_type, period)
         self.key = content["key"]
         self.updated = content["updated"]
         self.title = content["title"]

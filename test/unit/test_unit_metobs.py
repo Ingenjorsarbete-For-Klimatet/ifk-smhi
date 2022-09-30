@@ -18,7 +18,7 @@ class TestUnitMetObs:
     )
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.json.loads")
-    def test_unit_smhi_init(
+    def test_unit_metobs_init(
         self, mock_requests_get, mock_json_loads, data_type, expected_type
     ):
         """
@@ -39,7 +39,7 @@ class TestUnitMetObs:
         else:
             client = MetObs(data_type)
 
-        assert client.type == expected_type
+        assert client.data_type == expected_type
         assert client.version is None
         assert client.parameter is None
         assert client.station is None
@@ -52,7 +52,7 @@ class TestUnitMetObs:
 
     @pytest.mark.parametrize("version", [("1.0"), ("latest"), (1)])
     @patch("smhi.metobs.MetObsParameterV1")
-    def test_unit_smhi_fetch_parameters(
+    def test_unit_metobs_fetch_parameters(
         self,
         mock_metobsparameterv1,
         version,
@@ -87,7 +87,7 @@ class TestUnitMetObs:
         [(None, None, None), ("P1", None, "S1"), (None, "P2", "S2")],
     )
     @patch("smhi.metobs.MetObsStationV1", return_value=1)
-    def test_unit_smhi_fetch_stations(
+    def test_unit_metobs_fetch_stations(
         self,
         mock_metobsstationv1,
         parameter,
@@ -113,14 +113,14 @@ class TestUnitMetObs:
 
             with pytest.raises(NotImplementedError):
                 client.fetch_stations(parameter, parameter_title)
-        elif parameter is not None:
+        elif parameter:
             client.fetch_stations(parameter)
             assert client.station == expected_station
         else:
             client.fetch_stations(parameter_title=parameter_title)
             assert client.station == expected_station
 
-        if parameter is not None or parameter_title is not None:
+        if parameter or parameter_title:
             mock_metobsstationv1.assert_called_once()
 
     @pytest.mark.parametrize(
@@ -128,7 +128,7 @@ class TestUnitMetObs:
         [(None, None, None), ("S1", None, "P1"), (None, "S2", "P2")],
     )
     @patch("smhi.metobs.MetObsPeriodV1", return_value=1)
-    def test_unit_smhi_fetch_periods(
+    def test_unit_metobs_fetch_periods(
         self,
         mock_metobsperiodv1,
         station,
@@ -154,12 +154,56 @@ class TestUnitMetObs:
 
             with pytest.raises(NotImplementedError):
                 client.fetch_periods(station, stationset)
-        elif station is not None:
+        elif station:
             client.fetch_periods(station)
             assert client.period == expected_period
         else:
             client.fetch_periods(stationset=stationset)
             assert client.period == expected_period
 
-        if station is not None or stationset is not None:
+        if station or stationset:
             mock_metobsperiodv1.assert_called_once()
+
+
+class TestUnitMetObsParameterV1:
+    """
+    Unit tests for MetObsParameterV1 class.
+    """
+
+    @pytest.mark.parametrize(
+        "data_type, expected_type",
+        [(None, "application/json"), ("json", "application/json"), ("yaml", None)],
+    )
+    @patch("smhi.metobs.requests.get")
+    @patch("smhi.metobs.json.loads")
+    def test_unit_metobsparameterv1_init(
+        self, mock_requests_get, mock_json_loads, data_type, expected_type
+    ):
+        """
+        Unit test for MetObs init method.
+
+        Args:
+            mock_requests_get: mock requests get method
+            mock_json_loads: mock json loads method
+            data_type: format of api data
+            expected_type: expected result
+        """
+        if data_type is None:
+            client = MetObs()
+        if data_type != "json":
+            with pytest.raises(NotImplementedError):
+                MetObs("yaml")
+            return None
+        else:
+            client = MetObs(data_type)
+
+        assert client.data_type == expected_type
+        assert client.version is None
+        assert client.parameter is None
+        assert client.station is None
+        assert client.period is None
+        assert client.data is None
+        assert client.table_raw is None
+        assert client.table is None
+        mock_requests_get.assert_called_once()
+        mock_json_loads.assert_called_once()
