@@ -58,7 +58,7 @@ class TestUnitStrangPoint:
         Unit test for STRÅNG Point parameters get property.
         """
         client = StrangPoint()
-        assert client.available_parameters == STRANG_PARAMETERS
+        assert client.parameters == STRANG_PARAMETERS
 
     @pytest.mark.parametrize(
         "lon, lat, parameter, time_from, time_to, time_interval",
@@ -79,7 +79,7 @@ class TestUnitStrangPoint:
             (
                 0,
                 0,
-                STRANG_PARAMETERS[0],
+                STRANG_PARAMETERS[116],
                 None,
                 None,
                 None,
@@ -87,15 +87,17 @@ class TestUnitStrangPoint:
             (
                 0,
                 0,
-                STRANG_PARAMETERS[0],
+                STRANG_PARAMETERS[116],
                 "2020-01-01",
                 "2020-01-01",
                 "hourly",
             ),
         ],
     )
-    @patch("smhi.strang.StrangPoint._fetch_and_load_strang_data")
-    @patch("smhi.strang.StrangPoint._build_date_url", return_value=(1, 2, 3))
+    @patch(
+        "smhi.strang.StrangPoint._fetch_and_load_strang_data", return_value=(1, 2, 3)
+    )
+    @patch("smhi.strang.StrangPoint._build_date_url")
     def test_unit_strang_point_fetch_data(
         self,
         mock_build_date_url,
@@ -128,7 +130,7 @@ class TestUnitStrangPoint:
                 client.fetch_data(
                     lon,
                     lat,
-                    parameter,
+                    parameter.parameter,
                     time_from,
                     time_to,
                     time_interval,
@@ -137,7 +139,7 @@ class TestUnitStrangPoint:
             client.fetch_data(
                 lon,
                 lat,
-                parameter,
+                parameter.parameter,
                 time_from,
                 time_to,
                 time_interval,
@@ -145,26 +147,58 @@ class TestUnitStrangPoint:
 
             assert client.longitude == lon
             assert client.latitude == lat
-            assert client.parameter == parameter.parameter
-
-            url = url(lon=lon, lat=lat, parameter=parameter.parameter)
+            assert client.parameter == parameter
 
             mock_build_date_url.assert_called_once()
             mock_fetch_and_load_strang_data.assert_called_once()
 
+    @pytest.mark.parametrize(
+        "date_from, date_to, date_interval, expected_url",
+        [
+            (None, None, None, "URL"),
+            ("2020-01-01", None, None, "URL?from=2020-01-01"),
+            (None, "2020-01-01", None, "URL?to=2020-01-01"),
+            ("2020-01-01", "2020-01-02", None, "URL?from=2020-01-01&to=2020-01-02"),
+            ("2020-01-01", "2020-01-02", "bad", None),
+            (
+                "2020-01-01",
+                "2020-01-02",
+                "hourly",
+                "URL?from=2020-01-01&to=2020-01-02&interval=hourly",
+            ),
+            (None, None, "notimplemented", None),
+        ],
+    )
     @patch("smhi.strang.StrangPoint._parse_date")
-    def test_unit_strang_point_build_date_url(self, mock_parse_date):
+    def test_unit_strang_point_build_date_url(
+        self, mock_parse_date, date_from, date_to, date_interval, expected_url
+    ):
         """
         Unit test for STRANG Point _build_date_url method
 
         Args:
             mock_parse_date: mock of _parse_date method
+            date_from: from date
+            date_to: to date
+            date_interval: interval of date
+            expected_url: expected URL
         """
-        pass
-        # client = StrangPoint()
-        # client.date_from = self._parse_date(self.date_from)
-        # client.date_to = self._parse_date(self.date_to)
-        # client.date_interval = self.date_interval.
+        client = StrangPoint()
+        mock_parse_date.side_effect = [date_from, date_to]
+
+        client.date_from = date_from
+        client.date_to = date_to
+        client.date_interval = date_interval
+        client.url = "URL"
+
+        if date_interval == "bad":
+            with pytest.raises(ValueError):
+                client._build_date_url()
+        elif date_interval == "notimplemented":
+            with pytest.raises(NotImplementedError):
+                client._build_date_url()
+        else:
+            assert expected_url == client._build_date_url()
 
     @pytest.mark.parametrize(
         "ok, date_time",
