@@ -45,7 +45,7 @@ class StrangPoint:
         self,
         longitude: float,
         latitude: float,
-        parameter: STRANG,
+        parameter: int,
         date_from: str = None,
         date_to: str = None,
         date_interval: str = None,
@@ -89,24 +89,28 @@ class StrangPoint:
         date_from = self._parse_date(self.date_from)
         date_to = self._parse_date(self.date_to)
         date_interval = self.date_interval
-        url = self.url + "?"
+        url = self.url
+
+        if any([date_from, date_to, date_interval]) is True:
+            url += "?"
 
         if date_from is not None:
-            url = url + "from={date_from}".format(date_from=date_from)
+            url += "from={date_from}".format(date_from=date_from)
 
         if date_to is not None:
             if date_from is not None:
-                url = url + "&"
-            url = url + "to={date_to}".format(date_to=date_to)
+                url += "&"
+            url += "to={date_to}".format(date_to=date_to)
+
+        if date_interval is not None and (date_from is None and date_to is None):
+            raise NotImplementedError(
+                "Date from and to not specified but interval is. Be more explicit."
+            )
 
         if date_interval is not None and (date_from is not None or date_to is not None):
             if date_interval not in STRANG_DATE_INTERVALS:
                 raise ValueError("Time interval must be hourly, daily or monthly.")
-            url = url + "&interval={date_interval}".format(date_interval=date_interval)
-        # else:
-        #    raise NotImplementedError(
-        #        "Date from and to not specified but interval is. Be more explicit."
-        #    )
+            url += "&interval={date_interval}".format(date_interval=date_interval)
 
         return url
 
