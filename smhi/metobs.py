@@ -16,8 +16,8 @@ class MetObs:
 
     def __init__(self, type: str = "json"):
         """
-        Initialise the SMHI class with a data type format used to fetch data.
-        For now, only supports `json`.
+        Initialise the SMHI MetObs class with a data type format used to fetch data.
+        For now, only supports `json` and version 1.
 
         Args:
             type: type of request
@@ -43,7 +43,7 @@ class MetObs:
 
     def fetch_parameters(self, version: str = "1.0"):
         """
-        Fetch SMHI API parameters from version. Only supports `version = 1.0`.
+        Fetch SMHI MetObs API parameters from version. Only supports `version = 1.0`.
 
         Args:
             version: selected API version
@@ -54,11 +54,11 @@ class MetObs:
             )
 
         self.version = version
-        self.parameter = SMHIParameterV1(self.type, self.available_versions, version)
+        self.parameter = MetObsParameterV1(self.type, self.available_versions, version)
 
     def fetch_stations(self, parameter: str = None, parameter_title: str = None):
         """
-        Fetch SMHI API (version 1) stations from given parameter.
+        Fetch SMHI MetObs API (version 1) stations from given parameter.
 
         Args:
             parameter: id of data
@@ -71,18 +71,18 @@ class MetObs:
             raise Exception("Fetch parameters first.")
 
         if parameter_title is None:
-            self.station = SMHIStationV1(
+            self.station = MetObsStationV1(
                 self.type, self.parameter.resource, parameter=parameter
             )
 
         if parameter is None:
-            self.station = SMHIStationV1(
+            self.station = MetObsStationV1(
                 self.type, self.parameter.resource, parameter_title=parameter_title
             )
 
     def fetch_periods(self, station: str = None, station_set: str = None):
         """
-        Fetch SMHI API (version 1) periods from given station.
+        Fetch SMHI MetObs API (version 1) periods from given station.
 
         Args:
             station: id of data
@@ -95,21 +95,23 @@ class MetObs:
             raise Exception("Fetch stations first.")
 
         if station_set is None:
-            self.period = SMHIPeriodV1(self.type, self.station.station, station=station)
+            self.period = MetObsPeriodV1(
+                self.type, self.station.station, station=station
+            )
 
         if station is None:
-            self.period = SMHIPeriodV1(
+            self.period = MetObsPeriodV1(
                 self.type, self.station.station, station_set=station_set
             )
 
     def fetch_data(self, period: str = "corrected-archive"):
         """
-        Fetch SMHI API (version 1) data from given period.
+        Fetch SMHI MetObs API (version 1) data from given period.
 
         Args:
             period: period
         """
-        self.data = SMHIDataV1(self.type, self.period.period, period)
+        self.data = MetObsDataV1(self.type, self.period.period, period)
         self.table_raw = self.data.fetch()
         self.table = pd.read_csv(io.StringIO(self.table_raw), on_bad_lines="skip")
 
@@ -189,9 +191,9 @@ class MetObs:
         pass
 
 
-class SMHIParameterV1:
+class MetObsParameterV1:
     """
-    Fetch parameter for version 1 of API.
+    Fetch parameter for version 1 of MetObs API.
     """
 
     def __init__(
@@ -224,9 +226,9 @@ class SMHIParameterV1:
         self.data = tuple((x["key"], x["title"]) for x in self.resource)
 
 
-class SMHIStationV1:
+class MetObsStationV1:
     """
-    Fetch stations from parameter for version 1 of API.
+    Fetch stations from parameter for version 1 of MetObs API.
     """
 
     def __init__(
@@ -266,9 +268,9 @@ class SMHIStationV1:
         self.data = tuple((i, x["id"], x["name"]) for i, x in enumerate(self.station))
 
 
-class SMHIPeriodV1:
+class MetObsPeriodV1:
     """
-    Fetch periods from station for version 1 of API.
+    Fetch periods from station for version 1 of MetObs API.
     """
 
     def __init__(
@@ -313,9 +315,9 @@ class SMHIPeriodV1:
         self.data = [x["key"] for x in self.period]
 
 
-class SMHIDataV1:
+class MetObsDataV1:
     """
-    Fetch data from period for version 1 of API.
+    Fetch data from period for version 1 of MetObs API.
     """
 
     def __init__(
