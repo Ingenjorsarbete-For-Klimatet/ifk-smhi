@@ -1,5 +1,7 @@
 """
 SMHI STRÅNG client.
+
+See validation of model: https://strang.smhi.se/validation/validation.html
 """
 import json
 import arrow
