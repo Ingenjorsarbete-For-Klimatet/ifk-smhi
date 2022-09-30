@@ -188,8 +188,6 @@ class TestUnitMetObsParameterV1:
             data_type: format of api data
             expected_type: expected result
         """
-        if data_type is None:
-            client = MetObs()
         if data_type != "json":
             with pytest.raises(NotImplementedError):
                 MetObs("yaml")
