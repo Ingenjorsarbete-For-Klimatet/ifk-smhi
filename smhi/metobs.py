@@ -68,43 +68,35 @@ class MetObs:
             parameter_title: exact title of data
         """
         if parameter is None and parameter_title is None:
-            raise Exception("Both arguments None.")
+            raise NotImplementedError("Both arguments None.")
 
-        if self.parameter is None:
-            raise Exception("Fetch parameters first.")
-
-        if parameter_title is None:
+        if self.parameter is not None:
             self.station = MetObsStationV1(
                 self.type, self.parameter.resource, parameter=parameter
             )
-
-        if parameter is None:
+        else:
             self.station = MetObsStationV1(
                 self.type, self.parameter.resource, parameter_title=parameter_title
             )
 
-    def fetch_periods(self, station: str = None, station_set: str = None):
+    def fetch_periods(self, station: str = None, stationset: str = None):
         """
         Fetch SMHI MetObs API (version 1) periods from given station.
 
         Args:
             station: id of data
-            station_set: exact title of data
+            stationset: exact title of data
         """
-        if station is None and station_set is None:
-            raise Exception("Both arguments None.")
+        if station is None and stationset is None:
+            raise NotImplementedError("Both arguments None.")
 
-        if self.station is None:
-            raise Exception("Fetch stations first.")
-
-        if station_set is None:
+        if station is not None:
             self.period = MetObsPeriodV1(
                 self.type, self.station.station, station=station
             )
-
-        if station is None:
+        else:
             self.period = MetObsPeriodV1(
-                self.type, self.station.station, station_set=station_set
+                self.type, self.station.station, stationset=stationset
             )
 
     def fetch_data(self, period: str = "corrected-archive"):
