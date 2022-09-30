@@ -1,10 +1,10 @@
 """
-SMHI MetObs unit tests.
+SMHI MetObs v1 unit tests.
 """
 import pytest
 import unittest
 from unittest.mock import patch
-from smhi.metobs import MetObs, SMHIParameterV1
+from smhi.metobs import MetObs, MetObsParameterV1
 
 
 class TestUnitMetObs:
@@ -54,14 +54,14 @@ class TestUnitMetObs:
         "version, expected_type",
         [("1.0", "application/json"), ("latest", "application/json")],
     )
-    @patch("smhi.metobs.SMHIParameterV1")
+    @patch("smhi.metobs.MetObsParameterV1")
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.json.loads")
     def test_unit_smhi_fetch_parameters(
         self,
         mock_requests_get,
         mock_json_loads,
-        mock_smhiparameterv1,
+        mock_metobsparameterv1,
         version,
         expected_type,
     ):
@@ -71,7 +71,7 @@ class TestUnitMetObs:
         Args:
             mock_requests_get: mock requests get method
             mock_json_loads: mock json loads method
-            mock_smhiparameterv1: mock of SMHIParameterV1
+            mock_metobsparameterv1: mock of MetObsParameterV1
             version: version of api
             expected_type: expected result
         """
@@ -87,5 +87,5 @@ class TestUnitMetObs:
             client.fetch_parameters(version)
 
         assert client.version == version
-        assert client.parameter == mock_smhiparameterv1.return_value
-        mock_smhiparameterv1.assert_called_once()
+        assert client.parameter == mock_metobsparameterv1.return_value
+        mock_metobsparameterv1.assert_called_once()
