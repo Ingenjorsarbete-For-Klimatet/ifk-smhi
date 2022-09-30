@@ -216,6 +216,7 @@ def fetch_and_parse_request(
     Returns:
         request header and jsonified content
     """
+    p1 = p3 if p3 else p1
     if p2:
         requested_data = [x for x in data if x["title"] == p2][0]
     else:
