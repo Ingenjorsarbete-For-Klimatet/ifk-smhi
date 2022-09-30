@@ -3,7 +3,7 @@ SMHI MetObs v1 unit tests.
 """
 import pytest
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from smhi.metobs import MetObs, MetObsParameterV1
 
 
@@ -50,34 +50,19 @@ class TestUnitMetObs:
         mock_requests_get.assert_called_once()
         mock_json_loads.assert_called_once()
 
-    @pytest.mark.parametrize(
-        "version, expected_type",
-        [
-            ("1.0", "application/json"),
-            ("latest", "application/json"),
-            (1, "application/json"),
-        ],
-    )
+    @pytest.mark.parametrize("version", [("1.0"), ("latest"), (1)])
     @patch("smhi.metobs.MetObsParameterV1")
-    @patch("smhi.metobs.requests.get")
-    @patch("smhi.metobs.json.loads")
     def test_unit_smhi_fetch_parameters(
         self,
-        mock_requests_get,
-        mock_json_loads,
         mock_metobsparameterv1,
         version,
-        expected_type,
     ):
         """
         Unit test for MetObs fetch_parameters method.
 
         Args:
-            mock_requests_get: mock requests get method
-            mock_json_loads: mock json loads method
             mock_metobsparameterv1: mock of MetObsParameterV1
             version: version of api
-            expected_type: expected result
         """
         client = MetObs()
 
@@ -96,3 +81,85 @@ class TestUnitMetObs:
         assert client.version == version
         assert client.parameter == mock_metobsparameterv1.return_value
         mock_metobsparameterv1.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "parameter, parameter_title, expected_station",
+        [(None, None, None), ("P1", None, "S1"), (None, "P2", "S2")],
+    )
+    @patch("smhi.metobs.MetObsStationV1", return_value=1)
+    def test_unit_smhi_fetch_stations(
+        self,
+        mock_metobsstationv1,
+        parameter,
+        parameter_title,
+        expected_station,
+    ):
+        """
+        Unit test for MetObs fetch_stations method.
+
+        Args:
+            mock_metobsstationv1: mock of MetObsStationV1
+            parameter: parameter of api
+            parameter_title: parameter title of api
+            expected_station: expected station
+        """
+        client = MetObs()
+        client.parameter = MagicMock()
+        mock_metobsstationv1.return_value = expected_station
+
+        if parameter is None and parameter_title is None:
+            with pytest.raises(NotImplementedError):
+                client.fetch_stations()
+
+            with pytest.raises(NotImplementedError):
+                client.fetch_stations(parameter, parameter_title)
+        elif parameter is not None:
+            client.fetch_stations(parameter)
+            assert client.station == expected_station
+        else:
+            client.fetch_stations(parameter_title=parameter_title)
+            assert client.station == expected_station
+
+        if parameter is not None or parameter_title is not None:
+            mock_metobsstationv1.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "station, stationset, expected_period",
+        [(None, None, None), ("S1", None, "P1"), (None, "S2", "P2")],
+    )
+    @patch("smhi.metobs.MetObsPeriodV1", return_value=1)
+    def test_unit_smhi_fetch_periods(
+        self,
+        mock_metobsperiodv1,
+        station,
+        stationset,
+        expected_period,
+    ):
+        """
+        Unit test for MetObs fetch_stations method.
+
+        Args:
+            mock_metobsperiodv1: mock of MetObsPeriodV1
+            station: station of api
+            stationset: station set of api
+            expected_period: expected period
+        """
+        client = MetObs()
+        client.station = MagicMock()
+        mock_metobsperiodv1.return_value = expected_period
+
+        if station is None and stationset is None:
+            with pytest.raises(NotImplementedError):
+                client.fetch_periods()
+
+            with pytest.raises(NotImplementedError):
+                client.fetch_periods(station, stationset)
+        elif station is not None:
+            client.fetch_periods(station)
+            assert client.period == expected_period
+        else:
+            client.fetch_periods(stationset=stationset)
+            assert client.period == expected_period
+
+        if station is not None or stationset is not None:
+            mock_metobsperiodv1.assert_called_once()
