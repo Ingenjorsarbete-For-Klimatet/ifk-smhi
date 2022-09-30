@@ -41,13 +41,16 @@ class MetObs:
         self.table_raw = None
         self.table = None
 
-    def fetch_parameters(self, version: str = "1.0"):
+    def fetch_parameters(self, version: Union[str, int] = "1.0"):
         """
         Fetch SMHI MetObs API parameters from version. Only supports `version = 1.0`.
 
         Args:
             version: selected API version
         """
+        if version == 1:
+            version = "1.0"
+
         if version != "1.0":
             raise NotImplementedError(
                 "Version {} not supported. Only supports version = 1.0.".format(version)
@@ -170,25 +173,45 @@ class MetObs:
                 print("Selected period: ", self.data.selected_period)
             print()
 
-    def get_explicit_data(
+    def get_data(
         self,
-        version: str,
         parameter: int,
         station: int,
-        station_set: str,
-        select_period: str,
+        period: str,
     ):
         """
-        Get data from explicit selection.
+        Get data from explicit parameter selection and station, without inspecting each level.
+        Note, no version parameter.
 
         Args:
-            version: API version
             parameter: API parameter
             station: station
-            station_set: station_set
-            select_period: period to download
+            period: period to download
         """
-        pass
+        self.fetch_parameters()
+        self.fetch_stations(parameter)
+        self.fetch_periods(station)
+        self.fetch_data(period)
+
+    def get_data_stationset(
+        self,
+        parameter: int,
+        stationset: int,
+        period: str,
+    ):
+        """
+        Get data from explicit parameter selection and station set, without inspecting each level.
+        Note, no version parameter.
+
+        Args:
+            parameter: API parameter
+            stationset: station
+            period: period to download
+        """
+        self.fetch_parameters()
+        self.fetch_stations(parameter)
+        self.fetch_periods(None, stationset)
+        self.fetch_data(period)
 
 
 class MetObsParameterV1:
