@@ -52,7 +52,11 @@ class TestUnitMetObs:
 
     @pytest.mark.parametrize(
         "version, expected_type",
-        [("1.0", "application/json"), ("latest", "application/json")],
+        [
+            ("1.0", "application/json"),
+            ("latest", "application/json"),
+            (1, "application/json"),
+        ],
     )
     @patch("smhi.metobs.MetObsParameterV1")
     @patch("smhi.metobs.requests.get")
@@ -79,12 +83,15 @@ class TestUnitMetObs:
 
         if version is None:
             client.fetch_parameters()
-        if version != "1.0":
+        if version != "1.0" and version != 1:
             with pytest.raises(NotImplementedError):
                 client.fetch_parameters(version)
             return None
         else:
             client.fetch_parameters(version)
+
+        if version == 1:
+            version = "1.0"
 
         assert client.version == version
         assert client.parameter == mock_metobsparameterv1.return_value
