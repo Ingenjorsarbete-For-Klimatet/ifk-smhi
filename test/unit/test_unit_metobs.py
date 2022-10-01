@@ -3,7 +3,12 @@ SMHI MetObs v1 unit tests.
 """
 import pytest
 from unittest.mock import patch, MagicMock
-from smhi.metobs import MetObs, MetObsLevelV1, MetObsParameterV1
+from smhi.metobs import (
+    MetObs,
+    MetObsLevelV1,
+    MetObsParameterV1,
+    MetObsStationV1,
+)
 
 
 class TestUnitMetObs:
@@ -186,22 +191,73 @@ class TestUnitMetObsLevelV1:
     @pytest.mark.parametrize(
         "data, data_type, p1, p2, p3",
         [
-            ([], "json", None, None, None),
-            ([], "json", None, None, None),
-            ([], "yaml", None, None, None),
+            (
+                [{"key": "p1", "link": [{"href": "URL", "type": "application/json"}]}],
+                "application/json",
+                "p1",
+                None,
+                None,
+            ),
+            (
+                [
+                    {
+                        "title": "p2",
+                        "link": [{"href": "URL", "type": "application/json"}],
+                    }
+                ],
+                "application/json",
+                None,
+                "p2",
+                None,
+            ),
+            (
+                [{"key": "p3", "link": [{"href": "URL", "type": "application/json"}]}],
+                "application/json",
+                None,
+                None,
+                "p3",
+            ),
+            (
+                [],
+                "application/json",
+                "p1",
+                None,
+                "p3",
+            ),
+            (
+                [],
+                "application/json",
+                "p1",
+                "p2",
+                None,
+            ),
+            (
+                [],
+                "application/json",
+                None,
+                "p2",
+                "p3",
+            ),
+            (
+                [],
+                "application/json",
+                "p1",
+                "p2",
+                "p3",
+            ),
         ],
     )
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.json.loads")
     def test_unit_metobslevelv1_fetch_and_parse_request(
-        self, mock_requests_get, mock_json_loads, data, data_type, p1, p2, p3
+        self, mock_json_loads, mock_requests_get, data, data_type, p1, p2, p3
     ):
         """
         Unit test for MetObsLevelV1 _fetch_and_parse_request method.
 
         Args:
-            mock_requests_get: mock requests get method
             mock_json_loads: mock json loads method
+            mock_requests_get: mock requests get method
             data: list of data
             data_type: format of api data
             p1: parameter 1
@@ -209,7 +265,24 @@ class TestUnitMetObsLevelV1:
             p3: parameter 3
         """
         level = MetObsLevelV1()
-        type(level)
+
+        if [bool(x) for x in [p1, p2, p3]].count(True) > 1:
+            with pytest.raises(NotImplementedError):
+                level._fetch_and_parse_request(data, data_type, p1, p2, p3)
+            return None
+
+        content = level._fetch_and_parse_request(data, data_type, p1, p2, p3)
+        mock_json_loads.called_once()
+        mock_requests_get.called_once()
+
+        assert level.data_type == data_type
+        assert level.headers == mock_requests_get.return_value.headers
+        assert level.key == mock_json_loads.return_value["key"]
+        assert level.updated == mock_json_loads.return_value["updated"]
+        assert level.title == mock_json_loads.return_value["title"]
+        assert level.summary == mock_json_loads.return_value["summary"]
+        assert level.link == mock_json_loads.return_value["link"]
+        assert content == mock_json_loads.return_value
 
 
 class TestUnitMetObsParameterV1:
@@ -261,7 +334,9 @@ class TestUnitMetObsParameterV1:
 
                 return None
 
-        MetObsParameterV1(data, version, data_type)
+        parameter = MetObsParameterV1(data, version, data_type)
+        assert parameter.resource == mock_sorted.return_value
+        assert parameter.data == mock_tuple.return_value
         mock_sorted.assert_called_once()
         mock_tuple.assert_called_once()
         mock_fetch_and_parse_request.assert_called_once()
@@ -273,18 +348,68 @@ class TestUnitMetObsStationV1:
     """
 
     @pytest.mark.parametrize(
-        "data_type, expected_type",
-        [(None, "application/json"), ("json", "application/json"), ("yaml", None)],
+        "data, parameter, parameter_title, data_type",
+        [
+            ([], None, None, "yaml"),
+            ([], None, None, "json"),
+            (
+                [],
+                None,
+                None,
+                "json",
+            ),
+            ([], None, None, "json"),
+        ],
     )
-    @patch("smhi.metobs.requests.get")
-    @patch("smhi.metobs.json.loads")
+    @patch("smhi.metobs.tuple")
+    @patch("smhi.metobs.sorted")
+    @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
     def test_unit_metobsparameterv1_init(
-        self, mock_requests_get, mock_json_loads, data_type, expected_type
+        self,
+        mock_fetch_and_parse_request,
+        mock_sorted,
+        mock_tuple,
+        data,
+        parameter,
+        parameter_title,
+        data_type,
     ):
         """
         Unit test for MetObs init method.
 
         Args:
-
+            mock_fetch_and_parse_request: mock of _fetch_and_parse_request method
+            mock_sorted: mock sorted call
+            mock_tuple: mock tuple call
+            data: data list
+            parameter: parameter
+            parameter_title: parameter title
+            data_type: type of data
         """
-        pass
+        if data_type != "json":
+            with pytest.raises(TypeError):
+                MetObsStationV1(data, parameter, parameter_title, data_type)
+            return None
+
+        if parameter is None and parameter_title is None:
+            with pytest.raises(NotImplementedError):
+                MetObsStationV1(data, parameter, parameter_title, data_type)
+            return None
+
+        if parameter and parameter_title:
+            with pytest.raises(NotImplementedError):
+                MetObsStationV1(data, parameter, parameter_title, data_type)
+            return None
+
+        station = MetObsStationV1(data, parameter, parameter_title, data_type)
+
+        # assert station.selected_parameter == parameter
+        assert (
+            station.valuetype == mock_fetch_and_parse_request.return_value["valueType"]
+        )
+        assert (
+            station.stationset
+            == mock_fetch_and_parse_request.return_value["stationSet"]
+        )
+        assert station.station == mock_sorted.return_value
+        assert station.data == mock_tuple.return_value
