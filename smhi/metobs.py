@@ -393,7 +393,7 @@ class MetObsPeriodV1(MetObsLevelV1):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        if station is None and station_name is None and stationset is None:
+        if [station, station_name, stationset].count(None) == 3:
             raise NotImplementedError("No station selected.")
 
         if [bool(x) for x in [station, station_name, stationset]].count(True) > 1:

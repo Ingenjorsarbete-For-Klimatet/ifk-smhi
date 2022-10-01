@@ -8,6 +8,7 @@ from smhi.metobs import (
     MetObsLevelV1,
     MetObsParameterV1,
     MetObsStationV1,
+    MetObsPeriodV1,
 )
 
 
@@ -168,6 +169,88 @@ class TestUnitMetObs:
         if station or stationset:
             mock_metobsperiodv1.assert_called_once()
 
+    @patch("smhi.metobs.io.StringIO")
+    @patch("smhi.metobs.pd.read_csv")
+    @patch("smhi.metobs.MetObsDataV1")
+    def test_unit_metobs_fetch_data(
+        self, mock_metobsdatav1, mock_pd_read_csv, mock_stringio
+    ):
+        """
+        Unit test for MetObs fetch_data method.
+
+        Args:
+            mock_metobsdatav1: mock of metobs data class
+            mock_pd_read_csv: mock of pandas read_csv
+            mock_stringio: mock of io StringIO
+        """
+        client = MetObs()
+        client.period = MagicMock()
+        client.fetch_data()
+
+        assert client.data == mock_metobsdatav1.return_value
+        assert client.table_raw == mock_metobsdatav1.return_value.fetch()
+        assert client.table == mock_pd_read_csv.return_value
+
+        mock_metobsdatav1.assert_called_once()
+        mock_pd_read_csv.assert_called_once()
+        mock_stringio.assert_called_once()
+
+    @patch("smhi.metobs.MetObs.fetch_parameters")
+    @patch("smhi.metobs.MetObs.fetch_stations")
+    @patch("smhi.metobs.MetObs.fetch_periods")
+    @patch("smhi.metobs.MetObs.fetch_data")
+    def test_unit_metobs_get_data(
+        self,
+        mock_fetch_parameters,
+        mock_fetch_stations,
+        mock_fetch_periods,
+        mock_fetch_data,
+    ):
+        """
+        Unit test for MetObs get_data method.
+
+        Args:
+            mock_fetch_parameters
+            mock_fetch_stations
+            mock_fetch_periods
+            mock_fetch_data
+        """
+        client = MetObs()
+        client.get_data(1, 1, "1")
+
+        mock_fetch_parameters.assert_called_once()
+        mock_fetch_stations.assert_called_once()
+        mock_fetch_periods.assert_called_once()
+        mock_fetch_data.assert_called_once()
+
+    @patch("smhi.metobs.MetObs.fetch_parameters")
+    @patch("smhi.metobs.MetObs.fetch_stations")
+    @patch("smhi.metobs.MetObs.fetch_periods")
+    @patch("smhi.metobs.MetObs.fetch_data")
+    def test_unit_metobs_get_data_stationset(
+        self,
+        mock_fetch_parameters,
+        mock_fetch_stations,
+        mock_fetch_periods,
+        mock_fetch_data,
+    ):
+        """
+        Unit test for MetObs get_data_stationset method.
+
+        Args:
+            mock_fetch_parameters
+            mock_fetch_stations
+            mock_fetch_periods
+            mock_fetch_data
+        """
+        client = MetObs()
+        client.get_data_stationset(1, 1, "1")
+
+        mock_fetch_parameters.assert_called_once()
+        mock_fetch_stations.assert_called_once()
+        mock_fetch_periods.assert_called_once()
+        mock_fetch_data.assert_called_once()
+
 
 class TestUnitMetObsLevelV1:
     """
@@ -280,7 +363,8 @@ class TestUnitMetObsParameterV1:
             ([], "1.0", "json"),
             ([], 1, "json"),
             ([], 1, "yaml"),
-            ([], 1, None),
+            ([], None, "json"),
+            ([], None, None),
         ],
     )
     @patch("smhi.metobs.tuple")
@@ -314,12 +398,12 @@ class TestUnitMetObsParameterV1:
                 MetObsParameterV1(data, version, data_type)
 
             return None
-        else:
-            if ("1.0" if version == 1 else version) != "1.0":
-                with pytest.raises(NotImplementedError):
-                    MetObsParameterV1(data, version, data_type)
 
-                return None
+        if ("1.0" if version == 1 else version) != "1.0":
+            with pytest.raises(NotImplementedError):
+                MetObsParameterV1(data, version, data_type)
+
+            return None
 
         parameter = MetObsParameterV1(data, version, data_type)
         assert parameter.resource == mock_sorted.return_value
@@ -340,13 +424,10 @@ class TestUnitMetObsStationV1:
         [
             ([], None, None, "yaml"),
             ([], None, None, "json"),
-            (
-                [],
-                None,
-                None,
-                "json",
-            ),
-            ([], None, None, "json"),
+            ([], "key", None, "json"),
+            ([], None, "title", "json"),
+            ([], "key", "title", "json"),
+            ([], "key", "title", None),
         ],
     )
     @patch("smhi.metobs.tuple")
@@ -365,7 +446,7 @@ class TestUnitMetObsStationV1:
         data_type,
     ):
         """
-        Unit test for MetObs init method.
+        Unit test for MetObsStationV1 init method.
 
         Args:
             mock_get_url: mock of _get_url method
@@ -411,3 +492,98 @@ class TestUnitMetObsStationV1:
         assert station.data == mock_tuple.return_value
         mock_get_url.assert_called_once()
         mock_fetch_and_parse_request.assert_called_once()
+        mock_sorted.assert_called_once()
+        mock_tuple.assert_called_once()
+
+
+class TestUnitMetObsPeriodV1:
+    """
+    Unit tests for MetObsPeriodV1 class.
+    """
+
+    @pytest.mark.parametrize(
+        "data, station, station_name, stationset, data_type",
+        [
+            ([], None, None, None, "yaml"),
+            ([], None, None, None, "json"),
+            ([], "p1", None, None, "json"),
+            ([], None, "p2", None, "json"),
+            ([], None, None, "p3", "json"),
+            ([], "p1", "p2", None, "json"),
+            ([], "p1", None, "p3", "json"),
+            ([], None, "p2", "p3", "json"),
+            ([], "p1", "p2", "p3", "json"),
+        ],
+    )
+    @patch("smhi.metobs.sorted")
+    @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
+    @patch("smhi.metobs.MetObsLevelV1._get_url")
+    def test_unit_metobsperiodv1_init(
+        self,
+        mock_get_url,
+        mock_fetch_and_parse_request,
+        mock_sorted,
+        data,
+        station,
+        station_name,
+        stationset,
+        data_type,
+    ):
+        """
+        Unit test for MetObsPeriodV1 init method.
+
+        Args:
+            mock_get_url: mock of _get_url method
+            mock_fetch_and_parse_request: mock of _fetch_and_parse_request method
+            mock_sorted: mock sorted call
+            data: data list
+            station: station
+            station_name: station name
+            stationset: station set
+            data_type: type of data
+        """
+        if data_type != "json":
+            with pytest.raises(TypeError):
+                MetObsPeriodV1(data, station, station_name, stationset, data_type)
+            return None
+
+        if [station, station_name, stationset].count(None) == 3:
+            with pytest.raises(NotImplementedError):
+                MetObsPeriodV1(data, station, station_name, stationset, data_type)
+            return None
+
+        if [bool(x) for x in [station, station_name, stationset]].count(True) > 1:
+            with pytest.raises(NotImplementedError):
+                MetObsPeriodV1(data, station, station_name, stationset, data_type)
+            return None
+
+        period = MetObsPeriodV1(data, station, station_name, stationset, data_type)
+
+        if station:
+            assert period.selected_station == station
+
+        if station_name:
+            assert period.selected_station == station_name
+
+        if stationset:
+            assert period.selected_station == stationset
+
+        assert period.owner == mock_fetch_and_parse_request.return_value["owner"]
+        assert (
+            period.ownercategory
+            == mock_fetch_and_parse_request.return_value["ownerCategory"]
+        )
+        assert (
+            period.measuringstations
+            == mock_fetch_and_parse_request.return_value["measuringStations"]
+        )
+        assert period.active == mock_fetch_and_parse_request.return_value["active"]
+        assert period.time_from == mock_fetch_and_parse_request.return_value["from"]
+        assert period.time_to == mock_fetch_and_parse_request.return_value["to"]
+        assert period.position == mock_fetch_and_parse_request.return_value["position"]
+        assert period.period == mock_sorted.return_value
+        assert period.data == []
+
+        mock_get_url.assert_called_once()
+        mock_fetch_and_parse_request.assert_called_once()
+        mock_sorted.assert_called_once()
