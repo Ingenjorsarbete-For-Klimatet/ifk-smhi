@@ -217,37 +217,19 @@ class MetObsLevelV1:
         self.link = None
         self.data_type = None
 
-    def _fetch_and_parse_request(
-        self, data: list, data_type: str, p1: str, p2: str = None, p3: str = None
-    ):
+    def _fetch_and_parse_request(self, url: str):
         """
         Fetch and parse API request. Only JSON supported.
 
         Args:
-            data: list of data to fetch from
-            data_type: type of data to fetch
-            p1: parameter 1
-            p2: parameter 2
-            p3: parameter 3
+            url: url to fetch from
 
         Returns:
             jsonified content
         """
-        if [bool(x) for x in [p1, p2, p3]].count(True) > 1:
-            raise NotImplementedError("Can't decide which input to select.")
-
-        data_type = TYPE_MAP[data_type]
-        p1 = p3 if p3 else p1
-        if p2:
-            requested_data = [x for x in data if x["title"] == p2][0]
-        else:
-            requested_data = [x for x in data if x["key"] == str(p1)][0]
-        url = [x["href"] for x in requested_data["link"] if x["type"] == data_type][0]
-
         response = requests.get(url)
         content = json.loads(response.content)
 
-        self.data_type = data_type
         self.headers = response.headers
         self.key = content["key"]
         self.updated = content["updated"]
@@ -256,6 +238,40 @@ class MetObsLevelV1:
         self.link = content["link"]
 
         return content
+
+    def _get_url(
+        self,
+        data: list,
+        key: str,
+        parameter: Union[str, int],
+        data_type: str = "application/json",
+    ):
+        """
+        Get the url to fetch data from.
+
+        Args:
+            data: data list
+            key: key to look in
+            parameter: parameter to look for
+            data_type: data type of requested url
+
+        Returns:
+            url
+
+        Raises:
+            IndexError
+        """
+        self.data_type = data_type = TYPE_MAP[data_type]
+        try:
+            requested_data = [x for x in data if x[key] == str(parameter)][0][["link"]]
+            url = [
+                x["href"] for x in requested_data["link"] if x["type"] == self.data_type
+            ][0]
+
+            return url
+
+        except IndexError:
+            raise IndexError("Can't find data for parameter: {p}".format(p=parameter))
 
 
 class MetObsParameterV1(MetObsLevelV1):
@@ -290,7 +306,8 @@ class MetObsParameterV1(MetObsLevelV1):
             raise NotImplementedError("Only supports version 1.0.")
 
         self.selected_version = "1.0" if version == 1 else version
-        content = self._fetch_and_parse_request(data, data_type, version)
+        url = self._get_url(data, "key", version, data_type)
+        content = self._fetch_and_parse_request(url)
         self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
         self.data = tuple((x["key"], x["title"]) for x in self.resource)
 
@@ -331,12 +348,14 @@ class MetObsStationV1(MetObsLevelV1):
         if parameter and parameter_title:
             raise NotImplementedError("Can't decide which input to select.")
 
-        self.selected_parameter = (
-            parameter if parameter_title is None else parameter_title
-        )
-        content = self._fetch_and_parse_request(
-            data, data_type, parameter, parameter_title
-        )
+        if parameter:
+            self.selected_parameter = parameter
+            url = self._get_url(data, "key", parameter, data_type)
+        if parameter_title:
+            self.selected_parameter = parameter_title
+            url = self._get_url(data, "title", parameter_title, data_type)
+
+        content = self._fetch_and_parse_request(url)
         self.valuetype = content["valueType"]
         self.stationset = content["stationSet"]
         self.station = sorted(content["station"], key=lambda x: int(x["id"]))
@@ -382,11 +401,17 @@ class MetObsPeriodV1(MetObsLevelV1):
         if [bool(x) for x in [station, station_name, stationset]].count(True) > 1:
             raise NotImplementedError("Can't decide which input to select.")
 
-        selected_station = station_name if station_name else stationset
-        self.selected_station = station if station else selected_station
-        content = self._fetch_and_parse_request(
-            data, data_type, station, station_name, stationset
-        )
+        if station:
+            self.selected_station = station
+            url = self._get_url(data, "key", station, data_type)
+        if station_name:
+            self.selected_station = station_name
+            url = self._get_url(data, "title", station_name, data_type)
+        if stationset:
+            self.selected_station = stationset
+            url = self._get_url(data, "key", stationset, data_type)
+
+        content = self._fetch_and_parse_request(url)
         self.owner = content["owner"]
         self.ownercategory = content["ownerCategory"]
         self.measuringstations = content["measuringStations"]
@@ -434,7 +459,8 @@ class MetObsDataV1(MetObsLevelV1):
             )
 
         self.selected_period = period
-        content = self._fetch_and_parse_request(data, data_type, period)
+        url = self._get_url(data, "key", period, data_type)
+        content = self._fetch_and_parse_request(url)
         self.time_from = content["from"]
         self.time_to = content["to"]
         self.data = content["data"]
