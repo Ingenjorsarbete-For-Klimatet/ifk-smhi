@@ -9,7 +9,9 @@ from smhi.metobs import (
     MetObsParameterV1,
     MetObsStationV1,
     MetObsPeriodV1,
+    MetObsDataV1,
 )
+from smhi.constants import METOBS_AVAILABLE_PERIODS
 
 
 class TestUnitMetObs:
@@ -587,3 +589,110 @@ class TestUnitMetObsPeriodV1:
         mock_get_url.assert_called_once()
         mock_fetch_and_parse_request.assert_called_once()
         mock_sorted.assert_called_once()
+
+
+class TestUnitMetObsDataV1:
+    """
+    Unit tests for MetObsDataV1 class.
+    """
+
+    @pytest.mark.parametrize(
+        "data, period, data_type",
+        [
+            ([], None, "yaml"),
+            ([], None, "json"),
+            ([], "latest-hour", "json"),
+            ([], "latest", "json"),
+            ([], "latest-months", "json"),
+            ([], "corrected-archive", "json"),
+        ],
+    )
+    @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
+    @patch("smhi.metobs.MetObsLevelV1._get_url")
+    def test_unit_metobsdatav1_init(
+        self,
+        mock_get_url,
+        mock_fetch_and_parse_request,
+        data,
+        period,
+        data_type,
+    ):
+        """
+        Unit test for MetObsDataV1 init method.
+
+        Args:
+            mock_get_url: mock of _get_url method
+            mock_fetch_and_parse_request: mock of _fetch_and_parse_request method
+            data: data list
+            period: period
+            data_type: type of data
+        """
+
+        if data_type != "json":
+            with pytest.raises(TypeError):
+                MetObsDataV1(data, period, data_type)
+            return None
+
+        if period not in METOBS_AVAILABLE_PERIODS:
+            with pytest.raises(NotImplementedError):
+                MetObsDataV1(data, period, data_type)
+            return None
+
+        data = MetObsDataV1(data, period, data_type)
+
+        assert data.selected_period == period
+        assert data.time_from == mock_fetch_and_parse_request.return_value["from"]
+        assert data.time_to == mock_fetch_and_parse_request.return_value["to"]
+        assert data.data == mock_fetch_and_parse_request.return_value["data"]
+        mock_get_url.assert_called_once()
+        mock_fetch_and_parse_request.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "data, period, data_type, data_type_init",
+        [
+            (
+                [
+                    {
+                        "key": "p1",
+                        "link": [
+                            {"href": "URL", "type": "application/json"},
+                            {"href": "URL", "type": "text/plain"},
+                        ],
+                    }
+                ],
+                "corrected-archive",
+                "text/plain",
+                "json",
+            ),
+        ],
+    )
+    @patch("smhi.metobs.requests.get")
+    @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
+    @patch("smhi.metobs.MetObsLevelV1._get_url")
+    def test_unit_metobsdatav1_fetch(
+        self,
+        mock_get_url,
+        mock_fetch_and_parse_request,
+        mock_request_get,
+        data,
+        period,
+        data_type,
+        data_type_init,
+    ):
+        """
+        Unit test for MetObsDataV1 fetch method.
+
+        Args:
+            mock_get_url: mock of _get_url method
+            mock_fetch_and_parse_request: mock of _fetch_and_parse_request method
+            mock_request_get: mock of requests get method
+            data: data
+            period: period
+            data_type_init: data type init
+            data_type: data type
+        """
+        data_object = MetObsDataV1(data, period, data_type_init)
+        data_object.data = data
+        read_data = data_object.fetch(data_type)
+        assert read_data == mock_request_get.return_value.content.decode("utf-8")
+        mock_request_get.assert_called_once()
