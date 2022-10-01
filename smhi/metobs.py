@@ -166,8 +166,8 @@ class MetObs:
         period: str,
     ):
         """
-        Get data from explicit parameter selection and station, without inspecting each level.
-        Note, no version parameter.
+        Get data from explicit parameter selection and station,
+        without inspecting each level. Note, no version parameter.
 
         Args:
             parameter: API parameter
@@ -186,8 +186,8 @@ class MetObs:
         period: str,
     ):
         """
-        Get data from explicit parameter selection and station set, without inspecting each level.
-        Note, no version parameter.
+        Get data from explicit parameter selection and station set,
+        without inspecting each level. Note, no version parameter.
 
         Args:
             parameter: API parameter
@@ -270,14 +270,18 @@ class MetObsParameterV1(MetObsLevelV1):
             data: available API versions
             version: selected API version
             data_type: data_type of request
+
+        Raises:
+            TypeError
+            NotImplementedError
         """
         super().__init__()
 
-        if version != 1 and version != "1.0":
-            raise NotImplementedError("Only supports version 1.0.")
-
         if data_type != TYPE_MAP["json"]:
             raise TypeError("Only json supported.")
+
+        if version != 1 and version != "1.0":
+            raise NotImplementedError("Only supports version 1.0.")
 
         self.selected_version = "1.0" if version == 1 else version
         content = self._fetch_and_parse_request(data, data_type, version)
@@ -305,6 +309,10 @@ class MetObsStationV1(MetObsLevelV1):
             parameter: data to read
             parameter_title: exact title of data
             data_type: data_type of request
+
+        Raises:
+            TypeError
+            NotImplementedError
         """
         super().__init__()
 
@@ -352,6 +360,10 @@ class MetObsPeriodV1(MetObsLevelV1):
             station_name: station name to fetch
             stationset: station set to fetch
             data_type: data_type of request
+
+        Raises:
+            TypeError
+            NotImplementedError
         """
         super().__init__()
 
@@ -396,8 +408,13 @@ class MetObsDataV1(MetObsLevelV1):
 
         Args:
             data: available API periods
-            period: select period from: latest-hour, latest-day, latest-months or corrected-archive
+            period: select period from:
+                    latest-hour, latest-day, latest-months or corrected-archive
             data_type: data_type of request
+
+        Raises:
+            TypeError
+            NotImplementedError
         """
         super().__init__()
 
@@ -422,6 +439,9 @@ class MetObsDataV1(MetObsLevelV1):
 
         Args:
             type: type of request
+
+        Returns:
+            utf-8 decoded response
         """
         for item in self.data:
             for link in item["link"]:
