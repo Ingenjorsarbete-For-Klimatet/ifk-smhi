@@ -188,15 +188,42 @@ class TestUnitMetObsLevelV1:
         assert level.link is None
         assert level.data_type is None
 
+    @patch("smhi.metobs.requests.get")
+    @patch("smhi.metobs.json.loads")
+    def test_unit_metobslevelv1_fetch_and_parse_request(
+        self, mock_json_loads, mock_requests_get
+    ):
+        """
+        Unit test for MetObsLevelV1 _fetch_and_parse_request method.
+
+        Args:
+            mock_json_loads: mock json loads method
+            mock_requests_get: mock requests get method
+        """
+        level = MetObsLevelV1()
+        url = "URL"
+
+        content = level._fetch_and_parse_request(url)
+        mock_json_loads.called_once()
+        mock_requests_get.called_once()
+
+        assert level.headers == mock_requests_get.return_value.headers
+        assert level.key == mock_json_loads.return_value["key"]
+        assert level.updated == mock_json_loads.return_value["updated"]
+        assert level.title == mock_json_loads.return_value["title"]
+        assert level.summary == mock_json_loads.return_value["summary"]
+        assert level.link == mock_json_loads.return_value["link"]
+        assert content == mock_json_loads.return_value
+
     @pytest.mark.parametrize(
-        "data, data_type, p1, p2, p3",
+        "data, key, parameter, data_type, expected_result",
         [
             (
                 [{"key": "p1", "link": [{"href": "URL", "type": "application/json"}]}],
-                "application/json",
+                "key",
                 "p1",
-                None,
-                None,
+                "application/json",
+                "URL",
             ),
             (
                 [
@@ -205,84 +232,41 @@ class TestUnitMetObsLevelV1:
                         "link": [{"href": "URL", "type": "application/json"}],
                     }
                 ],
-                "application/json",
-                None,
+                "title",
                 "p2",
-                None,
-            ),
-            (
-                [{"key": "p3", "link": [{"href": "URL", "type": "application/json"}]}],
                 "application/json",
-                None,
-                None,
-                "p3",
+                "URL",
             ),
-            (
-                [],
-                "application/json",
-                "p1",
-                None,
-                "p3",
-            ),
-            (
-                [],
-                "application/json",
-                "p1",
-                "p2",
-                None,
-            ),
-            (
-                [],
-                "application/json",
-                None,
-                "p2",
-                "p3",
-            ),
-            (
-                [],
-                "application/json",
-                "p1",
-                "p2",
-                "p3",
-            ),
+            ([{"key": "p1", "link": []}], "key", "p1", None, IndexError),
+            ([{"link": []}], "key", "p1", None, KeyError),
+            ([{"link": []}], "key", None, None, KeyError),
+            ([{"link": []}], None, None, None, KeyError),
         ],
     )
-    @patch("smhi.metobs.requests.get")
-    @patch("smhi.metobs.json.loads")
-    def test_unit_metobslevelv1_fetch_and_parse_request(
-        self, mock_json_loads, mock_requests_get, data, data_type, p1, p2, p3
+    def test_unit_metobslevelv1_get_url(
+        self, data, key, parameter, data_type, expected_result
     ):
         """
-        Unit test for MetObsLevelV1 _fetch_and_parse_request method.
+        Unit test for MetObsLevelV1 _get_url method.
 
         Args:
-            mock_json_loads: mock json loads method
-            mock_requests_get: mock requests get method
             data: list of data
+            key: key
+            parameter: parameter
             data_type: format of api data
-            p1: parameter 1
-            p2: parameter 2
-            p3: parameter 3
+            expected_result: expected result
         """
         level = MetObsLevelV1()
 
-        if [bool(x) for x in [p1, p2, p3]].count(True) > 1:
-            with pytest.raises(NotImplementedError):
-                level._fetch_and_parse_request(data, data_type, p1, p2, p3)
+        if type(expected_result) != str:
+            with pytest.raises(expected_result):
+                level._get_url(data, key, parameter, data_type)
             return None
 
-        content = level._fetch_and_parse_request(data, data_type, p1, p2, p3)
-        mock_json_loads.called_once()
-        mock_requests_get.called_once()
+        url = level._get_url(data, key, parameter, data_type)
 
         assert level.data_type == data_type
-        assert level.headers == mock_requests_get.return_value.headers
-        assert level.key == mock_json_loads.return_value["key"]
-        assert level.updated == mock_json_loads.return_value["updated"]
-        assert level.title == mock_json_loads.return_value["title"]
-        assert level.summary == mock_json_loads.return_value["summary"]
-        assert level.link == mock_json_loads.return_value["link"]
-        assert content == mock_json_loads.return_value
+        assert url == expected_result
 
 
 class TestUnitMetObsParameterV1:
@@ -302,8 +286,10 @@ class TestUnitMetObsParameterV1:
     @patch("smhi.metobs.tuple")
     @patch("smhi.metobs.sorted")
     @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
+    @patch("smhi.metobs.MetObsLevelV1._get_url")
     def test_unit_metobsparameterv1_init(
         self,
+        mock_get_url,
         mock_fetch_and_parse_request,
         mock_sorted,
         mock_tuple,
@@ -315,6 +301,7 @@ class TestUnitMetObsParameterV1:
         Unit test for MetObsParameterV1 init method.
 
         Args:
+            mock_get_url: mock _get_url method
             mock_fetch_and_parse_request: mock _fetch_and_parse_request get method
             mock_sorted: mock of sorted call
             mock_tuple: mock of tuple call
@@ -337,9 +324,10 @@ class TestUnitMetObsParameterV1:
         parameter = MetObsParameterV1(data, version, data_type)
         assert parameter.resource == mock_sorted.return_value
         assert parameter.data == mock_tuple.return_value
+        mock_get_url.assert_called_once()
+        mock_fetch_and_parse_request.assert_called_once()
         mock_sorted.assert_called_once()
         mock_tuple.assert_called_once()
-        mock_fetch_and_parse_request.assert_called_once()
 
 
 class TestUnitMetObsStationV1:
@@ -364,8 +352,10 @@ class TestUnitMetObsStationV1:
     @patch("smhi.metobs.tuple")
     @patch("smhi.metobs.sorted")
     @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
-    def test_unit_metobsparameterv1_init(
+    @patch("smhi.metobs.MetObsLevelV1._get_url")
+    def test_unit_metobsstationv1_init(
         self,
+        mock_get_url,
         mock_fetch_and_parse_request,
         mock_sorted,
         mock_tuple,
@@ -378,6 +368,7 @@ class TestUnitMetObsStationV1:
         Unit test for MetObs init method.
 
         Args:
+            mock_get_url: mock of _get_url method
             mock_fetch_and_parse_request: mock of _fetch_and_parse_request method
             mock_sorted: mock sorted call
             mock_tuple: mock tuple call
@@ -403,7 +394,12 @@ class TestUnitMetObsStationV1:
 
         station = MetObsStationV1(data, parameter, parameter_title, data_type)
 
-        # assert station.selected_parameter == parameter
+        if parameter:
+            assert station.selected_parameter == parameter
+
+        if parameter_title:
+            assert station.selected_parameter == parameter_title
+
         assert (
             station.valuetype == mock_fetch_and_parse_request.return_value["valueType"]
         )
@@ -413,3 +409,5 @@ class TestUnitMetObsStationV1:
         )
         assert station.station == mock_sorted.return_value
         assert station.data == mock_tuple.return_value
+        mock_get_url.assert_called_once()
+        mock_fetch_and_parse_request.assert_called_once()

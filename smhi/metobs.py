@@ -247,7 +247,7 @@ class MetObsLevelV1:
         data_type: str = "application/json",
     ):
         """
-        Get the url to fetch data from.
+        Get the url to fetch data from. Defaults to type application/json.
 
         Args:
             data: data list
@@ -263,15 +263,13 @@ class MetObsLevelV1:
         """
         self.data_type = data_type = TYPE_MAP[data_type]
         try:
-            requested_data = [x for x in data if x[key] == str(parameter)][0][["link"]]
-            url = [
-                x["href"] for x in requested_data["link"] if x["type"] == self.data_type
-            ][0]
-
+            requested_data = [x for x in data if x[key] == str(parameter)][0]["link"]
+            url = [x["href"] for x in requested_data if x["type"] == self.data_type][0]
             return url
-
         except IndexError:
             raise IndexError("Can't find data for parameter: {p}".format(p=parameter))
+        except KeyError:
+            raise KeyError("Can't find key: {key}".format(key=key))
 
 
 class MetObsParameterV1(MetObsLevelV1):
