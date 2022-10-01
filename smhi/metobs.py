@@ -104,6 +104,46 @@ class MetObs:
         self.table_raw = self.data.fetch()
         self.table = pd.read_csv(io.StringIO(self.table_raw), on_bad_lines="skip")
 
+    def get_data(
+        self,
+        parameter: int,
+        station: int,
+        period: str,
+    ):
+        """
+        Get data from explicit parameter selection and station,
+        without inspecting each level. Note, no version parameter.
+
+        Args:
+            parameter: API parameter
+            station: station
+            period: period to download
+        """
+        self.fetch_parameters()
+        self.fetch_stations(parameter)
+        self.fetch_periods(station)
+        self.fetch_data(period)
+
+    def get_data_stationset(
+        self,
+        parameter: int,
+        stationset: int,
+        period: str,
+    ):
+        """
+        Get data from explicit parameter selection and station set,
+        without inspecting each level. Note, no version parameter.
+
+        Args:
+            parameter: API parameter
+            stationset: station
+            period: period to download
+        """
+        self.fetch_parameters()
+        self.fetch_stations(parameter)
+        self.fetch_periods(None, stationset)
+        self.fetch_data(period)
+
     def inspect(self, num_print: int = 10):
         """
         Inspect object state.
@@ -159,46 +199,6 @@ class MetObs:
                 print("Selected period: ", self.data.selected_period)
             print()
 
-    def get_data(
-        self,
-        parameter: int,
-        station: int,
-        period: str,
-    ):
-        """
-        Get data from explicit parameter selection and station,
-        without inspecting each level. Note, no version parameter.
-
-        Args:
-            parameter: API parameter
-            station: station
-            period: period to download
-        """
-        self.fetch_parameters()
-        self.fetch_stations(parameter)
-        self.fetch_periods(station)
-        self.fetch_data(period)
-
-    def get_data_stationset(
-        self,
-        parameter: int,
-        stationset: int,
-        period: str,
-    ):
-        """
-        Get data from explicit parameter selection and station set,
-        without inspecting each level. Note, no version parameter.
-
-        Args:
-            parameter: API parameter
-            stationset: station
-            period: period to download
-        """
-        self.fetch_parameters()
-        self.fetch_stations(parameter)
-        self.fetch_periods(None, stationset)
-        self.fetch_data(period)
-
 
 class MetObsLevelV1:
     """
@@ -244,10 +244,10 @@ class MetObsLevelV1:
         data: list,
         key: str,
         parameter: Union[str, int],
-        data_type: str = "application/json",
+        data_type: str = "json",
     ):
         """
-        Get the url to fetch data from. Defaults to type application/json.
+        Get the url to fetch data from. Defaults to type json.
 
         Args:
             data: data list
@@ -281,7 +281,7 @@ class MetObsParameterV1(MetObsLevelV1):
         self,
         data: list = None,
         version: Union[str, int] = "1.0",
-        data_type: str = "application/json",
+        data_type: str = "json",
     ):
         """
         Fetch parameter from version.
@@ -320,7 +320,7 @@ class MetObsStationV1(MetObsLevelV1):
         data: list,
         parameter: str = None,
         parameter_title: str = None,
-        data_type: str = "application/json",
+        data_type: str = "json",
     ):
         """
         Fetch stations from parameter.
@@ -372,7 +372,7 @@ class MetObsPeriodV1(MetObsLevelV1):
         station: int = None,
         station_name: str = None,
         stationset: str = None,
-        data_type: str = "application/json",
+        data_type: str = "json",
     ):
         """
         Fetch periods from station.
@@ -430,7 +430,7 @@ class MetObsDataV1(MetObsLevelV1):
         self,
         data: list,
         period: str = "corrected-archive",
-        data_type: str = "application/json",
+        data_type: str = "json",
     ):
         """
         Fetch data from period.
