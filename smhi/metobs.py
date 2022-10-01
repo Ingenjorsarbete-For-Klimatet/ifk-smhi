@@ -6,7 +6,7 @@ import json
 import requests
 import pandas as pd
 from typing import Union
-from smhi.constants import METOBS_URL, TYPE_MAP
+from smhi.constants import METOBS_URL, TYPE_MAP, METOBS_AVAILABLE_PERIODS
 
 
 class MetObs:
@@ -200,34 +200,59 @@ class MetObs:
         self.fetch_data(period)
 
 
-def fetch_and_parse_request(
-    data: list, data_type: str, p1: str, p2: str = None, p3: str = None
-):
+class MetObsLevelV1:
     """
-    Fetch and parse API request. Only JSON supported.
-
-    Args:
-        data: list of data to fetch from
-        data_type: type of data to fetch
-        p1: parameter 1
-        p2: parameter 2
-        p3: parameter 3
-
-    Returns:
-        request header and jsonified content
+    Base MetObs level version 1 class.
     """
-    p1 = p3 if p3 else p1
-    if p2:
-        requested_data = [x for x in data if x["title"] == p2][0]
-    else:
-        requested_data = [x for x in data if x["key"] == str(p1)][0]
 
-    url = [x["href"] for x in requested_data["link"] if x["type"] == data_type][0]
-    response = requests.get(url)
-    return response.headers, json.loads(response.content)
+    def __init__(self):
+        """
+        Initialise base class.
+        """
+        self.headers = None
+        self.key = None
+        self.updated = None
+        self.title = None
+        self.summary = None
+        self.link = None
+
+    def _fetch_and_parse_request(
+        self, data: list, data_type: str, p1: str, p2: str = None, p3: str = None
+    ):
+        """
+        Fetch and parse API request. Only JSON supported.
+
+        Args:
+            data: list of data to fetch from
+            data_type: type of data to fetch
+            p1: parameter 1
+            p2: parameter 2
+            p3: parameter 3
+
+        Returns:
+            jsonified content
+        """
+        p1 = p3 if p3 else p1
+        if p2:
+            requested_data = [x for x in data if x["title"] == p2][0]
+        else:
+            requested_data = [x for x in data if x["key"] == str(p1)][0]
+        url = [x["href"] for x in requested_data["link"] if x["type"] == data_type][0]
+
+        response = requests.get(url)
+        content = json.loads(response.content)
+
+        self.headers = response.headers
+        self.key = content["key"]
+        self.updated = content["updated"]
+        self.title = content["title"]
+        self.summary = content["summary"]
+        self.link = content["link"]
+
+        return content
 
 
-class MetObsParameterV1:
+class MetObsParameterV1(MetObsLevelV1):
     """
     Fetch parameter for version 1 of MetObs API.
     """
@@ -246,6 +271,8 @@ class MetObsParameterV1:
             version: selected API version
             data_type: data_type of request
         """
+        super().__init__()
+
         if version != 1 and version != "1.0":
             raise NotImplementedError("Only supports version 1.0.")
 
@@ -253,17 +280,12 @@ class MetObsParameterV1:
             raise TypeError("Only json supported.")
 
         self.selected_version = "1.0" if version == 1 else version
-        self.headers, content = fetch_and_parse_request(data, data_type, version)
-        self.key = content["key"]
-        self.updated = content["updated"]
-        self.title = content["title"]
-        self.summary = content["summary"]
-        self.link = content["link"]
+        content = self._fetch_and_parse_request(data, data_type, version)
         self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
         self.data = tuple((x["key"], x["title"]) for x in self.resource)
 
 
-class MetObsStationV1:
+class MetObsStationV1(MetObsLevelV1):
     """
     Fetch stations from parameter for version 1 of MetObs API.
     """
@@ -284,6 +306,8 @@ class MetObsStationV1:
             parameter_title: exact title of data
             data_type: data_type of request
         """
+        super().__init__()
+
         if data_type != TYPE_MAP["json"]:
             raise TypeError("Only json supported.")
 
@@ -296,21 +320,16 @@ class MetObsStationV1:
         self.selected_parameter = (
             parameter if parameter_title is None else parameter_title
         )
-        self.headers, content = fetch_and_parse_request(
+        content = self._fetch_and_parse_request(
             data, data_type, parameter, parameter_title
         )
-        self.key = content["key"]
-        self.updated = content["updated"]
-        self.title = content["title"]
-        self.summary = content["summary"]
         self.valuetype = content["valueType"]
-        self.link = content["link"]
         self.stationset = content["stationSet"]
         self.station = sorted(content["station"], key=lambda x: int(x["id"]))
         self.data = tuple((i, x["id"], x["name"]) for i, x in enumerate(self.station))
 
 
-class MetObsPeriodV1:
+class MetObsPeriodV1(MetObsLevelV1):
     """
     Fetch periods from station for version 1 of MetObs API.
     Note that stationset_title is not supported
@@ -334,6 +353,8 @@ class MetObsPeriodV1:
             stationset: station set to fetch
             data_type: data_type of request
         """
+        super().__init__()
+
         if data_type != TYPE_MAP["json"]:
             raise TypeError("Only json supported.")
 
@@ -345,26 +366,21 @@ class MetObsPeriodV1:
 
         selected_station = station_name if station_name else stationset
         self.selected_station = station if station else selected_station
-        self.headers, content = fetch_and_parse_request(
+        content = self._fetch_and_parse_request(
             data, data_type, station, station_name, stationset
         )
-        self.key = content["key"]
-        self.updated = content["updated"]
-        self.title = content["title"]
         self.owner = content["owner"]
         self.ownercategory = content["ownerCategory"]
         self.measuringstations = content["measuringStations"]
         self.active = content["active"]
-        self.summary = content["summary"]
         self.time_from = content["from"]
         self.time_to = content["to"]
         self.position = content["position"]
-        self.link = content["link"]
         self.period = sorted(content["period"], key=lambda x: x["key"])
         self.data = [x["key"] for x in self.period]
 
 
-class MetObsDataV1:
+class MetObsDataV1(MetObsLevelV1):
     """
     Fetch data from period for version 1 of MetObs API.
     """
@@ -383,20 +399,21 @@ class MetObsDataV1:
             period: select period from: latest-hour, latest-day, latest-months or corrected-archive
             data_type: data_type of request
         """
+        super().__init__()
+
         if data_type != TYPE_MAP["json"]:
             raise TypeError("Only json supported.")
 
+        if period not in METOBS_AVAILABLE_PERIODS:
+            raise NotImplementedError(
+                "Select a supported period: }"
+                + ", ".join([p for p in METOBS_AVAILABLE_PERIODS])
+            )
+
         self.selected_period = period
-        # requested_period = [x for x in data if x["key"] == period][0]
-        # url = [x["href"] for x in requested_period["link"] if x["type"] == data_type][0]
-        self.headers, content = fetch_and_parse_request(data, data_type, period)
-        self.key = content["key"]
-        self.updated = content["updated"]
-        self.title = content["title"]
-        self.summary = content["summary"]
+        content = self._fetch_and_parse_request(data, data_type, period)
         self.time_from = content["from"]
         self.time_to = content["to"]
-        self.link = content["link"]
         self.data = content["data"]
 
     def fetch(self, type: str = "text/plain"):
