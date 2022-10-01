@@ -233,6 +233,9 @@ class MetObsLevelV1:
         Returns:
             jsonified content
         """
+        if [bool(x) for x in [p1, p2, p3]].count(True) > 1:
+            raise NotImplementedError("Can't decide which input to select.")
+
         data_type = TYPE_MAP[data_type]
         p1 = p3 if p3 else p1
         if p2:
