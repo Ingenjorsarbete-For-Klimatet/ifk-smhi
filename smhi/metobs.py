@@ -215,6 +215,7 @@ class MetObsLevelV1:
         self.title = None
         self.summary = None
         self.link = None
+        self.data_type = None
 
     def _fetch_and_parse_request(
         self, data: list, data_type: str, p1: str, p2: str = None, p3: str = None
@@ -232,6 +233,7 @@ class MetObsLevelV1:
         Returns:
             jsonified content
         """
+        data_type = TYPE_MAP[data_type]
         p1 = p3 if p3 else p1
         if p2:
             requested_data = [x for x in data if x["title"] == p2][0]
@@ -242,6 +244,7 @@ class MetObsLevelV1:
         response = requests.get(url)
         content = json.loads(response.content)
 
+        self.data_type = data_type
         self.headers = response.headers
         self.key = content["key"]
         self.updated = content["updated"]
@@ -277,7 +280,7 @@ class MetObsParameterV1(MetObsLevelV1):
         """
         super().__init__()
 
-        if data_type != TYPE_MAP["json"]:
+        if data_type != "json":
             raise TypeError("Only json supported.")
 
         if version != 1 and version != "1.0":
@@ -316,7 +319,7 @@ class MetObsStationV1(MetObsLevelV1):
         """
         super().__init__()
 
-        if data_type != TYPE_MAP["json"]:
+        if data_type != "json":
             raise TypeError("Only json supported.")
 
         if parameter is None and parameter_title is None:
@@ -367,7 +370,7 @@ class MetObsPeriodV1(MetObsLevelV1):
         """
         super().__init__()
 
-        if data_type != TYPE_MAP["json"]:
+        if data_type != "json":
             raise TypeError("Only json supported.")
 
         if station is None and station_name is None and stationset is None:
@@ -418,7 +421,7 @@ class MetObsDataV1(MetObsLevelV1):
         """
         super().__init__()
 
-        if data_type != TYPE_MAP["json"]:
+        if data_type != "json":
             raise TypeError("Only json supported.")
 
         if period not in METOBS_AVAILABLE_PERIODS:
