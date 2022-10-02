@@ -20,7 +20,7 @@ class StrangPoint:
     SMHI STRÅNG Pointclass. Only supports category strang1g and version 1.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialise STRÅNG object.
         """
@@ -41,6 +41,12 @@ class StrangPoint:
 
     @property
     def parameters(self):
+        """
+        Get parameters property.
+
+        Returns:
+            available parameters
+        """
         return self.available_parameters
 
     def fetch_data(
@@ -75,14 +81,24 @@ class StrangPoint:
                 "Parameter not implemented. Try client.parameters to list available parameters."
             )
 
+        self._build_base_url()
+        self.url = self._build_date_url()
+        self.status, self.headers, self.data = self._fetch_and_load_strang_data()
+
+        if self.status is False:
+            raise ValueError(
+                "Fetch failed and no data was returned. Check longitude and latitude coordinates."
+            )
+
+    def _build_base_url(self):
+        """
+        Build base url.
+        """
         self.url = self.raw_url(
             lon=self.longitude,
             lat=self.latitude,
             parameter=self.parameter.parameter,
         )
-
-        self.url = self._build_date_url()
-        self.status, self.headers, self.data = self._fetch_and_load_strang_data()
 
     def _build_date_url(self):
         """
