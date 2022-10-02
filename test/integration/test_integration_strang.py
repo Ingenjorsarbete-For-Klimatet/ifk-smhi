@@ -87,6 +87,15 @@ class TestIntegrationStrangPoint:
                 "monthly",
                 RESULT_MONTHLY_2020_01_01_2020_02_01,
             ),
+            (
+                16,
+                58,
+                118,
+                None,
+                None,
+                None,
+                "date_time",
+            ),
         ],
     )
     def test_integration_strang(
@@ -107,4 +116,7 @@ class TestIntegrationStrangPoint:
         client = StrangPoint()
         client.fetch_data(lon, lat, parameter, time_from, time_to, time_interval)
 
-        assert client.data == expected_result
+        if time_from is not None:
+            assert client.data == expected_result
+        else:
+            assert expected_result in client.data[0]
