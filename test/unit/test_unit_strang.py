@@ -92,10 +92,19 @@ class TestUnitStrangPoint:
                 "2020-01-01",
                 "hourly",
             ),
+            (
+                None,
+                None,
+                STRANG_PARAMETERS[116],
+                "2020-01-01",
+                "2020-01-01",
+                "hourly",
+            ),
         ],
     )
     @patch(
-        "smhi.strang.StrangPoint._fetch_and_load_strang_data", return_value=(1, 2, 3)
+        "smhi.strang.StrangPoint._fetch_and_load_strang_data",
+        return_value=[None, None, None],
     )
     @patch("smhi.strang.StrangPoint._build_date_url")
     def test_unit_strang_point_fetch_data(
@@ -123,7 +132,6 @@ class TestUnitStrangPoint:
             time_interval: time interval
         """
         client = StrangPoint()
-        url = partial(STRANG_POINT_URL.format, category=CATEGORY, version=VERSION)
 
         if parameter.parameter is None:
             with pytest.raises(NotImplementedError):
@@ -135,22 +143,80 @@ class TestUnitStrangPoint:
                     time_to,
                     time_interval,
                 )
-        else:
-            client.fetch_data(
-                lon,
-                lat,
-                parameter.parameter,
-                time_from,
-                time_to,
-                time_interval,
-            )
 
-            assert client.longitude == lon
-            assert client.latitude == lat
-            assert client.parameter == parameter
+            return None
 
-            mock_build_date_url.assert_called_once()
-            mock_fetch_and_load_strang_data.assert_called_once()
+        if lon is None:
+            mock_fetch_and_load_strang_data.return_value[0] = False
+            with pytest.raises(ValueError):
+                client.fetch_data(
+                    lon,
+                    lat,
+                    parameter.parameter,
+                    time_from,
+                    time_to,
+                    time_interval,
+                )
+
+            return None
+
+        client.fetch_data(
+            lon,
+            lat,
+            parameter.parameter,
+            time_from,
+            time_to,
+            time_interval,
+        )
+
+        assert client.longitude == lon
+        assert client.latitude == lat
+        assert client.parameter == parameter
+        assert client.url == mock_build_date_url.return_value
+
+        mock_build_date_url.assert_called_once()
+        mock_fetch_and_load_strang_data.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "lon, lat, parameter",
+        [
+            (
+                None,
+                None,
+                STRANG(
+                    None,
+                    None,
+                    None,
+                    None,
+                ),
+            ),
+            (
+                "50",
+                "16",
+                STRANG_PARAMETERS[116],
+            ),
+        ],
+    )
+    def test_unit_strang_point_build_base_url(self, lon, lat, parameter):
+        """
+        Unit test for STRANG Point _build_base_url method
+
+        Args:
+            lon: longitude
+            lat: latitude
+            parameter: parmeter
+        """
+        client = StrangPoint()
+        client.longitude = lon
+        client.latitude = lat
+        client.parameter = parameter
+
+        url = partial(STRANG_POINT_URL.format, category=CATEGORY, version=VERSION)
+        url = url(lon=lon, lat=lat, parameter=parameter.parameter)
+
+        client._build_base_url()
+
+        assert client.url == url
 
     @pytest.mark.parametrize(
         "date_from, date_to, date_interval, expected_url",
