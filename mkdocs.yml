@@ -1,1 +1,15 @@
 site_name: smhi
+
+nav:
+- Home: index.md
+- Reference: reference.md
+
+watch:
+- smhi
+
+theme:
+  name: material
+
+plugins:
+- search
+- mkdocstrings
