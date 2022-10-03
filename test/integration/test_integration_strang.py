@@ -4,7 +4,7 @@ STRÅNG integration tests.
 import pytest
 import datetime
 from dateutil.tz import tzutc
-from smhi.strang import StrangPoint
+from smhi.strang import Strang
 
 
 RESULT_HOURLY_2020_01_01_2020_01_02 = [
@@ -52,7 +52,7 @@ RESULT_MONTHLY_2020_01_01_2020_02_01 = [
 ]
 
 
-class TestIntegrationStrangPoint:
+class TestIntegrationStrang:
     """
     Integration tests for STRÅNG Point class.
     """
@@ -113,8 +113,8 @@ class TestIntegrationStrangPoint:
             time_interval: interval
             expected_result: expected result
         """
-        client = StrangPoint()
-        client.fetch_data(lon, lat, parameter, time_from, time_to, time_interval)
+        client = Strang()
+        client.fetch_point(lon, lat, parameter, time_from, time_to, time_interval)
 
         if time_from is not None:
             assert client.data == expected_result
