@@ -12,7 +12,7 @@ theme:
   palette:
     scheme: default
     primary: black
-    accent: deep orange
+    accent: light green
 
 plugins:
 - search
