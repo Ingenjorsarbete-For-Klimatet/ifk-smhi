@@ -15,9 +15,9 @@ from smhi.constants import (
 )
 
 
-class StrangPoint:
+class Strang:
     """
-    SMHI STRÅNG Pointclass. Only supports category strang1g and version 1.
+    SMHI STRÅNG class. Only supports category strang1g and version 1.
     """
 
     def __init__(self) -> None:
@@ -49,7 +49,7 @@ class StrangPoint:
         """
         return self.available_parameters
 
-    def fetch_data(
+    def fetch_point(
         self,
         longitude: float,
         latitude: float,
@@ -83,7 +83,7 @@ class StrangPoint:
 
         self._build_base_url()
         self.url = self._build_date_url()
-        self.status, self.headers, self.data = self._fetch_and_load_strang_data()
+        self.status, self.headers, self.data = self._fetch_and_load_point_data()
 
         if self.status is False:
             raise ValueError(
@@ -132,9 +132,9 @@ class StrangPoint:
 
         return url
 
-    def _fetch_and_load_strang_data(self):
+    def _fetch_and_load_point_data(self):
         """
-        Fetch requested data and parse it with datetime.
+        Fetch requested point data and parse it with datetime.
         """
         response = requests.get(self.url)
         status = response.ok

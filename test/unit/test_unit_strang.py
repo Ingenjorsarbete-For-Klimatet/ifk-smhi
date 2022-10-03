@@ -6,7 +6,7 @@ import pytest
 from datetime import datetime
 from functools import partial
 from unittest.mock import patch
-from smhi.strang import StrangPoint
+from smhi.strang import Strang
 from smhi.constants import (
     STRANG,
     STRANG_POINT_URL,
@@ -18,7 +18,7 @@ CATEGORY = "strang1g"
 VERSION = 1
 
 
-class TestUnitStrangPoint:
+class TestUnitStrang:
     """
     Unit tests for STRÅNG Point class.
     """
@@ -31,7 +31,7 @@ class TestUnitStrangPoint:
             mock_requests_get: mock requests get method
             mock_json_loads: mock json loads method
         """
-        client = StrangPoint()
+        client = Strang()
 
         assert client._category == CATEGORY
         assert client._version == VERSION
@@ -57,7 +57,7 @@ class TestUnitStrangPoint:
         """
         Unit test for STRÅNG Point parameters get property.
         """
-        client = StrangPoint()
+        client = Strang()
         assert client.parameters == STRANG_PARAMETERS
 
     @pytest.mark.parametrize(
@@ -103,14 +103,14 @@ class TestUnitStrangPoint:
         ],
     )
     @patch(
-        "smhi.strang.StrangPoint._fetch_and_load_strang_data",
+        "smhi.strang.Strang._fetch_and_load_point_data",
         return_value=[None, None, None],
     )
-    @patch("smhi.strang.StrangPoint._build_date_url")
-    def test_unit_strang_point_fetch_data(
+    @patch("smhi.strang.Strang._build_date_url")
+    def test_unit_strang_point_fetch_point(
         self,
         mock_build_date_url,
-        mock_fetch_and_load_strang_data,
+        mock_fetch_and_load_point_data,
         lon,
         lat,
         parameter,
@@ -119,11 +119,11 @@ class TestUnitStrangPoint:
         time_interval,
     ):
         """
-        Unit test for STRÅNG Point fetch_data method.
+        Unit test for STRÅNG Point fetch_point method.
 
         Args:
             mock_build_date_url: mock _build_date_url method
-            mock_fetch_and_load_strang_data: mock _fetch_and_load_strang_data method
+            mock_fetch_and_load_point_data: mock _fetch_and_load_point_data method
             lon: longitude
             lat: latitude
             parameter: parameter
@@ -131,11 +131,11 @@ class TestUnitStrangPoint:
             time_to: to time
             time_interval: time interval
         """
-        client = StrangPoint()
+        client = Strang()
 
         if parameter.parameter is None:
             with pytest.raises(NotImplementedError):
-                client.fetch_data(
+                client.fetch_point(
                     lon,
                     lat,
                     parameter.parameter,
@@ -147,9 +147,9 @@ class TestUnitStrangPoint:
             return None
 
         if lon is None:
-            mock_fetch_and_load_strang_data.return_value[0] = False
+            mock_fetch_and_load_point_data.return_value[0] = False
             with pytest.raises(ValueError):
-                client.fetch_data(
+                client.fetch_point(
                     lon,
                     lat,
                     parameter.parameter,
@@ -160,7 +160,7 @@ class TestUnitStrangPoint:
 
             return None
 
-        client.fetch_data(
+        client.fetch_point(
             lon,
             lat,
             parameter.parameter,
@@ -175,7 +175,7 @@ class TestUnitStrangPoint:
         assert client.url == mock_build_date_url.return_value
 
         mock_build_date_url.assert_called_once()
-        mock_fetch_and_load_strang_data.assert_called_once()
+        mock_fetch_and_load_point_data.assert_called_once()
 
     @pytest.mark.parametrize(
         "lon, lat, parameter",
@@ -206,7 +206,7 @@ class TestUnitStrangPoint:
             lat: latitude
             parameter: parmeter
         """
-        client = StrangPoint()
+        client = Strang()
         client.longitude = lon
         client.latitude = lat
         client.parameter = parameter
@@ -235,7 +235,7 @@ class TestUnitStrangPoint:
             (None, None, "notimplemented", None),
         ],
     )
-    @patch("smhi.strang.StrangPoint._parse_date")
+    @patch("smhi.strang.Strang._parse_date")
     def test_unit_strang_point_build_date_url(
         self, mock_parse_date, date_from, date_to, date_interval, expected_url
     ):
@@ -249,7 +249,7 @@ class TestUnitStrangPoint:
             date_interval: interval of date
             expected_url: expected URL
         """
-        client = StrangPoint()
+        client = Strang()
         mock_parse_date.side_effect = [date_from, date_to]
 
         client.date_from = date_from
@@ -284,7 +284,7 @@ class TestUnitStrangPoint:
     @patch(
         "smhi.strang.json.loads", return_value=[{"date_time": "2020-01-01T00:00:00Z"}]
     )
-    def test_unit_strang_point_fetch_and_load_strang_data(
+    def test_unit_strang_point_fetch_and_load_point_data(
         self, mock_json_loads, mock_requests_get, ok, date_time
     ):
         """
@@ -296,11 +296,11 @@ class TestUnitStrangPoint:
             ok: request status
             date_time: date
         """
-        client = StrangPoint()
+        client = Strang()
         client.url = "URL"
         mock_json_loads.return_value = date_time
         mock_requests_get.return_value.ok = ok
-        status, headers, data = client._fetch_and_load_strang_data()
+        status, headers, data = client._fetch_and_load_point_data()
         mock_requests_get.assert_called_once_with(client.url)
 
         if ok is True:
@@ -334,7 +334,7 @@ class TestUnitStrangPoint:
             date: input data to parse
             expected: expected result
         """
-        client = StrangPoint()
+        client = Strang()
         client.parameter = parameter
 
         if date == "Q" or date == "1900":
