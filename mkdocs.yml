@@ -9,6 +9,10 @@ watch:
 
 theme:
   name: material
+  palette:
+    scheme: default
+    primary: black
+    accent: deep orange
 
 plugins:
 - search
