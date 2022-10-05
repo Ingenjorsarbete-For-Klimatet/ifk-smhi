@@ -357,7 +357,7 @@ class MetObsStationV1(MetObsLevelV1):
         self.valuetype = content["valueType"]
         self.stationset = content["stationSet"]
         self.station = sorted(content["station"], key=lambda x: int(x["id"]))
-        self.data = tuple((i, x["id"], x["name"]) for i, x in enumerate(self.station))
+        self.data = tuple((x["id"], x["name"]) for i, x in enumerate(self.station))
 
 
 class MetObsPeriodV1(MetObsLevelV1):

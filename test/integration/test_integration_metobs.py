@@ -22,7 +22,7 @@ class TestIntegrationMetObs:
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
                 ("1", "Lufttemperatur"),
-                (0, 1, "Akalla"),
+                (1, "Akalla"),
                 "corrected-archive",
                 "Lufttemperatur - Akalla - Kvalitetskontrollerade historiska "
                 + "data (utom de senaste 3 mån): Ladda ner data",
@@ -37,7 +37,7 @@ class TestIntegrationMetObs:
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
                 ("1", "Lufttemperatur"),
-                (0, 1, "Akalla"),
+                (1, "Akalla"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
                 + "historiska data (utom de senaste 3 mån): Ladda ner data",
