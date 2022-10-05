@@ -2,6 +2,7 @@
 ifk-smhi is a python client for several SMHI APIs. See https://opendata.smhi.se/apidocs/ for a complete list of available APIs. SMHI stands for [Swedish Meteorological and Hydrological Institute](https://www.smhi.se/) (or in Swedish: Sveriges meteorologiska och hydrologiska institut), which is a Swedish agency under its parent department: Ministry of the Environment.
 
 Initially only these four APIs are supported:
+
 - Metobs - Meteorological Observations
 - Metfcts - Meteorological Forecasts
 - Mesan - Meteorological Analysis MESAN
