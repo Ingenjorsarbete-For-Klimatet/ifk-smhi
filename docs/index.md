@@ -7,8 +7,8 @@ Initially only these four APIs are supported:
 - Mesan - Meteorological Analysis MESAN
 - Strang - Meteorological Analysis STRÅNG (sunshine)
 
-## ifk-smhi client
-The ifk-smhi client can be used as a single object coordinating sub-clients, e.g. Metobs or Strang.
+## SMHI client
+The SMHI client can be used as a single object coordinating sub-clients, e.g. Metobs or Strang.
 
 ## Metobs client
 Client to fetch data from meteorological observations. Use this to access data from _observations_, i.e. recorded data from weather stations scattered over north Europe.
