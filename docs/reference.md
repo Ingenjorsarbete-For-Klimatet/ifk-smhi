@@ -1,6 +1,6 @@
 # Reference
 
-[comment]: ::: smhi.smhi.IfkSmhi
+[comment]: ::: smhi.smhi.SMHI
 
 ::: smhi.metobs.MetObs
 
