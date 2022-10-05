@@ -1,10 +1,11 @@
 # Reference
-::: smhi.smhi.IfkSmhi
+
+[comment]: ::: smhi.smhi.IfkSmhi
 
 ::: smhi.metobs.MetObs
 
-::: smhi.metfcts.Metfcts
+[comment]: ::: smhi.metfcts.Metfcts
 
-::: smhi.mesan.Mesan
+[comment]: ::: smhi.mesan.Mesan
 
 ::: smhi.strang.Strang
