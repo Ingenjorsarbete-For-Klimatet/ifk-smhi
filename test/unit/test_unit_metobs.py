@@ -57,13 +57,13 @@ class TestUnitMetObs:
 
     @pytest.mark.parametrize("version", [("1.0"), ("latest"), (1)])
     @patch("smhi.metobs.MetObsParameterV1")
-    def test_unit_metobs_fetch_parameters(
+    def test_unit_metobs_get_parameters(
         self,
         mock_metobsparameterv1,
         version,
     ):
         """
-        Unit test for MetObs fetch_parameters method.
+        Unit test for MetObs get_parameters method.
 
         Args:
             mock_metobsparameterv1: mock of MetObsParameterV1
@@ -72,13 +72,13 @@ class TestUnitMetObs:
         client = MetObs()
 
         if version is None:
-            client.fetch_parameters()
+            client.get_parameters()
         if version != "1.0" and version != 1:
             with pytest.raises(NotImplementedError):
-                client.fetch_parameters(version)
+                client.get_parameters(version)
             return None
         else:
-            client.fetch_parameters(version)
+            client.get_parameters(version)
 
         if version == 1:
             version = "1.0"
@@ -92,7 +92,7 @@ class TestUnitMetObs:
         [(None, None, None), ("P1", None, "S1"), (None, "P2", "S2")],
     )
     @patch("smhi.metobs.MetObsStationV1", return_value=1)
-    def test_unit_metobs_fetch_stations(
+    def test_unit_metobs_get_stations(
         self,
         mock_metobsstationv1,
         parameter,
@@ -100,7 +100,7 @@ class TestUnitMetObs:
         expected_station,
     ):
         """
-        Unit test for MetObs fetch_stations method.
+        Unit test for MetObs get_stations method.
 
         Args:
             mock_metobsstationv1: mock of MetObsStationV1
@@ -114,15 +114,15 @@ class TestUnitMetObs:
 
         if parameter is None and parameter_title is None:
             with pytest.raises(NotImplementedError):
-                client.fetch_stations()
+                client.get_stations()
 
             with pytest.raises(NotImplementedError):
-                client.fetch_stations(parameter, parameter_title)
+                client.get_stations(parameter, parameter_title)
         elif parameter:
-            client.fetch_stations(parameter)
+            client.get_stations(parameter)
             assert client.station == expected_station
         else:
-            client.fetch_stations(parameter_title=parameter_title)
+            client.get_stations(parameter_title=parameter_title)
             assert client.station == expected_station
 
         if parameter or parameter_title:
@@ -133,7 +133,7 @@ class TestUnitMetObs:
         [(None, None, None), ("S1", None, "P1"), (None, "S2", "P2")],
     )
     @patch("smhi.metobs.MetObsPeriodV1", return_value=1)
-    def test_unit_metobs_fetch_periods(
+    def test_unit_metobs_get_periods(
         self,
         mock_metobsperiodv1,
         station,
@@ -141,7 +141,7 @@ class TestUnitMetObs:
         expected_period,
     ):
         """
-        Unit test for MetObs fetch_stations method.
+        Unit test for MetObs get_stations method.
 
         Args:
             mock_metobsperiodv1: mock of MetObsPeriodV1
@@ -155,15 +155,15 @@ class TestUnitMetObs:
 
         if station is None and stationset is None:
             with pytest.raises(NotImplementedError):
-                client.fetch_periods()
+                client.get_periods()
 
             with pytest.raises(NotImplementedError):
-                client.fetch_periods(station, stationset)
+                client.get_periods(station, stationset)
         elif station:
-            client.fetch_periods(station)
+            client.get_periods(station)
             assert client.period == expected_period
         else:
-            client.fetch_periods(stationset=stationset)
+            client.get_periods(stationset=stationset)
             assert client.period == expected_period
 
         if station or stationset:
@@ -172,11 +172,11 @@ class TestUnitMetObs:
     @patch("smhi.metobs.io.StringIO")
     @patch("smhi.metobs.pd.read_csv")
     @patch("smhi.metobs.MetObsDataV1")
-    def test_unit_metobs_fetch_data(
+    def test_unit_metobs_get_data(
         self, mock_metobsdatav1, mock_pd_read_csv, mock_stringio
     ):
         """
-        Unit test for MetObs fetch_data method.
+        Unit test for MetObs get_data method.
 
         Args:
             mock_metobsdatav1: mock of metobs data class
@@ -185,7 +185,7 @@ class TestUnitMetObs:
         """
         client = MetObs()
         client.period = MagicMock()
-        client.fetch_data()
+        client.get_data()
 
         assert client.data == mock_metobsdatav1.return_value
         assert client.table_raw == mock_metobsdatav1.return_value.fetch()
@@ -195,61 +195,61 @@ class TestUnitMetObs:
         mock_pd_read_csv.assert_called_once()
         mock_stringio.assert_called_once()
 
-    @patch("smhi.metobs.MetObs.fetch_parameters")
-    @patch("smhi.metobs.MetObs.fetch_stations")
-    @patch("smhi.metobs.MetObs.fetch_periods")
-    @patch("smhi.metobs.MetObs.fetch_data")
-    def test_unit_metobs_get_data(
+    @patch("smhi.metobs.MetObs.get_parameters")
+    @patch("smhi.metobs.MetObs.get_stations")
+    @patch("smhi.metobs.MetObs.get_periods")
+    @patch("smhi.metobs.MetObs.get_data")
+    def test_unit_metobs_get_data_from_selection(
         self,
-        mock_fetch_parameters,
-        mock_fetch_stations,
-        mock_fetch_periods,
-        mock_fetch_data,
+        mock_get_parameters,
+        mock_get_stations,
+        mock_get_periods,
+        mock_get_data,
     ):
         """
         Unit test for MetObs get_data method.
 
         Args:
-            mock_fetch_parameters
-            mock_fetch_stations
-            mock_fetch_periods
-            mock_fetch_data
+            mock_get_parameters
+            mock_get_stations
+            mock_get_periods
+            mock_get_data
         """
         client = MetObs()
-        client.get_data(1, 1, "1")
+        client.get_data_from_selection(1, 1, "1")
 
-        mock_fetch_parameters.assert_called_once()
-        mock_fetch_stations.assert_called_once()
-        mock_fetch_periods.assert_called_once()
-        mock_fetch_data.assert_called_once()
+        mock_get_parameters.assert_called_once()
+        mock_get_stations.assert_called_once()
+        mock_get_periods.assert_called_once()
+        mock_get_data.assert_called_once()
 
-    @patch("smhi.metobs.MetObs.fetch_parameters")
-    @patch("smhi.metobs.MetObs.fetch_stations")
-    @patch("smhi.metobs.MetObs.fetch_periods")
-    @patch("smhi.metobs.MetObs.fetch_data")
+    @patch("smhi.metobs.MetObs.get_parameters")
+    @patch("smhi.metobs.MetObs.get_stations")
+    @patch("smhi.metobs.MetObs.get_periods")
+    @patch("smhi.metobs.MetObs.get_data")
     def test_unit_metobs_get_data_stationset(
         self,
-        mock_fetch_parameters,
-        mock_fetch_stations,
-        mock_fetch_periods,
-        mock_fetch_data,
+        mock_get_parameters,
+        mock_get_stations,
+        mock_get_periods,
+        mock_get_data,
     ):
         """
         Unit test for MetObs get_data_stationset method.
 
         Args:
-            mock_fetch_parameters
-            mock_fetch_stations
-            mock_fetch_periods
-            mock_fetch_data
+            mock_get_parameters
+            mock_get_stations
+            mock_get_periods
+            mock_get_data
         """
         client = MetObs()
         client.get_data_stationset(1, 1, "1")
 
-        mock_fetch_parameters.assert_called_once()
-        mock_fetch_stations.assert_called_once()
-        mock_fetch_periods.assert_called_once()
-        mock_fetch_data.assert_called_once()
+        mock_get_parameters.assert_called_once()
+        mock_get_stations.assert_called_once()
+        mock_get_periods.assert_called_once()
+        mock_get_data.assert_called_once()
 
 
 class TestUnitMetObsLevelV1:
@@ -273,11 +273,11 @@ class TestUnitMetObsLevelV1:
 
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.json.loads")
-    def test_unit_metobslevelv1_fetch_and_parse_request(
+    def test_unit_metobslevelv1_get_and_parse_request(
         self, mock_json_loads, mock_requests_get
     ):
         """
-        Unit test for MetObsLevelV1 _fetch_and_parse_request method.
+        Unit test for MetObsLevelV1 _get_and_parse_request method.
 
         Args:
             mock_json_loads: mock json loads method
@@ -286,7 +286,7 @@ class TestUnitMetObsLevelV1:
         level = MetObsLevelV1()
         url = "URL"
 
-        content = level._fetch_and_parse_request(url)
+        content = level._get_and_parse_request(url)
         mock_json_loads.called_once()
         mock_requests_get.called_once()
 
@@ -369,12 +369,12 @@ class TestUnitMetObsParameterV1:
     )
     @patch("smhi.metobs.tuple")
     @patch("smhi.metobs.sorted")
-    @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
+    @patch("smhi.metobs.MetObsLevelV1._get_and_parse_request")
     @patch("smhi.metobs.MetObsLevelV1._get_url")
     def test_unit_metobsparameterv1_init(
         self,
         mock_get_url,
-        mock_fetch_and_parse_request,
+        mock_get_and_parse_request,
         mock_sorted,
         mock_tuple,
         data,
@@ -386,7 +386,7 @@ class TestUnitMetObsParameterV1:
 
         Args:
             mock_get_url: mock _get_url method
-            mock_fetch_and_parse_request: mock _fetch_and_parse_request get method
+            mock_get_and_parse_request: mock _get_and_parse_request get method
             mock_sorted: mock of sorted call
             mock_tuple: mock of tuple call
             data: list of data
@@ -409,7 +409,7 @@ class TestUnitMetObsParameterV1:
         assert parameter.resource == mock_sorted.return_value
         assert parameter.data == mock_tuple.return_value
         mock_get_url.assert_called_once()
-        mock_fetch_and_parse_request.assert_called_once()
+        mock_get_and_parse_request.assert_called_once()
         mock_sorted.assert_called_once()
         mock_tuple.assert_called_once()
 
@@ -432,12 +432,12 @@ class TestUnitMetObsStationV1:
     )
     @patch("smhi.metobs.tuple")
     @patch("smhi.metobs.sorted")
-    @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
+    @patch("smhi.metobs.MetObsLevelV1._get_and_parse_request")
     @patch("smhi.metobs.MetObsLevelV1._get_url")
     def test_unit_metobsstationv1_init(
         self,
         mock_get_url,
-        mock_fetch_and_parse_request,
+        mock_get_and_parse_request,
         mock_sorted,
         mock_tuple,
         data,
@@ -450,7 +450,7 @@ class TestUnitMetObsStationV1:
 
         Args:
             mock_get_url: mock of _get_url method
-            mock_fetch_and_parse_request: mock of _fetch_and_parse_request method
+            mock_get_and_parse_request: mock of _get_and_parse_request method
             mock_sorted: mock sorted call
             mock_tuple: mock tuple call
             data: data list
@@ -481,17 +481,14 @@ class TestUnitMetObsStationV1:
         if parameter_title:
             assert station.selected_parameter == parameter_title
 
+        assert station.valuetype == mock_get_and_parse_request.return_value["valueType"]
         assert (
-            station.valuetype == mock_fetch_and_parse_request.return_value["valueType"]
-        )
-        assert (
-            station.stationset
-            == mock_fetch_and_parse_request.return_value["stationSet"]
+            station.stationset == mock_get_and_parse_request.return_value["stationSet"]
         )
         assert station.station == mock_sorted.return_value
         assert station.data == mock_tuple.return_value
         mock_get_url.assert_called_once()
-        mock_fetch_and_parse_request.assert_called_once()
+        mock_get_and_parse_request.assert_called_once()
         mock_sorted.assert_called_once()
         mock_tuple.assert_called_once()
 
@@ -516,12 +513,12 @@ class TestUnitMetObsPeriodV1:
         ],
     )
     @patch("smhi.metobs.sorted")
-    @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
+    @patch("smhi.metobs.MetObsLevelV1._get_and_parse_request")
     @patch("smhi.metobs.MetObsLevelV1._get_url")
     def test_unit_metobsperiodv1_init(
         self,
         mock_get_url,
-        mock_fetch_and_parse_request,
+        mock_get_and_parse_request,
         mock_sorted,
         data,
         station,
@@ -534,7 +531,7 @@ class TestUnitMetObsPeriodV1:
 
         Args:
             mock_get_url: mock of _get_url method
-            mock_fetch_and_parse_request: mock of _fetch_and_parse_request method
+            mock_get_and_parse_request: mock of _get_and_parse_request method
             mock_sorted: mock sorted call
             data: data list
             station: station
@@ -568,24 +565,24 @@ class TestUnitMetObsPeriodV1:
         if stationset:
             assert period.selected_station == stationset
 
-        assert period.owner == mock_fetch_and_parse_request.return_value["owner"]
+        assert period.owner == mock_get_and_parse_request.return_value["owner"]
         assert (
             period.ownercategory
-            == mock_fetch_and_parse_request.return_value["ownerCategory"]
+            == mock_get_and_parse_request.return_value["ownerCategory"]
         )
         assert (
             period.measuringstations
-            == mock_fetch_and_parse_request.return_value["measuringStations"]
+            == mock_get_and_parse_request.return_value["measuringStations"]
         )
-        assert period.active == mock_fetch_and_parse_request.return_value["active"]
-        assert period.time_from == mock_fetch_and_parse_request.return_value["from"]
-        assert period.time_to == mock_fetch_and_parse_request.return_value["to"]
-        assert period.position == mock_fetch_and_parse_request.return_value["position"]
+        assert period.active == mock_get_and_parse_request.return_value["active"]
+        assert period.time_from == mock_get_and_parse_request.return_value["from"]
+        assert period.time_to == mock_get_and_parse_request.return_value["to"]
+        assert period.position == mock_get_and_parse_request.return_value["position"]
         assert period.period == mock_sorted.return_value
         assert period.data == []
 
         mock_get_url.assert_called_once()
-        mock_fetch_and_parse_request.assert_called_once()
+        mock_get_and_parse_request.assert_called_once()
         mock_sorted.assert_called_once()
 
 
@@ -605,12 +602,12 @@ class TestUnitMetObsDataV1:
             ([], "corrected-archive", "json"),
         ],
     )
-    @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
+    @patch("smhi.metobs.MetObsLevelV1._get_and_parse_request")
     @patch("smhi.metobs.MetObsLevelV1._get_url")
     def test_unit_metobsdatav1_init(
         self,
         mock_get_url,
-        mock_fetch_and_parse_request,
+        mock_get_and_parse_request,
         data,
         period,
         data_type,
@@ -620,7 +617,7 @@ class TestUnitMetObsDataV1:
 
         Args:
             mock_get_url: mock of _get_url method
-            mock_fetch_and_parse_request: mock of _fetch_and_parse_request method
+            mock_get_and_parse_request: mock of _get_and_parse_request method
             data: data list
             period: period
             data_type: type of data
@@ -639,11 +636,11 @@ class TestUnitMetObsDataV1:
         data = MetObsDataV1(data, period, data_type)
 
         assert data.selected_period == period
-        assert data.time_from == mock_fetch_and_parse_request.return_value["from"]
-        assert data.time_to == mock_fetch_and_parse_request.return_value["to"]
-        assert data.data == mock_fetch_and_parse_request.return_value["data"]
+        assert data.time_from == mock_get_and_parse_request.return_value["from"]
+        assert data.time_to == mock_get_and_parse_request.return_value["to"]
+        assert data.data == mock_get_and_parse_request.return_value["data"]
         mock_get_url.assert_called_once()
-        mock_fetch_and_parse_request.assert_called_once()
+        mock_get_and_parse_request.assert_called_once()
 
     @pytest.mark.parametrize(
         "data, period, data_type, data_type_init",
@@ -665,12 +662,12 @@ class TestUnitMetObsDataV1:
         ],
     )
     @patch("smhi.metobs.requests.get")
-    @patch("smhi.metobs.MetObsLevelV1._fetch_and_parse_request")
+    @patch("smhi.metobs.MetObsLevelV1._get_and_parse_request")
     @patch("smhi.metobs.MetObsLevelV1._get_url")
     def test_unit_metobsdatav1_fetch(
         self,
         mock_get_url,
-        mock_fetch_and_parse_request,
+        mock_get_and_parse_request,
         mock_request_get,
         data,
         period,
@@ -682,7 +679,7 @@ class TestUnitMetObsDataV1:
 
         Args:
             mock_get_url: mock of _get_url method
-            mock_fetch_and_parse_request: mock of _fetch_and_parse_request method
+            mock_get_and_parse_request: mock of _get_and_parse_request method
             mock_request_get: mock of requests get method
             data: data
             period: period

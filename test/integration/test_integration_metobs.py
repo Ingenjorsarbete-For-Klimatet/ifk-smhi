@@ -77,10 +77,10 @@ class TestIntegrationMetObs:
             table
         """
         client = MetObs()
-        client.fetch_parameters()
-        client.fetch_stations(parameter)
-        client.fetch_periods(station)
-        client.fetch_data(period)
+        client.get_parameters()
+        client.get_stations(parameter)
+        client.get_periods(station)
+        client.get_data(period)
 
         assert client.content["key"] == init_key
         assert client.content["title"] == init_title
