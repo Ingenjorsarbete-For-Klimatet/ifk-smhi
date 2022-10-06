@@ -16,7 +16,7 @@ class MetObs:
 
     def __init__(self, data_type: str = "json"):
         """
-        Initialise the SMHI MetObs class with a data type format used to fetch data.
+        Initialise the SMHI MetObs class with a data type format used to get data.
         For now, only supports `json` and version 1.
 
         Args:
@@ -43,7 +43,7 @@ class MetObs:
 
     def get_parameters(self, version: Union[str, int] = "1.0"):
         """
-        Fetch SMHI MetObs API parameters from version. Only supports `version = 1.0`.
+        Get SMHI MetObs API parameters from version. Only supports `version = 1.0`.
 
         Args:
             version: selected API version
@@ -61,7 +61,7 @@ class MetObs:
 
     def get_stations(self, parameter: str = None, parameter_title: str = None):
         """
-        Fetch SMHI MetObs API (version 1) stations from given parameter.
+        Get SMHI MetObs API (version 1) stations from given parameter.
 
         Args:
             parameter: id of data
@@ -79,7 +79,7 @@ class MetObs:
 
     def get_periods(self, station: str = None, stationset: str = None):
         """
-        Fetch SMHI MetObs API (version 1) periods from given station.
+        Get SMHI MetObs API (version 1) periods from given station.
 
         Args:
             station: id of data
@@ -95,13 +95,13 @@ class MetObs:
 
     def get_data(self, period: str = "corrected-archive"):
         """
-        Fetch SMHI MetObs API (version 1) data from given period.
+        Get SMHI MetObs API (version 1) data from given period.
 
         Args:
             period: period
         """
         self.data = MetObsDataV1(self.period.period, period)
-        self.table_raw = self.data.fetch()
+        self.table_raw = self.data.get()
         self.table = pd.read_csv(io.StringIO(self.table_raw), on_bad_lines="skip")
 
     def get_data_from_selection(
@@ -219,10 +219,10 @@ class MetObsLevelV1:
 
     def _get_and_parse_request(self, url: str):
         """
-        Fetch and parse API request. Only JSON supported.
+        Get and parse API request. Only JSON supported.
 
         Args:
-            url: url to fetch from
+            url: url to get from
 
         Returns:
             jsonified content
@@ -247,7 +247,7 @@ class MetObsLevelV1:
         data_type: str = "json",
     ):
         """
-        Get the url to fetch data from. Defaults to type json.
+        Get the url to get data from. Defaults to type json.
 
         Args:
             data: data list
@@ -274,7 +274,7 @@ class MetObsLevelV1:
 
 class MetObsParameterV1(MetObsLevelV1):
     """
-    Fetch parameter for version 1 of MetObs API.
+    Get parameter for version 1 of MetObs API.
     """
 
     def __init__(
@@ -284,7 +284,7 @@ class MetObsParameterV1(MetObsLevelV1):
         data_type: str = "json",
     ):
         """
-        Fetch parameter from version.
+        Get parameter from version.
 
         Args:
             data: available API versions
@@ -312,7 +312,7 @@ class MetObsParameterV1(MetObsLevelV1):
 
 class MetObsStationV1(MetObsLevelV1):
     """
-    Fetch stations from parameter for version 1 of MetObs API.
+    Get stations from parameter for version 1 of MetObs API.
     """
 
     def __init__(
@@ -323,7 +323,7 @@ class MetObsStationV1(MetObsLevelV1):
         data_type: str = "json",
     ):
         """
-        Fetch stations from parameter.
+        Get stations from parameter.
 
         Args:
             data: available API parameters
@@ -362,7 +362,7 @@ class MetObsStationV1(MetObsLevelV1):
 
 class MetObsPeriodV1(MetObsLevelV1):
     """
-    Fetch periods from station for version 1 of MetObs API.
+    Get periods from station for version 1 of MetObs API.
     Note that stationset_title is not supported
     """
 
@@ -375,13 +375,13 @@ class MetObsPeriodV1(MetObsLevelV1):
         data_type: str = "json",
     ):
         """
-        Fetch periods from station.
+        Get periods from station.
 
         Args:
             data: available API stations
-            station: station key to fetch
-            station_name: station name to fetch
-            stationset: station set to fetch
+            station: station key to get
+            station_name: station name to get
+            stationset: station set to get
             data_type: data_type of request
 
         Raises:
@@ -423,7 +423,7 @@ class MetObsPeriodV1(MetObsLevelV1):
 
 class MetObsDataV1(MetObsLevelV1):
     """
-    Fetch data from period for version 1 of MetObs API.
+    Get data from period for version 1 of MetObs API.
     """
 
     def __init__(
@@ -433,7 +433,7 @@ class MetObsDataV1(MetObsLevelV1):
         data_type: str = "json",
     ):
         """
-        Fetch data from period.
+        Get data from period.
 
         Args:
             data: available API periods
@@ -463,9 +463,9 @@ class MetObsDataV1(MetObsLevelV1):
         self.time_to = content["to"]
         self.data = content["data"]
 
-    def fetch(self, type: str = "text/plain"):
+    def get(self, type: str = "text/plain"):
         """
-        Fetch the selected data file.
+        Get the selected data file.
 
         Args:
             type: type of request
