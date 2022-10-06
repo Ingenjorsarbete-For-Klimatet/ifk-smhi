@@ -188,7 +188,7 @@ class TestUnitMetObs:
         client.get_data()
 
         assert client.data == mock_metobsdatav1.return_value
-        assert client.table_raw == mock_metobsdatav1.return_value.fetch()
+        assert client.table_raw == mock_metobsdatav1.return_value.get()
         assert client.table == mock_pd_read_csv.return_value
 
         mock_metobsdatav1.assert_called_once()
@@ -664,7 +664,7 @@ class TestUnitMetObsDataV1:
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.MetObsLevelV1._get_and_parse_request")
     @patch("smhi.metobs.MetObsLevelV1._get_url")
-    def test_unit_metobsdatav1_fetch(
+    def test_unit_metobsdatav1_get(
         self,
         mock_get_url,
         mock_get_and_parse_request,
@@ -675,7 +675,7 @@ class TestUnitMetObsDataV1:
         data_type_init,
     ):
         """
-        Unit test for MetObsDataV1 fetch method.
+        Unit test for MetObsDataV1 get method.
 
         Args:
             mock_get_url: mock of _get_url method
@@ -688,6 +688,6 @@ class TestUnitMetObsDataV1:
         """
         data_object = MetObsDataV1(data, period, data_type_init)
         data_object.data = data
-        read_data = data_object.fetch(data_type)
+        read_data = data_object.get(data_type)
         assert read_data == mock_request_get.return_value.content.decode("utf-8")
         mock_request_get.assert_called_once()
