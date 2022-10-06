@@ -41,7 +41,7 @@ class MetObs:
         self.table_raw = None
         self.table = None
 
-    def fetch_parameters(self, version: Union[str, int] = "1.0"):
+    def get_parameters(self, version: Union[str, int] = "1.0"):
         """
         Fetch SMHI MetObs API parameters from version. Only supports `version = 1.0`.
 
@@ -59,7 +59,7 @@ class MetObs:
         self.version = version
         self.parameter = MetObsParameterV1(self.available_versions)
 
-    def fetch_stations(self, parameter: str = None, parameter_title: str = None):
+    def get_stations(self, parameter: str = None, parameter_title: str = None):
         """
         Fetch SMHI MetObs API (version 1) stations from given parameter.
 
@@ -77,7 +77,7 @@ class MetObs:
                 self.parameter.resource, parameter_title=parameter_title
             )
 
-    def fetch_periods(self, station: str = None, stationset: str = None):
+    def get_periods(self, station: str = None, stationset: str = None):
         """
         Fetch SMHI MetObs API (version 1) periods from given station.
 
@@ -93,7 +93,7 @@ class MetObs:
         else:
             self.period = MetObsPeriodV1(self.station.station, stationset=stationset)
 
-    def fetch_data(self, period: str = "corrected-archive"):
+    def get_data(self, period: str = "corrected-archive"):
         """
         Fetch SMHI MetObs API (version 1) data from given period.
 
@@ -104,7 +104,7 @@ class MetObs:
         self.table_raw = self.data.fetch()
         self.table = pd.read_csv(io.StringIO(self.table_raw), on_bad_lines="skip")
 
-    def get_data(
+    def get_data_from_selection(
         self,
         parameter: int,
         station: int,
@@ -119,10 +119,10 @@ class MetObs:
             station: station
             period: period to download
         """
-        self.fetch_parameters()
-        self.fetch_stations(parameter)
-        self.fetch_periods(station)
-        self.fetch_data(period)
+        self.get_parameters()
+        self.get_stations(parameter)
+        self.get_periods(station)
+        self.get_data(period)
 
     def get_data_stationset(
         self,
@@ -139,10 +139,10 @@ class MetObs:
             stationset: station
             period: period to download
         """
-        self.fetch_parameters()
-        self.fetch_stations(parameter)
-        self.fetch_periods(None, stationset)
-        self.fetch_data(period)
+        self.get_parameters()
+        self.get_stations(parameter)
+        self.get_periods(None, stationset)
+        self.get_data(period)
 
     def inspect(self, num_print: int = 10):
         """
@@ -217,7 +217,7 @@ class MetObsLevelV1:
         self.link = None
         self.data_type = None
 
-    def _fetch_and_parse_request(self, url: str):
+    def _get_and_parse_request(self, url: str):
         """
         Fetch and parse API request. Only JSON supported.
 
@@ -305,7 +305,7 @@ class MetObsParameterV1(MetObsLevelV1):
 
         self.selected_version = "1.0" if version == 1 else version
         url = self._get_url(data, "key", version, data_type)
-        content = self._fetch_and_parse_request(url)
+        content = self._get_and_parse_request(url)
         self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
         self.data = tuple((x["key"], x["title"]) for x in self.resource)
 
@@ -353,7 +353,7 @@ class MetObsStationV1(MetObsLevelV1):
             self.selected_parameter = parameter_title
             url = self._get_url(data, "title", parameter_title, data_type)
 
-        content = self._fetch_and_parse_request(url)
+        content = self._get_and_parse_request(url)
         self.valuetype = content["valueType"]
         self.stationset = content["stationSet"]
         self.station = sorted(content["station"], key=lambda x: int(x["id"]))
@@ -409,7 +409,7 @@ class MetObsPeriodV1(MetObsLevelV1):
             self.selected_station = stationset
             url = self._get_url(data, "key", stationset, data_type)
 
-        content = self._fetch_and_parse_request(url)
+        content = self._get_and_parse_request(url)
         self.owner = content["owner"]
         self.ownercategory = content["ownerCategory"]
         self.measuringstations = content["measuringStations"]
@@ -458,7 +458,7 @@ class MetObsDataV1(MetObsLevelV1):
 
         self.selected_period = period
         url = self._get_url(data, "key", period, data_type)
-        content = self._fetch_and_parse_request(url)
+        content = self._get_and_parse_request(url)
         self.time_from = content["from"]
         self.time_to = content["to"]
         self.data = content["data"]
