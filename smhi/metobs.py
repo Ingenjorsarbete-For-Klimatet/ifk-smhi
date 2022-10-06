@@ -102,7 +102,9 @@ class MetObs:
         """
         self.data = MetObsDataV1(self.period.period, period)
         self.table_raw = self.data.get()
-        self.table = pd.read_csv(io.StringIO(self.table_raw), on_bad_lines="skip")
+        data_starting_point=self.table_raw.find('Datum')
+        self.header=self.table_raw[0:data_starting_point]
+        self.table = pd.read_csv(io.StringIO(self.table_raw[data_starting_point:-1]),sep=';', on_bad_lines="skip",usecols=[0,1,2])
 
     def get_data_from_selection(
         self,
