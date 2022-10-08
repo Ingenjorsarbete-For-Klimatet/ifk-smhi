@@ -25,3 +25,7 @@ dev = [
     "mkdocs-material ~= 1.3",
     "mkdocstrings[python] ~= 0.19",
 ]
+
+[tool.setuptools.packages.find]
+where = ["smhi"]
+exclude = ["material"]
