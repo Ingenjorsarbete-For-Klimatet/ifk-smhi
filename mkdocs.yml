@@ -1,5 +1,4 @@
 site_name: ifk-smhi
-copyright: Made by [https://ingenjorsarbeteforklimatet.se](Ingenjörsarbete för Klimatet)
 repo_url: https://github.com/Ingenjorsarbete-For-Klimatet/smhi
 
 nav:
@@ -11,6 +10,7 @@ watch:
 
 theme:
   name: material
+  custom_dir: material
   palette:
     scheme: default
     primary: black
