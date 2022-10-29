@@ -18,14 +18,17 @@ dependencies = ["requests ~= 2.28", "pandas ~= 1.5", "geopy ~= 2.2"]
 [project.optional-dependencies]
 lint = ["flake8 ~= 5.0"]
 test = ["pytest ~= 7.1"]
-dev = [
-    "ifk-smhi[lint]",
-    "ifk-smhi[test]",
-    "black ~= 22.8",
-    "pre-commit ~= 2.20",
+doc = [
     "mkdocs ~= 1.4",
     "mkdocs-material ~= 8.5",
     "mkdocstrings[python] ~= 0.19",
+]
+dev = [
+    "ifk-smhi[lint]",
+    "ifk-smhi[test]",
+    "ifk-smhi[doc]",
+    "black ~= 22.8",
+    "pre-commit ~= 2.20",
 ]
 
 [tool.setuptools.packages.find]
