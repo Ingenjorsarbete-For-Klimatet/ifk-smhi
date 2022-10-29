@@ -19,7 +19,7 @@ Initially only these four APIs are supported:
 This package is not yet registered with pypi. For now, install from github
 
 ```bash
-pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/smhi.git@main
+pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi.git@main
 ```
 
 ## SMHI client
