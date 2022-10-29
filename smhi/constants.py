@@ -19,8 +19,8 @@ STRANG_POINT_URL = join(
 )
 STRANG_MULTIPOINT_URL = join(
     STRANG_BASE_URL,
-    "/api/category/"
-    + "strang1g/version/1/geotype/multipoint/validtime/{validtime}/"
+    "api/category/"
+    + "{category}/version/{version}/geotype/multipoint/validtime/{validtime}/"
     + "parameter/{parameter}/data.json",
 )
 
