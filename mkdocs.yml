@@ -6,7 +6,7 @@ nav:
 - Reference: reference.md
 
 watch:
-- smhi
+- src/smhi
 
 theme:
   name: material
