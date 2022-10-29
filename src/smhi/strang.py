@@ -125,9 +125,7 @@ class Strang:
         self.multipoint_url = url
 
         if self.status is False:
-            raise ValueError(
-                "Fetch failed and no data was returned. Check longitude and latitude coordinates."
-            )
+            raise ValueError("Fetch failed and no data was returned. Check valid time.")
 
     def _build_base_point_url(self, url):
         """
@@ -191,13 +189,10 @@ class Strang:
         """
         date_interval = self.date_interval
 
-        if date_interval is True:
-            url += "?"
-
         if date_interval is not None:
             if date_interval not in STRANG_DATE_INTERVALS:
                 raise ValueError("Time interval must be hourly, daily or monthly.")
-            url += "&interval={interval}".format(interval=date_interval)
+            url += "?interval={interval}".format(interval=date_interval)
 
         return url
 

@@ -11,6 +11,7 @@ from smhi.constants import (
     STRANG,
     STRANG_POINT_URL,
     STRANG_PARAMETERS,
+    STRANG_MULTIPOINT_URL,
 )
 
 
@@ -181,9 +182,100 @@ class TestUnitStrang:
         assert client.longitude == lon
         assert client.latitude == lat
         assert client.parameter == parameter
+        assert client.date_interval == time_interval
         assert client.point_url == mock_build_date_point_url.return_value
 
         mock_build_date_point_url.assert_called_once()
+        mock_get_and_load_data.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "parameter, valid_time, time_interval",
+        [
+            (
+                STRANG(
+                    None,
+                    None,
+                    None,
+                    None,
+                ),
+                "2020-01-01",
+                "hourly",
+            ),
+            (
+                STRANG_PARAMETERS[116],
+                "2020-01-01",
+                "hourly",
+            ),
+            (
+                STRANG_PARAMETERS[116],
+                "2020-01-01",
+                "hourly",
+            ),
+            (
+                STRANG_PARAMETERS[116],
+                None,
+                None,
+            ),
+        ],
+    )
+    @patch(
+        "smhi.strang.Strang._get_and_load_data",
+        return_value=[None, None, None],
+    )
+    @patch("smhi.strang.Strang._build_date_multipoint_url")
+    def test_unit_strang_get_multipoint(
+        self,
+        mock_build_date_multipoint_url,
+        mock_get_and_load_data,
+        parameter,
+        valid_time,
+        time_interval,
+    ):
+        """
+        Unit test for STRÅNG get_multipoint method.
+
+        Args:
+            mock_build_date_multipoint_url: mock _build_date_multipoint_url method
+            mock_get_and_load_data: mock _get_and_load_data method
+            parameter: parameter
+            valid_time: valid time to query
+            time_interval: time interval
+        """
+        client = Strang()
+
+        if parameter.parameter is None:
+            with pytest.raises(NotImplementedError):
+                client.get_multipoint(
+                    parameter.parameter,
+                    valid_time,
+                    time_interval,
+                )
+
+            return None
+
+        if valid_time is None:
+            mock_get_and_load_data.return_value[0] = False
+            with pytest.raises(ValueError):
+                client.get_multipoint(
+                    parameter.parameter,
+                    valid_time,
+                    time_interval,
+                )
+
+            return None
+
+        client.get_multipoint(
+            parameter.parameter,
+            valid_time,
+            time_interval,
+        )
+
+        assert client.parameter == parameter
+        assert client.valid_time == valid_time
+        assert client.date_interval == time_interval
+        assert client.multipoint_url == mock_build_date_multipoint_url.return_value
+
+        mock_build_date_multipoint_url.assert_called_once()
         mock_get_and_load_data.assert_called_once()
 
     @pytest.mark.parametrize(
@@ -224,6 +316,40 @@ class TestUnitStrang:
         url = url(lon=lon, lat=lat, parameter=parameter.parameter)
 
         base_url = client._build_base_point_url(client.point_raw_url)
+
+        assert base_url == url
+
+    @pytest.mark.parametrize(
+        "parameter, valid_time",
+        [
+            (
+                STRANG(
+                    None,
+                    None,
+                    None,
+                    None,
+                ),
+                None,
+            ),
+            (STRANG_PARAMETERS[116], "2020-01-01"),
+        ],
+    )
+    def test_unit_strang_build_base_multipoint_url(self, parameter, valid_time):
+        """
+        Unit test for STRÅNG _build_base_point_url method
+
+        Args:
+            parameter: parmeter
+            valid_time: valid time
+        """
+        client = Strang()
+        client.parameter = parameter
+        client.valid_time = valid_time
+
+        url = partial(STRANG_MULTIPOINT_URL.format, category=CATEGORY, version=VERSION)
+        url = url(parameter=parameter.parameter, validtime=valid_time)
+
+        base_url = client._build_base_multipoint_url(client.multipoint_raw_url)
 
         assert base_url == url
 
@@ -274,6 +400,36 @@ class TestUnitStrang:
                 client._build_date_point_url(client.url)
         else:
             assert expected_url == client._build_date_point_url(client.url)
+
+    @pytest.mark.parametrize(
+        "date_interval, expected_url",
+        [
+            (None, "URL"),
+            (
+                "hourly",
+                "URL?interval=hourly",
+            ),
+            ("notimplemented", None),
+        ],
+    )
+    def test_unit_strang_build_date_multipoint_url(self, date_interval, expected_url):
+        """
+        Unit test for STRÅNG _build_date_multipoint_url method
+
+        Args:
+            date_interval: interval of date
+            expected_url: expected URL
+        """
+        client = Strang()
+
+        client.date_interval = date_interval
+        client.url = "URL"
+
+        if date_interval == "notimplemented":
+            with pytest.raises(NotImplementedError):
+                client._build_date_multipoint_url(client.url)
+        else:
+            assert expected_url == client._build_date_multipoint_url(client.url)
 
     @pytest.mark.parametrize(
         "ok, date_time",
