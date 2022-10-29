@@ -51,17 +51,17 @@ RESULT_MONTHLY_2020_01_01_2020_02_01 = [
     },
 ]
 
-RESULT_MULTIPOINT_2022_01_01_MONTHLY_10 = [
-    {"lat": 71.139084, "lon": -9.659227, "value": 0.0},
-    {"lat": 71.11585, "lon": -9.630623, "value": 0.0},
-    {"lat": 71.09262, "lon": -9.602085, "value": 0.0},
-    {"lat": 71.1481, "lon": -9.589094, "value": 0.0},
-    {"lat": 71.06939, "lon": -9.573616, "value": 0.0},
-    {"lat": 71.12487, "lon": -9.560553, "value": 0.0},
-    {"lat": 71.04615, "lon": -9.545213, "value": 0.0},
-    {"lat": 71.10162, "lon": -9.532079, "value": 0.0},
-    {"lat": 71.157104, "lon": -9.5189, "value": 0.0},
-    {"lat": 71.0229, "lon": -9.516877, "value": 0.0},
+RESULT_MULTIPOINT_2020_01_01_MONTHLY_10 = [
+    {"lat": 71.139084, "lon": -9.659227, "value": 4.3},
+    {"lat": 71.11585, "lon": -9.630623, "value": 4.3},
+    {"lat": 71.09262, "lon": -9.602085, "value": 4.5},
+    {"lat": 71.1481, "lon": -9.589094, "value": 4.3},
+    {"lat": 71.06939, "lon": -9.573616, "value": 4.6},
+    {"lat": 71.12487, "lon": -9.560553, "value": 4.3},
+    {"lat": 71.04615, "lon": -9.545213, "value": 4.7},
+    {"lat": 71.10162, "lon": -9.532079, "value": 4.5},
+    {"lat": 71.157104, "lon": -9.5189, "value": 4.3},
+    {"lat": 71.0229, "lon": -9.516877, "value": 5.1},
 ]
 
 
@@ -140,10 +140,10 @@ class TestIntegrationStrang:
         """
         client = Strang()
         parameter = 116
-        valid_time = "20220101"
+        valid_time = "2020-01-01"
         date_interval = "monthly"
         client.get_multipoint(parameter, valid_time, date_interval)
 
         lon_sorted_data = sorted(client.data, key=lambda x: x["lon"])[:10]
 
-        assert RESULT_MULTIPOINT_2022_01_01_MONTHLY_10 == lon_sorted_data
+        assert RESULT_MULTIPOINT_2020_01_01_MONTHLY_10 == lon_sorted_data
