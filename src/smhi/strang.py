@@ -6,6 +6,7 @@ See validation of model: https://strang.smhi.se/validation/validation.html
 import json
 import arrow
 import requests
+from datetime import datetime
 from functools import partial
 from collections import defaultdict
 from requests.structures import CaseInsensitiveDict
@@ -14,7 +15,7 @@ from smhi.constants import (
     STRANG_POINT_URL,
     STRANG_PARAMETERS,
     STRANG_MULTIPOINT_URL,
-    STRANG_DATE_INTERVALS,
+    STRANG_TIME_INTERVALS,
 )
 
 
@@ -33,10 +34,10 @@ class Strang:
         self.latitude = None
         self.longitude = None
         self.parameter = None
-        self.date_from = None
-        self.date_to = None
+        self.time_from = None
+        self.time_to = None
         self.valid_time = None
-        self.date_interval = None
+        self.time_interval = None
         self.status = None
         self.header = None
         self.data = None
@@ -65,9 +66,9 @@ class Strang:
         longitude: float,
         latitude: float,
         parameter: int,
-        date_from: str = None,
-        date_to: str = None,
-        date_interval: str = None,
+        time_from: str = None,
+        time_to: str = None,
+        time_interval: str = None,
     ) -> tuple[bool, CaseInsensitiveDict, list]:
         """
         Get data for given lon, lat and parameter.
@@ -76,9 +77,9 @@ class Strang:
             longitude: longitude
             latitude: latitude
             parameter: parameter
-            date_from: get data from (optional),
-            date_to: get data to (optional),
-            date_interval: interval of data [valid values: hourly, daily, monthly] (optional)
+            time_from: get data from (optional),
+            time_to: get data to (optional),
+            time_interval: interval of data [valid values: hourly, daily, monthly] (optional)
 
         Returns:
             status: status code
@@ -98,13 +99,13 @@ class Strang:
         self.longitude = longitude
         self.latitude = latitude
         self.parameter = parameter
-        self.date_from = date_from
-        self.date_to = date_to
-        self.date_interval = date_interval
+        self.time_from = time_from
+        self.time_to = time_to
+        self.time_interval = time_interval
 
         url = self.point_raw_url
         url = self._build_base_point_url(url)
-        url = self._build_date_point_url(url)
+        url = self._build_time_point_url(url)
         status, headers, data = self._get_and_load_data(url)
         self.point_url = url
 
@@ -116,7 +117,7 @@ class Strang:
         return status, headers, data
 
     def get_multipoint(
-        self, parameter: int, valid_time: str, date_interval: str = None
+        self, parameter: int, valid_time: str, time_interval: str = None
     ) -> tuple[bool, CaseInsensitiveDict, list]:
         """
         Get full spatial data for given parameter and time.
@@ -124,7 +125,7 @@ class Strang:
         Args:
             parameter: parameter
             valid_time: valid time
-            date_interval: date_interval: interval of data [valid values: hourly, daily, monthly] (optional)
+            time_interval: time_interval: interval of data [valid values: hourly, daily, monthly] (optional)
 
         Returns:
             status: status code
@@ -143,11 +144,11 @@ class Strang:
 
         self.parameter = parameter
         self.valid_time = valid_time
-        self.date_interval = date_interval
+        self.time_interval = time_interval
 
         url = self.multipoint_raw_url
         url = self._build_base_multipoint_url(url)
-        url = self._build_date_multipoint_url(url)
+        url = self._build_time_multipoint_url(url)
         status, headers, data = self._get_and_load_data(url)
         self.multipoint_url = url
 
@@ -187,7 +188,7 @@ class Strang:
             parameter=self.parameter.parameter,
         )
 
-    def _build_date_point_url(self, url: str) -> str:
+    def _build_time_point_url(self, url: str) -> str:
         """
         Build date part of the API url.
 
@@ -201,34 +202,34 @@ class Strang:
             ValueError
             NotImplementedError
         """
-        date_from = self._parse_date(self.date_from)
-        date_to = self._parse_date(self.date_to)
-        date_interval = self.date_interval
+        time_from = self._parse_datetime(self.time_from)
+        time_to = self._parse_datetime(self.time_to)
+        time_interval = self.time_interval
 
-        if any([date_from, date_to, date_interval]) is True:
+        if any([time_from, time_to, time_interval]) is True:
             url += "?"
 
-        if date_from is not None:
-            url += "from={date_from}".format(date_from=date_from)
+        if time_from is not None:
+            url += "from={time_from}".format(time_from=time_from)
 
-        if date_to is not None:
-            if date_from is not None:
+        if time_to is not None:
+            if time_from is not None:
                 url += "&"
-            url += "to={date_to}".format(date_to=date_to)
+            url += "to={time_to}".format(time_to=time_to)
 
-        if date_interval is not None and (date_from is None and date_to is None):
+        if time_interval is not None and (time_from is None and time_to is None):
             raise NotImplementedError(
                 "Date from and to not specified but interval is. Be more explicit."
             )
 
-        if date_interval is not None and (date_from is not None or date_to is not None):
-            if date_interval not in STRANG_DATE_INTERVALS:
+        if time_interval is not None and (time_from is not None or time_to is not None):
+            if time_interval not in STRANG_TIME_INTERVALS:
                 raise ValueError("Time interval must be hourly, daily or monthly.")
-            url += "&interval={interval}".format(interval=date_interval)
+            url += "&interval={interval}".format(interval=time_interval)
 
         return url
 
-    def _build_date_multipoint_url(self, url: str) -> str:
+    def _build_time_multipoint_url(self, url: str) -> str:
         """
         Build date part of the API url.
 
@@ -241,12 +242,12 @@ class Strang:
         Raises:
             ValueError
         """
-        date_interval = self.date_interval
+        time_interval = self.time_interval
 
-        if date_interval is not None:
-            if date_interval not in STRANG_DATE_INTERVALS:
+        if time_interval is not None:
+            if time_interval not in STRANG_TIME_INTERVALS:
                 raise ValueError("Time interval must be hourly, daily or monthly.")
-            url += "?interval={interval}".format(interval=date_interval)
+            url += "?interval={interval}".format(interval=time_interval)
 
         return url
 
@@ -271,12 +272,12 @@ class Strang:
 
         return status, headers, data
 
-    def _parse_date(self, date):
+    def _parse_datetime(self, date_time: str) -> datetime:
         """
         Parse date into a datetime format given as string and check bounds.
 
         Args:
-            date: date as string
+            date_time: date as string
 
         Returns:
             parsed date
@@ -284,19 +285,19 @@ class Strang:
         Raises:
             ValueError
         """
-        if date is None:
-            return date
+        if date_time is None:
+            return date_time
 
         try:
-            date = arrow.get(date).datetime
+            date_time = arrow.get(date_time).datetime
         except ValueError:
             raise ValueError("Wrong format of date.")
 
-        if self.parameter.date_from < date < self.parameter.date_to():
-            return date
+        if self.parameter.time_from < date_time < self.parameter.time_to():
+            return date_time
         else:
             raise ValueError(
-                "Date not in allowed interval: {date_from} to {date_to}.".format(
-                    date_from=self.parameter.date_from, date_to=self.parameter.date_to()
+                "Time not in allowed interval: {time_from} to {time_to}.".format(
+                    time_from=self.parameter.time_from, time_to=self.parameter.time_to()
                 )
             )

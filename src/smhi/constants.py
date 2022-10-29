@@ -24,8 +24,8 @@ STRANG_MULTIPOINT_URL = join(
     + "parameter/{parameter}/data.json",
 )
 
-STRANG_DATE_INTERVALS = ["hourly", "daily", "monthly"]
-STRANG = namedtuple("STRANG", "parameter meaning date_from date_to")
+STRANG_TIME_INTERVALS = ["hourly", "daily", "monthly"]
+STRANG = namedtuple("STRANG", "parameter meaning time_from time_to")
 STRANG_GET_NOW = lambda: arrow.utcnow().datetime  # .isoformat("T", "seconds") + "Z"
 STRANG_PARAMETERS = defaultdict(lambda: STRANG(None, "Missing", None, None))
 STRANG_PARAMETERS[116] = STRANG(
