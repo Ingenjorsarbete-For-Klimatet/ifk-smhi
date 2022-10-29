@@ -46,12 +46,21 @@ class TestUnitStrang:
 
         raw_url_dict = {"category": CATEGORY, "version": VERSION}
         for k1, k2 in zip(
-            sorted(raw_url_dict.keys()), sorted(client.raw_url.keywords.keys())
+            sorted(raw_url_dict.keys()), sorted(client.point_raw_url.keywords.keys())
         ):
             assert k1 == k2
-            assert raw_url_dict[k1] == client.raw_url.keywords[k2]
+            assert raw_url_dict[k1] == client.point_raw_url.keywords[k2]
 
-        assert client.url is None
+        raw_url_dict = {"category": CATEGORY, "version": VERSION}
+        for k1, k2 in zip(
+            sorted(raw_url_dict.keys()),
+            sorted(client.multipoint_raw_url.keywords.keys()),
+        ):
+            assert k1 == k2
+            assert raw_url_dict[k1] == client.multipoint_raw_url.keywords[k2]
+
+        assert client.point_url is None
+        assert client.multipoint_url is None
 
     def test_unit_strang_parameters(self):
         """
@@ -103,14 +112,14 @@ class TestUnitStrang:
         ],
     )
     @patch(
-        "smhi.strang.Strang._get_and_load_point_data",
+        "smhi.strang.Strang._get_and_load_data",
         return_value=[None, None, None],
     )
-    @patch("smhi.strang.Strang._build_point_date_url")
+    @patch("smhi.strang.Strang._build_date_point_url")
     def test_unit_strang_get_point(
         self,
-        mock_build_point_date_url,
-        mock_get_and_load_point_data,
+        mock_build_date_point_url,
+        mock_get_and_load_data,
         lon,
         lat,
         parameter,
@@ -122,8 +131,8 @@ class TestUnitStrang:
         Unit test for STRÅNG get_point method.
 
         Args:
-            mock_build_point_date_url: mock _build_point_date_url method
-            mock_get_and_load_point_data: mock _get_and_load_point_data method
+            mock_build_date_point_url: mock _build_date_point_url method
+            mock_get_and_load_data: mock _get_and_load_data method
             lon: longitude
             lat: latitude
             parameter: parameter
@@ -147,7 +156,7 @@ class TestUnitStrang:
             return None
 
         if lon is None:
-            mock_get_and_load_point_data.return_value[0] = False
+            mock_get_and_load_data.return_value[0] = False
             with pytest.raises(ValueError):
                 client.get_point(
                     lon,
@@ -172,10 +181,10 @@ class TestUnitStrang:
         assert client.longitude == lon
         assert client.latitude == lat
         assert client.parameter == parameter
-        assert client.url == mock_build_point_date_url.return_value
+        assert client.point_url == mock_build_date_point_url.return_value
 
-        mock_build_point_date_url.assert_called_once()
-        mock_get_and_load_point_data.assert_called_once()
+        mock_build_date_point_url.assert_called_once()
+        mock_get_and_load_data.assert_called_once()
 
     @pytest.mark.parametrize(
         "lon, lat, parameter",
@@ -214,9 +223,9 @@ class TestUnitStrang:
         url = partial(STRANG_POINT_URL.format, category=CATEGORY, version=VERSION)
         url = url(lon=lon, lat=lat, parameter=parameter.parameter)
 
-        client._build_base_point_url()
+        base_url = client._build_base_point_url(client.point_raw_url)
 
-        assert client.url == url
+        assert base_url == url
 
     @pytest.mark.parametrize(
         "date_from, date_to, date_interval, expected_url",
@@ -236,11 +245,11 @@ class TestUnitStrang:
         ],
     )
     @patch("smhi.strang.Strang._parse_date")
-    def test_unit_strang_build_point_date_url(
+    def test_unit_strang_build_date_point_url(
         self, mock_parse_date, date_from, date_to, date_interval, expected_url
     ):
         """
-        Unit test for STRÅNG _build_point_date_url method
+        Unit test for STRÅNG _build_date_point_url method
 
         Args:
             mock_parse_date: mock of _parse_date method
@@ -259,12 +268,12 @@ class TestUnitStrang:
 
         if date_interval == "bad":
             with pytest.raises(ValueError):
-                client._build_point_date_url()
+                client._build_date_point_url(client.url)
         elif date_interval == "notimplemented":
             with pytest.raises(NotImplementedError):
-                client._build_point_date_url()
+                client._build_date_point_url(client.url)
         else:
-            assert expected_url == client._build_point_date_url()
+            assert expected_url == client._build_date_point_url(client.url)
 
     @pytest.mark.parametrize(
         "ok, date_time",
