@@ -127,12 +127,15 @@ class TestIntegrationStrang:
             expected_result: expected result
         """
         client = Strang()
-        client.get_point(lon, lat, parameter, time_from, time_to, time_interval)
+        status, _, data = client.get_point(
+            lon, lat, parameter, time_from, time_to, time_interval
+        )
 
         if time_from is not None:
-            assert client.data == expected_result
+            assert status is True
+            assert expected_result == data
         else:
-            assert expected_result in client.data[0]
+            assert expected_result in data[0]
 
     def test_integration_strang_multipoint(self):
         """
@@ -142,8 +145,9 @@ class TestIntegrationStrang:
         parameter = 116
         valid_time = "2020-01-01"
         date_interval = "monthly"
-        client.get_multipoint(parameter, valid_time, date_interval)
+        status, _, data = client.get_multipoint(parameter, valid_time, date_interval)
 
-        lon_sorted_data = sorted(client.data, key=lambda x: x["lon"])[:10]
+        lon_sorted_data = sorted(data, key=lambda x: x["lon"])[:10]
 
+        assert status is True
         assert RESULT_MULTIPOINT_2020_01_01_MONTHLY_10 == lon_sorted_data

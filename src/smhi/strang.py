@@ -94,13 +94,15 @@ class Strang:
         url = self.point_raw_url
         url = self._build_base_point_url(url)
         url = self._build_date_point_url(url)
-        self.status, self.headers, self.data = self._get_and_load_data(url)
+        status, headers, data = self._get_and_load_data(url)
         self.point_url = url
 
-        if self.status is False:
+        if status is False:
             raise ValueError(
                 "Fetch failed and no data was returned. Check longitude and latitude coordinates."
             )
+
+        return status, headers, data
 
     def get_multipoint(
         self, parameter: int, valid_time: str, date_interval: str = None
@@ -121,11 +123,13 @@ class Strang:
         url = self.multipoint_raw_url
         url = self._build_base_multipoint_url(url)
         url = self._build_date_multipoint_url(url)
-        self.status, self.headers, self.data = self._get_and_load_data(url)
+        status, headers, data = self._get_and_load_data(url)
         self.multipoint_url = url
 
-        if self.status is False:
+        if status is False:
             raise ValueError("Fetch failed and no data was returned. Check valid time.")
+
+        return status, headers, data
 
     def _build_base_point_url(self, url):
         """
