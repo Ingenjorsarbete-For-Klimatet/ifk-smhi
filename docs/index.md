@@ -19,7 +19,7 @@ Initially only these four APIs are supported:
 This package is not yet registered with pypi. For now, install from github
 
 ```bash
-python -m pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/smhi.git@main
+pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/smhi.git@main
 ```
 
 ## SMHI client
@@ -56,7 +56,7 @@ i.e. SMHI prediction of sunshine for a given coordinate.
 Direct usage, without using the `SMHI` client is possible. To get
 a point response from STRÅNG do
 
-```Python
+```python
 from smhi.strang import Strang
 
 client = Strang()
@@ -67,7 +67,7 @@ status, headers, data = client.get_point(
 
 and for a multi point response
 
-```Python
+```python
 from smhi.strang import Strang
 
 client = Strang()
@@ -80,7 +80,7 @@ Status, headers and data are never stored inside the `client` object.
 Instead, they are explicitly returned.
 To only fetch data, write
 
-```Python
+```python
 from smhi.strang import Strang
 
 client = Strang()
