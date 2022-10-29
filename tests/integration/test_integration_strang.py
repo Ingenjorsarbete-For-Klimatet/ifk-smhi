@@ -144,8 +144,8 @@ class TestIntegrationStrang:
         client = Strang()
         parameter = 116
         valid_time = "2020-01-01"
-        date_interval = "monthly"
-        status, _, data = client.get_multipoint(parameter, valid_time, date_interval)
+        time_interval = "monthly"
+        status, _, data = client.get_multipoint(parameter, valid_time, time_interval)
 
         lon_sorted_data = sorted(data, key=lambda x: x["lon"])[:10]
 
