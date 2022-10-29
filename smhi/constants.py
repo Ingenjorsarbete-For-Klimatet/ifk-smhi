@@ -2,6 +2,7 @@
 Constans.
 """
 import arrow
+from os.path import join
 from collections import defaultdict
 from collections import namedtuple
 
@@ -9,10 +10,18 @@ TYPE_MAP = defaultdict(lambda: "application/json", json="application/json")
 
 METOBS_URL = "https://opendata-download-metobs.smhi.se/api.json"
 
-STRANG_POINT_URL = (
-    "https://opendata-download-metanalys.smhi.se/api/category/"
+STRANG_BASE_URL = "https://opendata-download-metanalys.smhi.se"
+STRANG_POINT_URL = join(
+    STRANG_BASE_URL,
+    "api/category/"
     + "{category}/version/{version}/geotype/point/lon/{lon}/lat/"
-    + "{lat}/parameter/{parameter}/data.json"
+    + "{lat}/parameter/{parameter}/data.json",
+)
+STRANG_MULTIPOINT_URL = join(
+    STRANG_BASE_URL,
+    "/api/category/"
+    + "strang1g/version/1/geotype/multipoint/validtime/{validtime}/"
+    + "parameter/{parameter}/data.json",
 )
 
 STRANG_DATE_INTERVALS = ["hourly", "daily", "monthly"]
