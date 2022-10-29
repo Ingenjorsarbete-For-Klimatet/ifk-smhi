@@ -78,78 +78,89 @@ class Strang:
             date_to: get data to (optional),
             date_interval: interval of data [valid values: hourly, daily, monthly] (optional)
         """
+        parameter = self.available_parameters[parameter]
+        if parameter is None:
+            raise NotImplementedError(
+                "Parameter not implemented. Try client.parameters to list available parameters."
+            )
+
         self.longitude = longitude
         self.latitude = latitude
-        self.parameter = self.available_parameters[parameter]
+        self.parameter = parameter
         self.date_from = date_from
         self.date_to = date_to
         self.date_interval = date_interval
 
-        if self.parameter.parameter is None:
-            raise NotImplementedError(
-                "Parameter not implemented. Try client.parameters to list available parameters."
-            )
-
-        self._build_base_point_url()
-        self._build_point_date_url()
-        self.status, self.headers, self.data = self._get_and_load_data(self.point_url)
+        url = self.point_raw_url
+        url = self._build_base_point_url(url)
+        url = self._build_date_point_url(url)
+        self.status, self.headers, self.data = self._get_and_load_data(url)
+        self.point_url = url
 
         if self.status is False:
             raise ValueError(
                 "Fetch failed and no data was returned. Check longitude and latitude coordinates."
             )
 
-    def get_multipoint(self, parameter: int, valid_time: str, date_interval: str):
+    def get_multipoint(
+        self, parameter: int, valid_time: str, date_interval: str = None
+    ):
         """
         Get full spatial data for given parameter and time.
         """
-        self.parameter = self.available_parameters[parameter]
-        self.valid_time = valid_time
-        self.date_interval = date_interval
-
-        if self.parameter.parameter is None:
+        parameter = self.available_parameters[parameter]
+        if parameter is None:
             raise NotImplementedError(
                 "Parameter not implemented. Try client.parameters to list available parameters."
             )
 
-        self._build_base_multipoint_url()
-        self._build_multipoint_date_url()
-        self.status, self.headers, self.data = self._get_and_load_data(
-            self.multipoint_url
-        )
+        self.parameter = parameter
+        self.valid_time = valid_time
+        self.date_interval = date_interval
+
+        url = self.multipoint_raw_url
+        url = self._build_base_multipoint_url(url)
+        url = self._build_date_multipoint_url(url)
+        self.status, self.headers, self.data = self._get_and_load_data(url)
+        self.multipoint_url = url
 
         if self.status is False:
             raise ValueError(
                 "Fetch failed and no data was returned. Check longitude and latitude coordinates."
             )
 
-    def _build_base_point_url(self):
+    def _build_base_point_url(self, url):
         """
         Build base point url.
+
+        Args:
+            url: url to format
         """
-        self.point_url = self.point_raw_url(
+        return url(
             lon=self.longitude,
             lat=self.latitude,
             parameter=self.parameter.parameter,
         )
 
-    def _build_base_multipoint_url(self):
+    def _build_base_multipoint_url(self, url):
         """
         Build base point url.
+
+        Args:
+            url: url to format
         """
-        self.multipoint_url = self.multipoint_raw_url(
-            parameter=self.parameter.parameter,
+        return url(
             validtime=self.valid_time,
+            parameter=self.parameter.parameter,
         )
 
-    def _build_point_date_url(self):
+    def _build_date_point_url(self, url):
         """
         Build date part of the API url.
         """
         date_from = self._parse_date(self.date_from)
         date_to = self._parse_date(self.date_to)
         date_interval = self.date_interval
-        url = self.point_url
 
         if any([date_from, date_to, date_interval]) is True:
             url += "?"
@@ -172,14 +183,13 @@ class Strang:
                 raise ValueError("Time interval must be hourly, daily or monthly.")
             url += "&interval={interval}".format(interval=date_interval)
 
-        self.point_url = url
+        return url
 
-    def _build_multipoint_date_url(self):
+    def _build_date_multipoint_url(self, url):
         """
         Build date part of the API url.
         """
         date_interval = self.date_interval
-        url = self.multipoint_url
 
         if date_interval is True:
             url += "?"
@@ -189,7 +199,7 @@ class Strang:
                 raise ValueError("Time interval must be hourly, daily or monthly.")
             url += "&interval={interval}".format(interval=date_interval)
 
-        self.multipoint_url = url
+        return url
 
     def _get_and_load_data(self, url):
         """
@@ -206,8 +216,9 @@ class Strang:
         if status is True:
             data = json.loads(response.content)
 
-            for entry in data:
-                entry["date_time"] = arrow.get(entry["date_time"]).datetime
+            if "date_time" in data[0]:
+                for entry in data:
+                    entry["date_time"] = arrow.get(entry["date_time"]).datetime
 
         return status, headers, data
 
