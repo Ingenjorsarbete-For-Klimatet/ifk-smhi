@@ -426,7 +426,7 @@ class TestUnitStrang:
         client.url = "URL"
 
         if date_interval == "notimplemented":
-            with pytest.raises(NotImplementedError):
+            with pytest.raises(ValueError):
                 client._build_date_multipoint_url(client.url)
         else:
             assert expected_url == client._build_date_multipoint_url(client.url)
