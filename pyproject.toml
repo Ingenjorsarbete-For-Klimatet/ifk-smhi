@@ -22,7 +22,7 @@ dependencies = [
 
 [project.optional-dependencies]
 lint = ["flake8 ~= 5.0"]
-test = ["pytest ~= 7.1"]
+test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
 doc = [
     "mkdocs ~= 1.4",
     "mkdocs-material ~= 8.5",
