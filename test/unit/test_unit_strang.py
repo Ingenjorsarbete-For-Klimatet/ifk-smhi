@@ -23,9 +23,9 @@ class TestUnitStrang:
     Unit tests for STRÅNG Point class.
     """
 
-    def test_unit_strang_point_init(self):
+    def test_unit_strang_init(self):
         """
-        Unit test for STRÅNG Point init method.
+        Unit test for STRÅNG init method.
 
         Args:
             mock_requests_get: mock requests get method
@@ -53,9 +53,9 @@ class TestUnitStrang:
 
         assert client.url is None
 
-    def test_unit_strang_point_parameters(self):
+    def test_unit_strang_parameters(self):
         """
-        Unit test for STRÅNG Point parameters get property.
+        Unit test for STRÅNG parameters get property.
         """
         client = Strang()
         assert client.parameters == STRANG_PARAMETERS
@@ -103,14 +103,14 @@ class TestUnitStrang:
         ],
     )
     @patch(
-        "smhi.strang.Strang._fetch_and_load_point_data",
+        "smhi.strang.Strang._get_and_load_point_data",
         return_value=[None, None, None],
     )
-    @patch("smhi.strang.Strang._build_date_url")
-    def test_unit_strang_point_fetch_point(
+    @patch("smhi.strang.Strang._build_point_date_url")
+    def test_unit_strang_get_point(
         self,
-        mock_build_date_url,
-        mock_fetch_and_load_point_data,
+        mock_build_point_date_url,
+        mock_get_and_load_point_data,
         lon,
         lat,
         parameter,
@@ -119,11 +119,11 @@ class TestUnitStrang:
         time_interval,
     ):
         """
-        Unit test for STRÅNG Point fetch_point method.
+        Unit test for STRÅNG get_point method.
 
         Args:
-            mock_build_date_url: mock _build_date_url method
-            mock_fetch_and_load_point_data: mock _fetch_and_load_point_data method
+            mock_build_point_date_url: mock _build_point_date_url method
+            mock_get_and_load_point_data: mock _get_and_load_point_data method
             lon: longitude
             lat: latitude
             parameter: parameter
@@ -135,7 +135,7 @@ class TestUnitStrang:
 
         if parameter.parameter is None:
             with pytest.raises(NotImplementedError):
-                client.fetch_point(
+                client.get_point(
                     lon,
                     lat,
                     parameter.parameter,
@@ -147,9 +147,9 @@ class TestUnitStrang:
             return None
 
         if lon is None:
-            mock_fetch_and_load_point_data.return_value[0] = False
+            mock_get_and_load_point_data.return_value[0] = False
             with pytest.raises(ValueError):
-                client.fetch_point(
+                client.get_point(
                     lon,
                     lat,
                     parameter.parameter,
@@ -160,7 +160,7 @@ class TestUnitStrang:
 
             return None
 
-        client.fetch_point(
+        client.get_point(
             lon,
             lat,
             parameter.parameter,
@@ -172,10 +172,10 @@ class TestUnitStrang:
         assert client.longitude == lon
         assert client.latitude == lat
         assert client.parameter == parameter
-        assert client.url == mock_build_date_url.return_value
+        assert client.url == mock_build_point_date_url.return_value
 
-        mock_build_date_url.assert_called_once()
-        mock_fetch_and_load_point_data.assert_called_once()
+        mock_build_point_date_url.assert_called_once()
+        mock_get_and_load_point_data.assert_called_once()
 
     @pytest.mark.parametrize(
         "lon, lat, parameter",
@@ -197,9 +197,9 @@ class TestUnitStrang:
             ),
         ],
     )
-    def test_unit_strang_point_build_base_url(self, lon, lat, parameter):
+    def test_unit_strang_build_base_point_url(self, lon, lat, parameter):
         """
-        Unit test for STRANG Point _build_base_url method
+        Unit test for STRÅNG _build_base_point_url method
 
         Args:
             lon: longitude
@@ -214,7 +214,7 @@ class TestUnitStrang:
         url = partial(STRANG_POINT_URL.format, category=CATEGORY, version=VERSION)
         url = url(lon=lon, lat=lat, parameter=parameter.parameter)
 
-        client._build_base_url()
+        client._build_base_point_url()
 
         assert client.url == url
 
@@ -236,11 +236,11 @@ class TestUnitStrang:
         ],
     )
     @patch("smhi.strang.Strang._parse_date")
-    def test_unit_strang_point_build_date_url(
+    def test_unit_strang_build_point_date_url(
         self, mock_parse_date, date_from, date_to, date_interval, expected_url
     ):
         """
-        Unit test for STRANG Point _build_date_url method
+        Unit test for STRÅNG _build_point_date_url method
 
         Args:
             mock_parse_date: mock of _parse_date method
@@ -259,12 +259,12 @@ class TestUnitStrang:
 
         if date_interval == "bad":
             with pytest.raises(ValueError):
-                client._build_date_url()
+                client._build_point_date_url()
         elif date_interval == "notimplemented":
             with pytest.raises(NotImplementedError):
-                client._build_date_url()
+                client._build_point_date_url()
         else:
-            assert expected_url == client._build_date_url()
+            assert expected_url == client._build_point_date_url()
 
     @pytest.mark.parametrize(
         "ok, date_time",
@@ -284,11 +284,11 @@ class TestUnitStrang:
     @patch(
         "smhi.strang.json.loads", return_value=[{"date_time": "2020-01-01T00:00:00Z"}]
     )
-    def test_unit_strang_point_fetch_and_load_point_data(
+    def test_unit_strang_get_and_load_data(
         self, mock_json_loads, mock_requests_get, ok, date_time
     ):
         """
-        Unit test for STRANG Point fetch_and_load_strang_data method.
+        Unit test for STRÅNG Point get_and_load_strang_data method.
 
         Args:
             mock_requests_get: mock requests get method
@@ -300,7 +300,7 @@ class TestUnitStrang:
         client.url = "URL"
         mock_json_loads.return_value = date_time
         mock_requests_get.return_value.ok = ok
-        status, headers, data = client._fetch_and_load_point_data()
+        status, headers, data = client._get_and_load_data(client.url)
         mock_requests_get.assert_called_once_with(client.url)
 
         if ok is True:
@@ -325,9 +325,9 @@ class TestUnitStrang:
             (STRANG_PARAMETERS[116], "2000", arrow.get("2000").datetime),
         ],
     )
-    def test_unit_strang_point_parse_date(self, parameter, date, expected):
+    def test_unit_strang_parse_date(self, parameter, date, expected):
         """
-        Unit test for STRANG Point _parse_date method.
+        Unit test for STRÅNG _parse_date method.
 
         Args:
             parameter: selected parameter

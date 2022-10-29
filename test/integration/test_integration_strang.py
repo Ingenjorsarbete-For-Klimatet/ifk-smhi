@@ -114,7 +114,7 @@ class TestIntegrationStrang:
             expected_result: expected result
         """
         client = Strang()
-        client.fetch_point(lon, lat, parameter, time_from, time_to, time_interval)
+        client.get_point(lon, lat, parameter, time_from, time_to, time_interval)
 
         if time_from is not None:
             assert client.data == expected_result
