@@ -1,5 +1,12 @@
+[![build](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-build.yml/badge.svg?branch=master)](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-build.yml)
+[![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mgcth/2d8de651f24d184f5ebe101ffc3c9527/raw/ifk-smhi-coverage-badge.json)](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-build.yml)
+[![docs](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-docs.yml/badge.svg?branch=master)](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-docs.yml)
+[![lint](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-lint.yml/badge.svg?branch=master)](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-lint.yml)
+![code style](https://img.shields.io/badge/code%20style-black-black)
+
 # smhi
-Web scraper for SMHI climate data. 
+
+Web scraper for SMHI climate data.
 
 The 1-versions of the code are intended to generalize the concept, include functional tests and build functionality such as listing of data sources with relevant information, searchability w r t nearest gps position etc. The work will be a joint effort, but the idea is that it will primarily be led by Mladen Gibanica (mgcth).
 
