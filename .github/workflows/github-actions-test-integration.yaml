@@ -1,7 +1,7 @@
-name: Unit and integration tests
+name: Integration tests
 on: [push]
 jobs:
-  unit-tests:
+  integration-tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,4 +19,4 @@ jobs:
           pip install -e ".[test]"
       - name: Test with pytest
         run: |
-          pytest test
+          pytest test/integration
