@@ -7,6 +7,8 @@ import json
 import arrow
 import requests
 from functools import partial
+from collections import defaultdict
+from requests.structures import CaseInsensitiveDict
 from smhi.constants import (
     STRANG,
     STRANG_POINT_URL,
@@ -49,7 +51,7 @@ class Strang:
         self.multipoint_url = None
 
     @property
-    def parameters(self):
+    def parameters(self) -> defaultdict:
         """
         Get parameters property.
 
@@ -66,7 +68,7 @@ class Strang:
         date_from: str = None,
         date_to: str = None,
         date_interval: str = None,
-    ):
+    ) -> tuple[bool, CaseInsensitiveDict, list]:
         """
         Get data for given lon, lat and parameter.
 
@@ -77,6 +79,15 @@ class Strang:
             date_from: get data from (optional),
             date_to: get data to (optional),
             date_interval: interval of data [valid values: hourly, daily, monthly] (optional)
+
+        Returns:
+            status: status code
+            headers: GET headers
+            data: data
+
+        Raises:
+            ValueError
+            NotImplementedError
         """
         parameter = self.available_parameters[parameter]
         if parameter.parameter is None:
@@ -106,9 +117,23 @@ class Strang:
 
     def get_multipoint(
         self, parameter: int, valid_time: str, date_interval: str = None
-    ):
+    ) -> tuple[bool, CaseInsensitiveDict, list]:
         """
         Get full spatial data for given parameter and time.
+
+        Args:
+            parameter: parameter
+            valid_time: valid time
+            date_interval: date_interval: interval of data [valid values: hourly, daily, monthly] (optional)
+
+        Returns:
+            status: status code
+            headers: GET headers
+            data: data
+
+        Raises:
+            ValueError
+            NotImplementedError
         """
         parameter = self.available_parameters[parameter]
         if parameter.parameter is None:
@@ -131,12 +156,15 @@ class Strang:
 
         return status, headers, data
 
-    def _build_base_point_url(self, url):
+    def _build_base_point_url(self, url: partial) -> str:
         """
         Build base point url.
 
         Args:
             url: url to format
+
+        Returns:
+            formatted url string
         """
         return url(
             lon=self.longitude,
@@ -144,21 +172,34 @@ class Strang:
             parameter=self.parameter.parameter,
         )
 
-    def _build_base_multipoint_url(self, url):
+    def _build_base_multipoint_url(self, url: partial) -> str:
         """
         Build base point url.
 
         Args:
             url: url to format
+
+        Returns:
+            formatted url string
         """
         return url(
             validtime=self.valid_time,
             parameter=self.parameter.parameter,
         )
 
-    def _build_date_point_url(self, url):
+    def _build_date_point_url(self, url: str) -> str:
         """
         Build date part of the API url.
+
+        Args:
+            url: formatted url string
+
+        Returns:
+            url string
+
+        Raises:
+            ValueError
+            NotImplementedError
         """
         date_from = self._parse_date(self.date_from)
         date_to = self._parse_date(self.date_to)
@@ -187,9 +228,18 @@ class Strang:
 
         return url
 
-    def _build_date_multipoint_url(self, url):
+    def _build_date_multipoint_url(self, url: str) -> str:
         """
         Build date part of the API url.
+
+        Args:
+            url: formatted url string
+
+        Returns:
+            url string
+
+        Raises:
+            ValueError
         """
         date_interval = self.date_interval
 
@@ -200,7 +250,7 @@ class Strang:
 
         return url
 
-    def _get_and_load_data(self, url):
+    def _get_and_load_data(self, url: str) -> tuple[bool, CaseInsensitiveDict, list]:
         """
         Fetch requested point data and parse it with datetime.
 
@@ -230,6 +280,9 @@ class Strang:
 
         Returns:
             parsed date
+
+        Raises:
+            ValueError
         """
         if date is None:
             return date
