@@ -49,7 +49,7 @@ class Strang:
         """
         return self.available_parameters
 
-    def fetch_point(
+    def get_point(
         self,
         longitude: float,
         latitude: float,
@@ -83,7 +83,7 @@ class Strang:
 
         self._build_base_url()
         self.url = self._build_date_url()
-        self.status, self.headers, self.data = self._fetch_and_load_point_data()
+        self.status, self.headers, self.data = self._get_and_load_point_data()
 
         if self.status is False:
             raise ValueError(
@@ -132,7 +132,7 @@ class Strang:
 
         return url
 
-    def _fetch_and_load_point_data(self):
+    def _get_and_load_point_data(self):
         """
         Fetch requested point data and parse it with datetime.
         """
