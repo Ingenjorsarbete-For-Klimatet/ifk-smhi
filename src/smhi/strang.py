@@ -79,7 +79,7 @@ class Strang:
             date_interval: interval of data [valid values: hourly, daily, monthly] (optional)
         """
         parameter = self.available_parameters[parameter]
-        if parameter is None:
+        if parameter.parameter is None:
             raise NotImplementedError(
                 "Parameter not implemented. Try client.parameters to list available parameters."
             )
@@ -109,7 +109,7 @@ class Strang:
         Get full spatial data for given parameter and time.
         """
         parameter = self.available_parameters[parameter]
-        if parameter is None:
+        if parameter.parameter is None:
             raise NotImplementedError(
                 "Parameter not implemented. Try client.parameters to list available parameters."
             )
