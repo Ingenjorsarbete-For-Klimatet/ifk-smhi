@@ -12,7 +12,7 @@ class TestIntegrationMetObs:
 
     @pytest.mark.parametrize(
         "parameter, station, period, init_key, init_title, parameter_data_0, "
-        + "station_data_0, period_data_0, data_title, table_loc, table",
+        + "station_data_0, period_data_0, data_title, table_loc, header, table",
         [
             (
                 1,
@@ -28,6 +28,7 @@ class TestIntegrationMetObs:
                 + "data (utom de senaste 3 mån): Ladda ner data",
                 None,
                 None,
+                False,
             ),
             (
                 1,
@@ -43,6 +44,7 @@ class TestIntegrationMetObs:
                 + "historiska data (utom de senaste 3 mån): Ladda ner data",
                 16,
                 "2008-11-01;12:00:00;-14.0;G;;",
+                "2008-11-01",
             ),
         ],
     )
@@ -58,6 +60,7 @@ class TestIntegrationMetObs:
         period_data_0,
         data_title,
         table_loc,
+        header,
         table,
     ):
         """
@@ -74,6 +77,7 @@ class TestIntegrationMetObs:
             period_data_0
             data_title
             table_loc
+            header
             table
         """
         client = MetObs()
