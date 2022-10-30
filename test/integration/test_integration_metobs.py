@@ -12,7 +12,7 @@ class TestIntegrationMetObs:
 
     @pytest.mark.parametrize(
         "parameter, station, period, init_key, init_title, parameter_data_0, "
-        + "station_data_0, period_data_0, data_title, table_loc, header, table",
+        + "station_data_0, period_data_0, data_title, table_loc, table, header_0",
         [
             (
                 1,
@@ -27,8 +27,8 @@ class TestIntegrationMetObs:
                 "Lufttemperatur - Akalla - Kvalitetskontrollerade historiska "
                 + "data (utom de senaste 3 mån): Ladda ner data",
                 None,
-                None,
                 False,
+                None,
             ),
             (
                 1,
@@ -43,8 +43,14 @@ class TestIntegrationMetObs:
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
                 + "historiska data (utom de senaste 3 mån): Ladda ner data",
                 16,
-                "2008-11-01;12:00:00;-14.0;G;;",
                 "2008-11-01",
+                "\ufeffStationsnamn;Stationsnummer;Stationsnät;Mäthöjd (meter "
+                + "över marken)\nKaresuando A;192840;SMHIs stationsnät;2.0\n\n"
+                + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
+                + "1 gång/tim;degree celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
+                + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
+                + "(decimalgrader)\n2008-11-01 00:00:00;2022-10-01 08:00:00;329.68;"
+                + "68.4418;22.4435\n\n",
             ),
         ],
     )
@@ -60,8 +66,8 @@ class TestIntegrationMetObs:
         period_data_0,
         data_title,
         table_loc,
-        header,
         table,
+        header_0,
     ):
         """
         Integration test of MetObs.
@@ -77,14 +83,14 @@ class TestIntegrationMetObs:
             period_data_0
             data_title
             table_loc
-            header
             table
+            header_0
         """
         client = MetObs()
         client.get_parameters()
         client.get_stations(parameter)
         client.get_periods(station)
-        client.get_data(period)
+        header, data = client.get_data(period)
 
         assert client.content["key"] == init_key
         assert client.content["title"] == init_title
@@ -93,4 +99,5 @@ class TestIntegrationMetObs:
         assert client.period.data[0] == period_data_0
         assert client.data.title == data_title
         if table:
-            assert client.table.iloc[table_loc, 0] == table
+            assert data.iloc[table_loc, 0] == table
+            assert header == header_0

@@ -51,7 +51,6 @@ class TestUnitMetObs:
         assert client.period is None
         assert client.data is None
         assert client.table_raw is None
-        assert client.table is None
         mock_requests_get.assert_called_once()
         mock_json_loads.assert_called_once()
 
@@ -189,7 +188,6 @@ class TestUnitMetObs:
 
         assert client.data == mock_metobsdatav1.return_value
         assert client.table_raw == mock_metobsdatav1.return_value.get()
-        assert client.table == mock_pd_read_csv.return_value
 
         mock_metobsdatav1.assert_called_once()
         mock_pd_read_csv.assert_called_once()
@@ -244,7 +242,7 @@ class TestUnitMetObs:
             mock_get_data
         """
         client = MetObs()
-        client.get_data_stationset(1, 1, "1")
+        client.get_data_stationset(1, 1, "corrected-data")
 
         mock_get_parameters.assert_called_once()
         mock_get_stations.assert_called_once()
