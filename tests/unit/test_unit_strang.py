@@ -216,6 +216,11 @@ class TestUnitStrang:
                 None,
                 None,
             ),
+            (
+                STRANG_PARAMETERS[116],
+                None,
+                None,
+            ),
         ],
     )
     @patch(
@@ -254,8 +259,7 @@ class TestUnitStrang:
             return None
 
         if valid_time is None:
-            mock_get_and_load_data.return_value[0] = False
-            with pytest.raises(ValueError):
+            with pytest.raises(TypeError):
                 client.get_multipoint(
                     parameter.parameter,
                     valid_time,
@@ -271,7 +275,7 @@ class TestUnitStrang:
         )
 
         assert client.parameter == parameter
-        assert client.valid_time == valid_time
+        assert client.valid_time == arrow.get(valid_time).isoformat()
         assert client.time_interval == time_interval
         assert client.multipoint_url == mock_build_time_multipoint_url.return_value
 
@@ -487,7 +491,7 @@ class TestUnitStrang:
             (STRANG_PARAMETERS[0], None, None),
             (STRANG_PARAMETERS[0], "Q", None),
             (STRANG_PARAMETERS[116], "1900", None),
-            (STRANG_PARAMETERS[116], "2000", arrow.get("2000").datetime),
+            (STRANG_PARAMETERS[116], "2000", arrow.get("2000").isoformat()),
         ],
     )
     def test_unit_strang_parse_datetime(self, parameter, date_time, expected):
