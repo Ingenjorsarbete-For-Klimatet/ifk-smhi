@@ -1,5 +1,5 @@
 """
-SMHI unit tests.
+STRÅNG unit tests.
 """
 import arrow
 import pytest
@@ -21,16 +21,12 @@ VERSION = 1
 
 class TestUnitStrang:
     """
-    Unit tests for STRÅNG Point class.
+    Unit tests for STRÅNG class.
     """
 
     def test_unit_strang_init(self):
         """
         Unit test for STRÅNG init method.
-
-        Args:
-            mock_requests_get: mock requests get method
-            mock_json_loads: mock json loads method
         """
         client = Strang()
 
@@ -63,12 +59,17 @@ class TestUnitStrang:
         assert client.point_url is None
         assert client.multipoint_url is None
 
-    def test_unit_strang_parameters(self):
+    @patch("smhi.strang.logging.info")
+    def test_unit_strang_parameters(self, mock_logging):
         """
         Unit test for STRÅNG parameters get property.
+
+        Args:
+            mock_logging: mock of logging info
         """
         client = Strang()
         assert client.parameters == STRANG_PARAMETERS
+        assert mock_logging.call_count == len(STRANG_PARAMETERS)
 
     @pytest.mark.parametrize(
         "lat, lon, parameter, time_from, time_to, time_interval",

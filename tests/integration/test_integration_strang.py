@@ -67,7 +67,7 @@ RESULT_MULTIPOINT_2020_01_01_MONTHLY_10 = [
 
 class TestIntegrationStrang:
     """
-    Integration tests for STRÅNG Point class.
+    Integration tests for STRÅNG class.
     """
 
     @pytest.mark.parametrize(
@@ -139,7 +139,7 @@ class TestIntegrationStrang:
 
     def test_integration_strang_multipoint(self):
         """
-        STRÅNG MultiPoint class integration tests. These tests require internet connectivity.
+        STRÅNG MultiPoint integration tests. These tests require internet connectivity.
         """
         client = Strang()
         parameter = 116
