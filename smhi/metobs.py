@@ -102,9 +102,14 @@ class MetObs:
         """
         self.data = MetObsDataV1(self.period.period, period)
         self.table_raw = self.data.get()
-        data_starting_point=self.table_raw.find('Datum')
-        self.header=self.table_raw[0:data_starting_point]
-        self.table = pd.read_csv(io.StringIO(self.table_raw[data_starting_point:-1]),sep=';', on_bad_lines="skip",usecols=[0,1,2])
+        data_starting_point = self.table_raw.find("Datum")
+        self.header = self.table_raw[0:data_starting_point]
+        self.table = pd.read_csv(
+            io.StringIO(self.table_raw[data_starting_point:-1]),
+            sep=";",
+            on_bad_lines="skip",
+            usecols=[0, 1, 2],
+        )
 
     def get_data_from_selection(
         self,
@@ -163,7 +168,7 @@ class MetObs:
             print("Available parameters ({0} first): ".format(num_print))
             print(self.parameter.data[:num_print])
             print(
-                "See all ({0}) parameters with ´client.parameter.data".format(
+                "See all ({0}) parameters with client.parameter.data".format(
                     len(self.parameter.data)
                 )
             )
@@ -176,7 +181,7 @@ class MetObs:
             print("Available stations ({0} first): ".format(num_print))
             print(self.station.data[:num_print])
             print(
-                "See all ({0}) stations with ´client.station.data".format(
+                "See all ({0}) stations with client.station.data".format(
                     len(self.station.data)
                 )
             )
