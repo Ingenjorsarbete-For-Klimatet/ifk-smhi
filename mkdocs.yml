@@ -1,9 +1,14 @@
 site_name: ifk-smhi
 repo_url: https://github.com/Ingenjorsarbete-For-Klimatet/smhi
+site_author: Mladen Gibanica
+site_url: https://ingenjorsarbete-for-klimatet.github.io/ifk-smhi/
+repo_name: Ingenjorsarbete-For-Klimatet/ifk-smhi
 
 nav:
 - Home: index.md
-- Reference: reference.md
+- Reference:
+  - "MetObs reference": metobs-reference.md
+  - "Strang reference": strang-reference.md
 
 watch:
 - src/smhi
@@ -20,7 +25,16 @@ theme:
     repo: fontawesome/brands/git-alt
   logo: assets/ifk_logo_white.png
   favicon: assets/favicon.png
+  features:
+    - navigation.tabs
 
 plugins:
 - search
 - mkdocstrings
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
