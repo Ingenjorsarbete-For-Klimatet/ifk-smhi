@@ -71,7 +71,7 @@ class TestUnitStrang:
         assert client.parameters == STRANG_PARAMETERS
 
     @pytest.mark.parametrize(
-        "lon, lat, parameter, time_from, time_to, time_interval",
+        "lat, lon, parameter, time_from, time_to, time_interval",
         [
             (
                 0,
@@ -137,8 +137,8 @@ class TestUnitStrang:
         self,
         mock_build_time_point_url,
         mock_get_and_load_data,
-        lon,
         lat,
+        lon,
         parameter,
         time_from,
         time_to,
@@ -150,8 +150,8 @@ class TestUnitStrang:
         Args:
             mock_build_time_point_url: mock _build_time_point_url method
             mock_get_and_load_data: mock _get_and_load_data method
-            lon: longitude
             lat: latitude
+            lon: longitude
             parameter: parameter
             time_from: from time
             time_to: to time
@@ -162,8 +162,8 @@ class TestUnitStrang:
         if parameter.parameter is None:
             with pytest.raises(NotImplementedError):
                 client.get_point(
-                    lon,
                     lat,
+                    lon,
                     parameter.parameter,
                     time_from,
                     time_to,
@@ -176,8 +176,8 @@ class TestUnitStrang:
             mock_get_and_load_data.return_value[0] = False
             with pytest.raises(TypeError):
                 client.get_point(
-                    lon,
                     lat,
+                    lon,
                     parameter.parameter,
                     time_from,
                     time_to,
@@ -187,8 +187,8 @@ class TestUnitStrang:
             return None
 
         client.get_point(
-            lon,
             lat,
+            lon,
             parameter.parameter,
             time_from,
             time_to,
@@ -299,7 +299,7 @@ class TestUnitStrang:
         mock_get_and_load_data.assert_called_once()
 
     @pytest.mark.parametrize(
-        "lon, lat, parameter",
+        "lat, lon, parameter",
         [
             (
                 None,
@@ -312,19 +312,19 @@ class TestUnitStrang:
                 ),
             ),
             (
-                "50",
                 "16",
+                "50",
                 STRANG_PARAMETERS[116],
             ),
         ],
     )
-    def test_unit_strang_build_base_point_url(self, lon, lat, parameter):
+    def test_unit_strang_build_base_point_url(self, lat, lon, parameter):
         """
         Unit test for STRÅNG _build_base_point_url method
 
         Args:
-            lon: longitude
             lat: latitude
+            lon: longitude
             parameter: parmeter
         """
         client = Strang()
