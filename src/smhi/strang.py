@@ -67,8 +67,8 @@ class Strang:
 
     def get_point(
         self,
-        longitude: float,
         latitude: float,
+        longitude: float,
         parameter: int,
         time_from: str = None,
         time_to: str = None,
@@ -78,8 +78,8 @@ class Strang:
         Get data for given lon, lat and parameter.
 
         Args:
-            longitude: longitude
             latitude: latitude
+            longitude: longitude
             parameter: parameter
             time_from: get data from (optional),
             time_to: get data to (optional),

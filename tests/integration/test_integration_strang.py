@@ -71,11 +71,11 @@ class TestIntegrationStrang:
     """
 
     @pytest.mark.parametrize(
-        "lon, lat, parameter, time_from, time_to, time_interval, expected_result",
+        "lat, lon, parameter, time_from, time_to, time_interval, expected_result",
         [
             (
-                16,
                 58,
+                16,
                 118,
                 "2020-01-01",
                 "2020-01-02",
@@ -83,8 +83,8 @@ class TestIntegrationStrang:
                 RESULT_HOURLY_2020_01_01_2020_01_02,
             ),
             (
-                16,
                 58,
+                16,
                 118,
                 "2020-01-01",
                 "2020-01-02",
@@ -92,8 +92,8 @@ class TestIntegrationStrang:
                 RESULT_DAILY_2020_01_01_2020_01_02,
             ),
             (
-                16,
                 58,
+                16,
                 118,
                 "2020-01-01",
                 "2020-02-01",
@@ -101,8 +101,8 @@ class TestIntegrationStrang:
                 RESULT_MONTHLY_2020_01_01_2020_02_01,
             ),
             (
-                16,
                 58,
+                16,
                 118,
                 None,
                 None,
@@ -112,14 +112,14 @@ class TestIntegrationStrang:
         ],
     )
     def test_integration_strang_point(
-        self, lon, lat, parameter, time_from, time_to, time_interval, expected_result
+        self, lat, lon, parameter, time_from, time_to, time_interval, expected_result
     ):
         """
         STRÅNG Point class integration tests. These tests require internet connectivity.
 
         Args:
-            lon: latitude
             lat: longitude
+            lon: latitude
             parameter: parameter
             time_from: from
             time_to: to
@@ -128,7 +128,7 @@ class TestIntegrationStrang:
         """
         client = Strang()
         status, _, data = client.get_point(
-            lon, lat, parameter, time_from, time_to, time_interval
+            lat, lon, parameter, time_from, time_to, time_interval
         )
 
         if time_from is not None:

@@ -61,7 +61,7 @@ from smhi.strang import Strang
 
 client = Strang()
 status, headers, data = client.get_point(
-    16, 58, 118, "2020-01-01", "2020-02-01", "hourly"
+    58, 16, 118, "2020-01-01", "2020-02-01", "hourly"
 )
 ```
 
