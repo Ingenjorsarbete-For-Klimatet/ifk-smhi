@@ -133,7 +133,7 @@ class Strang:
             data: data
 
         Raises:
-            ValueError
+            TypeError
             NotImplementedError
         """
         parameter = self.available_parameters[parameter]
@@ -142,8 +142,13 @@ class Strang:
                 "Parameter not implemented. Try client.parameters to list available parameters."
             )
 
+        try:
+            valid_time = arrow.get(valid_time).isoformat()
+        except TypeError:
+            raise TypeError("Wrong type of valid time provided. Check valid time.")
+
         self.parameter = parameter
-        self.valid_time = valid_time
+        self.valid_time = arrow.get(valid_time).isoformat()
         self.time_interval = time_interval
 
         url = self.multipoint_raw_url
@@ -151,9 +156,6 @@ class Strang:
         url = self._build_time_multipoint_url(url)
         status, headers, data = self._get_and_load_data(url)
         self.multipoint_url = url
-
-        if status is False:
-            raise ValueError("Fetch failed and no data was returned. Check valid time.")
 
         return status, headers, data
 
@@ -259,6 +261,7 @@ class Strang:
             url: url to fetch from
         """
         response = requests.get(url)
+        print(url)
         status = response.ok
         headers = response.headers
         data = None
@@ -289,12 +292,12 @@ class Strang:
             return date_time
 
         try:
-            date_time = arrow.get(date_time).datetime
+            date_time = arrow.get(date_time)
         except ValueError:
             raise ValueError("Wrong format of date.")
 
         if self.parameter.time_from < date_time < self.parameter.time_to():
-            return date_time
+            return date_time.isoformat()
         else:
             raise ValueError(
                 "Time not in allowed interval: {time_from} to {time_to}.".format(
