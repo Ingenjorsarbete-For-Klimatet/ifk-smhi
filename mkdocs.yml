@@ -1,0 +1,26 @@
+site_name: ifk-smhi
+repo_url: https://github.com/Ingenjorsarbete-For-Klimatet/smhi
+
+nav:
+- Home: index.md
+- Reference: reference.md
+
+watch:
+- src/smhi
+
+theme:
+  name: material
+  custom_dir: material
+  palette:
+    scheme: default
+    primary: black
+    accent: light green
+  language: en
+  icon:
+    repo: fontawesome/brands/git-alt
+  logo: assets/ifk_logo_white.png
+  favicon: assets/favicon.png
+
+plugins:
+- search
+- mkdocstrings
