@@ -12,7 +12,6 @@ from functools import partial
 from collections import defaultdict
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import (
-    STRANG,
     STRANG_POINT_URL,
     STRANG_PARAMETERS,
     STRANG_MULTIPOINT_URL,
@@ -63,6 +62,13 @@ class Strang:
         Returns:
             available parameters
         """
+        for key, value in self.available_parameters.items():
+            logging.info(
+                "parameter: {parameter}, info: {meaning}".format(
+                    parameter=key, meaning=value.meaning
+                )
+            )
+
         return self.available_parameters
 
     def get_point(
