@@ -6,6 +6,7 @@ See validation of model: https://strang.smhi.se/validation/validation.html
 import json
 import arrow
 import requests
+import logging
 from datetime import datetime
 from functools import partial
 from collections import defaultdict
@@ -17,6 +18,9 @@ from smhi.constants import (
     STRANG_MULTIPOINT_URL,
     STRANG_TIME_INTERVALS,
 )
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 class Strang:
@@ -96,6 +100,9 @@ class Strang:
                 "Parameter not implemented. Try client.parameters to list available parameters."
             )
 
+        if longitude is None or latitude is None:
+            raise TypeError("Wrong type of latitude and/or longitude provided.")
+
         self.longitude = longitude
         self.latitude = latitude
         self.parameter = parameter
@@ -108,11 +115,6 @@ class Strang:
         url = self._build_time_point_url(url)
         status, headers, data = self._get_and_load_data(url)
         self.point_url = url
-
-        if status is False:
-            raise ValueError(
-                "Fetch failed and no data was returned. Check longitude and latitude coordinates."
-            )
 
         return status, headers, data
 
@@ -261,7 +263,6 @@ class Strang:
             url: url to fetch from
         """
         response = requests.get(url)
-        print(url)
         status = response.ok
         headers = response.headers
         data = None
@@ -272,6 +273,8 @@ class Strang:
             if "date_time" in data[0]:
                 for entry in data:
                     entry["date_time"] = arrow.get(entry["date_time"]).datetime
+        else:
+            logging.info("No data returned.")
 
         return status, headers, data
 

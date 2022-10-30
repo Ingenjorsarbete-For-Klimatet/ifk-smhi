@@ -103,6 +103,22 @@ class TestUnitStrang:
                 "hourly",
             ),
             (
+                0,
+                None,
+                STRANG_PARAMETERS[116],
+                "2020-01-01",
+                "2020-01-01",
+                "hourly",
+            ),
+            (
+                None,
+                0,
+                STRANG_PARAMETERS[116],
+                "2020-01-01",
+                "2020-01-01",
+                "hourly",
+            ),
+            (
                 None,
                 None,
                 STRANG_PARAMETERS[116],
@@ -156,9 +172,9 @@ class TestUnitStrang:
 
             return None
 
-        if lon is None:
+        if lon is None or lat is None:
             mock_get_and_load_data.return_value[0] = False
-            with pytest.raises(ValueError):
+            with pytest.raises(TypeError):
                 client.get_point(
                     lon,
                     lat,
@@ -442,6 +458,7 @@ class TestUnitStrang:
             (False, [{"date_time": "2020-01-01T00:00:00Z"}]),
         ],
     )
+    @patch("smhi.strang.logging.info")
     @patch(
         "smhi.strang.requests.get",
         return_value=type(
@@ -454,7 +471,7 @@ class TestUnitStrang:
         "smhi.strang.json.loads", return_value=[{"date_time": "2020-01-01T00:00:00Z"}]
     )
     def test_unit_strang_get_and_load_data(
-        self, mock_json_loads, mock_requests_get, ok, date_time
+        self, mock_json_loads, mock_requests_get, mock_logging, ok, date_time
     ):
         """
         Unit test for STRÅNG Point get_and_load_strang_data method.
@@ -462,6 +479,7 @@ class TestUnitStrang:
         Args:
             mock_requests_get: mock requests get method
             mock_json_loads: mock json loads method
+            mock_logging: mock of logging warning method
             ok: request status
             date_time: date
         """
@@ -479,11 +497,13 @@ class TestUnitStrang:
             assert status is ok
             assert headers == "header"
             assert data[0]["date_time"] == arrow.get("2020-01-01T00:00:00Z").datetime
+            mock_logging.assert_not_called()
 
         else:
             assert status is ok
             assert headers == "header"
             assert data is None
+            mock_logging.assert_called_once()
 
     @pytest.mark.parametrize(
         "parameter, date_time, expected",
