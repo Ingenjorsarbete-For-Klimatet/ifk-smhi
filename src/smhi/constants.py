@@ -2,22 +2,22 @@
 Constans.
 """
 import arrow
-from os.path import join
-from collections import defaultdict
 from collections import namedtuple
+from collections import defaultdict
+from posixpath import join as urljoin
 
 TYPE_MAP = defaultdict(lambda: "application/json", json="application/json")
 
 METOBS_URL = "https://opendata-download-metobs.smhi.se/api.json"
 
 STRANG_BASE_URL = "https://opendata-download-metanalys.smhi.se"
-STRANG_POINT_URL = join(
+STRANG_POINT_URL = urljoin(
     STRANG_BASE_URL,
     "api/category/"
     + "{category}/version/{version}/geotype/point/lon/{lon}/lat/"
     + "{lat}/parameter/{parameter}/data.json",
 )
-STRANG_MULTIPOINT_URL = join(
+STRANG_MULTIPOINT_URL = urljoin(
     STRANG_BASE_URL,
     "api/category/"
     + "{category}/version/{version}/geotype/multipoint/validtime/{validtime}/"
