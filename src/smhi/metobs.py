@@ -39,7 +39,7 @@ class MetObs:
         self.period = None
         self.data = None
         self.table_raw = None
-        self.table = None
+
 
     def get_parameters(self, version: Union[str, int] = "1.0"):
         """
@@ -103,13 +103,14 @@ class MetObs:
         self.data = MetObsDataV1(self.period.period, period)
         self.table_raw = self.data.get()
         data_starting_point = self.table_raw.find("Datum")
-        self.header = self.table_raw[0:data_starting_point]
-        self.table = pd.read_csv(
+        header = self.table_raw[0:data_starting_point]
+        table = pd.read_csv(
             io.StringIO(self.table_raw[data_starting_point:-1]),
             sep=";",
             on_bad_lines="skip",
             usecols=[0, 1, 2],
         )
+        return header, table
 
     def get_data_from_selection(
         self,
@@ -129,7 +130,8 @@ class MetObs:
         self.get_parameters()
         self.get_stations(parameter)
         self.get_periods(station)
-        self.get_data(period)
+        header, table = self.get_data(period)
+        return header, table
 
     def get_data_stationset(
         self,
@@ -149,7 +151,8 @@ class MetObs:
         self.get_parameters()
         self.get_stations(parameter)
         self.get_periods(None, stationset)
-        self.get_data(period)
+        header, table = self.get_data(period)
+        return header, table
 
     def inspect(self, num_print: int = 10):
         """
