@@ -196,7 +196,7 @@ class TestUnitMetObs:
     @patch("smhi.metobs.MetObs.get_parameters")
     @patch("smhi.metobs.MetObs.get_stations")
     @patch("smhi.metobs.MetObs.get_periods")
-    @patch("smhi.metobs.MetObs.get_data")
+    @patch("smhi.metobs.MetObs.get_data", return_value=("test1", "test2"))
     def test_unit_metobs_get_data_from_selection(
         self,
         mock_get_parameters,
@@ -224,7 +224,7 @@ class TestUnitMetObs:
     @patch("smhi.metobs.MetObs.get_parameters")
     @patch("smhi.metobs.MetObs.get_stations")
     @patch("smhi.metobs.MetObs.get_periods")
-    @patch("smhi.metobs.MetObs.get_data")
+    @patch("smhi.metobs.MetObs.get_data", return_value=("test1", "test2"))
     def test_unit_metobs_get_data_stationset(
         self,
         mock_get_parameters,
