@@ -1,7 +1,7 @@
-[![build](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-build.yml/badge.svg?branch=master)](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-build.yml)
-[![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mgcth/2d8de651f24d184f5ebe101ffc3c9527/raw/ifk-smhi-coverage-badge.json)](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-build.yml)
-[![docs](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-docs.yml/badge.svg?branch=master)](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-docs.yml)
-[![lint](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-lint.yml/badge.svg?branch=master)](https://github.com/Ingenjorsarbete-For-Klimatet/smhi/actions/workflows/github-action-lint.yml)
+[![build](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-build.yaml/badge.svg?branch=main)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-build.yaml)
+[![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mgcth/2d8de651f24d184f5ebe101ffc3c9527/raw/ifk-smhi-coverage-badge.json)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-build.yaml)
+[![docs](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-docs.yaml/badge.svg?branch=main)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-docs.yaml)
+[![lint](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml/badge.svg?branch=main)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml)
 ![code style](https://img.shields.io/badge/code%20style-black-black)
 
 # smhi
