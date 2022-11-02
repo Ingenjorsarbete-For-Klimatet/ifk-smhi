@@ -49,7 +49,7 @@ class TestIntegrationMetObs:
                 + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
                 + "1 gång/tim;degree celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
                 + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
-                + "(decimalgrader)\n2008-11-01 00:00:00;2022-10-01 08:00:00;329.68;"
+                + "(decimalgrader)\n2008-11-01 00:00:00;2022-11-01 08:00:00;329.68;"
                 + "68.4418;22.4435\n\n",
             ),
         ],
