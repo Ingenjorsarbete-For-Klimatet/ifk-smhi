@@ -13,3 +13,11 @@ Currently supports these APIs
 - Meteorological Forecasts Metfcts
 - Meteorological Analysis Mesan
 - Meteorological Analysis Strang
+
+## Installation
+
+The package isn't registered and needs to be installed from GitHub
+
+```bash
+pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi.git@main
+```
