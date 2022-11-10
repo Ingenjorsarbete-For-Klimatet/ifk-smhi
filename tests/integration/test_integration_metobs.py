@@ -1,17 +1,17 @@
 """
-SMHI MetObs v1 integration tests.
+SMHI Metobs v1 integration tests.
 """
 import pytest
-from smhi.metobs import MetObs
+from smhi.metobs import Metobs
 
 
-class TestIntegrationMetObs:
+class TestIntegrationMetobs:
     """
-    Integration tests of MetObs.
+    Integration tests of Metobs.
     """
 
     @pytest.mark.parametrize(
-        "parameter, station, period, init_key, init_title, parameter_data_0, "
+        "parameters, stations, periods, init_key, init_title, parameters_data_0, "
         + "station_data_0, period_data_0, data_title, table_loc, table, header_0",
         [
             (
@@ -56,12 +56,12 @@ class TestIntegrationMetObs:
     )
     def test_integration_metobs_init(
         self,
-        parameter,
-        station,
-        period,
+        parameters,
+        stations,
+        periods,
         init_key,
         init_title,
-        parameter_data_0,
+        parameters_data_0,
         station_data_0,
         period_data_0,
         data_title,
@@ -70,15 +70,15 @@ class TestIntegrationMetObs:
         header_0,
     ):
         """
-        Integration test of MetObs.
+        Integration test of Metobs.
 
         Args:
-            parameter
-            station
-            period
+            parameters
+            stations
+            periods
             init_key
             init_title
-            parameter_data_0
+            parameters_data_0
             station_data_0
             period_data_0
             data_title
@@ -86,17 +86,17 @@ class TestIntegrationMetObs:
             table
             header_0
         """
-        client = MetObs()
+        client = Metobs()
         client.get_parameters()
-        client.get_stations(parameter)
-        client.get_periods(station)
-        header, data = client.get_data(period)
+        client.get_stations(parameters)
+        client.get_periods(stations)
+        header, data = client.get_data(periods)
 
         assert client.content["key"] == init_key
         assert client.content["title"] == init_title
-        assert client.parameter.data[0] == parameter_data_0
-        assert client.station.data[0] == station_data_0
-        assert client.period.data[0] == period_data_0
+        assert client.parameters.data[0] == parameters_data_0
+        assert client.stations.data[0] == station_data_0
+        assert client.periods.data[0] == period_data_0
         assert client.data.title == data_title
         if table:
             assert data.iloc[table_loc, 0] == table

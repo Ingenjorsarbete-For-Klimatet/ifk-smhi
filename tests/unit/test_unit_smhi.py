@@ -11,7 +11,7 @@ class TestUnitSMHI:
     Unit tests for SMHI class.
     """
 
-    @patch("smhi.smhi.MetObs")
+    @patch("smhi.smhi.Metobs")
     def test_unit_smhi_init(self, mock_requests_metobs):
         """
         Unit test for SMHI init method.
