@@ -6,105 +6,156 @@ import json
 import requests
 import pandas as pd
 from typing import Union
-from smhi.constants import METOBS_URL, TYPE_MAP
+from smhi.constants import METOBS_URL, TYPE_MAP, METOBS_AVAILABLE_PERIODS
 
 
-class MetObs:
+class Metobs:
     """
     SMHI data class.
     """
 
-    def __init__(self, type: str = "json"):
+    def __init__(self, data_type: str = "json"):
         """
-        Initialise the SMHI class with a data type format used to fetch data.
-        For now, only supports `json`.
+        Initialise the SMHI Metobs class with a data type format used to get data.
+        For now, only supports `json` and version 1.
 
         Args:
-            type: type of request
+            data_type: type of request
         """
-        self.type = TYPE_MAP[type]
+        if data_type != "json":
+            raise NotImplementedError(
+                "API for type {0} is not supported for now. Use json".format(data_type)
+            )
+
+        self.data_type = TYPE_MAP[data_type]
         response = requests.get(METOBS_URL)
         self.headers = response.headers
         self.content = json.loads(response.content)
         self.available_versions = self.content["version"]
 
         self.version = None
-        self.parameter = None
-        self.station = None
-        self.period = None
+        self.parameters = None
+        self.stations = None
+        self.periods = None
         self.data = None
         self.table_raw = None
-        self.table = None
 
-    def fetch_parameters(self, version: str = "1.0"):
+    def get_parameters(self, version: Union[str, int] = "1.0"):
         """
-        Fetch SMHI API parameters from version. Only supports `version = 1.0`.
+        Get SMHI Metobs API parameters from version. Only supports `version = 1.0`.
 
         Args:
             version: selected API version
         """
+        if version == 1:
+            version = "1.0"
+
         if version != "1.0":
-            raise Exception("Only supports version = 1.0.")
+            raise NotImplementedError(
+                "Version {} not supported. Only supports version = 1.0.".format(version)
+            )
 
         self.version = version
-        self.parameter = SMHIParameterV1(self.type, self.available_versions, version)
+        self.parameters = MetobsParametersV1(self.available_versions)
 
-    def fetch_stations(self, parameter: str = None, parameter_title: str = None):
+    def get_stations(self, parameter: str = None, parameter_title: str = None):
         """
-        Fetch SMHI API (version 1) stations from given parameter.
+        Get SMHI Metobs API (version 1) stations from given parameter.
 
         Args:
             parameter: id of data
             parameter_title: exact title of data
         """
         if parameter is None and parameter_title is None:
-            raise Exception("Both arguments None.")
+            raise NotImplementedError("Both arguments None.")
 
-        if self.parameter is None:
-            raise Exception("Fetch parameters first.")
-
-        if parameter_title is None:
-            self.station = SMHIStationV1(
-                self.type, self.parameter.resource, parameter=parameter
+        if parameter:
+            self.stations = MetobsStationsV1(
+                self.parameters.resource, parameter=parameter
+            )
+        else:
+            self.stations = MetobsStationsV1(
+                self.parameters.resource, parameters_title=parameter_title
             )
 
-        if parameter is None:
-            self.station = SMHIStationV1(
-                self.type, self.parameter.resource, parameter_title=parameter_title
-            )
-
-    def fetch_periods(self, station: str = None, station_set: str = None):
+    def get_periods(self, station: str = None, stationset: str = None):
         """
-        Fetch SMHI API (version 1) periods from given station.
+        Get SMHI Metobs API (version 1) periods from given stations or stationset.
 
         Args:
             station: id of data
-            station_set: exact title of data
+            stationset: exact title of data
         """
-        if station is None and station_set is None:
-            raise Exception("Both arguments None.")
+        if station is None and stationset is None:
+            raise NotImplementedError("Both arguments None.")
 
-        if self.station is None:
-            raise Exception("Fetch stations first.")
-
-        if station_set is None:
-            self.period = SMHIPeriodV1(self.type, self.station.station, station=station)
-
-        if station is None:
-            self.period = SMHIPeriodV1(
-                self.type, self.station.station, station_set=station_set
+        if station:
+            self.periods = MetobsPeriodsV1(self.stations.stations, station)
+        else:
+            self.periods = MetobsPeriodsV1(
+                self.stations.stations, stationset=stationset
             )
 
-    def fetch_data(self, period: str = "corrected-archive"):
+    def get_data(self, period: str = "corrected-archive"):
         """
-        Fetch SMHI API (version 1) data from given period.
+        Get SMHI Metobs API (version 1) data from given period.
 
         Args:
-            period: period
+            periods: periods
         """
-        self.data = SMHIDataV1(self.type, self.period.period, period)
-        self.table_raw = self.data.fetch()
-        self.table = pd.read_csv(io.StringIO(self.table_raw), on_bad_lines="skip")
+        self.data = MetobsDataV1(self.periods.periods, period)
+        self.table_raw = self.data.get()
+        data_starting_point = self.table_raw.find("Datum")
+        header = self.table_raw[0:data_starting_point]
+        table = pd.read_csv(
+            io.StringIO(self.table_raw[data_starting_point:-1]),
+            sep=";",
+            on_bad_lines="skip",
+            usecols=[0, 1, 2],
+        )
+        return header, table
+
+    def get_data_from_selection(
+        self,
+        parameter: int,
+        station: int,
+        period: str,
+    ):
+        """
+        Get data from explicit parameter, station and period,
+        without inspecting each level. Note, no version parameters.
+
+        Args:
+            parameter: API parameters
+            station: stations
+            period: periods to download
+        """
+        self.get_parameters()
+        self.get_stations(parameter)
+        self.get_periods(station)
+        header, table = self.get_data(period)
+        return header, table
+
+    def get_data_stationset(
+        self,
+        parameter: int,
+        stationset: int,
+        period: str,
+    ):
+        """
+        Get data from explicit parameters, stations set and period,
+        without inspecting each level. Note, no version parameters.
+
+        Args:
+            parameters: API parameters
+            stationset: stations
+            periods: periods to download
+        """
+        self.get_parameters()
+        self.get_stations(parameter)
+        self.get_periods(None, stationset)
+        header, table = self.get_data(period)
+        return header, table
 
     def inspect(self, num_print: int = 10):
         """
@@ -118,92 +169,77 @@ class MetObs:
         print("Selected version: ", self.version)
         print()
 
-        if self.parameter is not None:
-            print("API parameter")
+        if self.parameters:
+            print("API parameters")
             print("Available parameters ({0} first): ".format(num_print))
-            print(self.parameter.data[:num_print])
+            print(self.parameters.data[:num_print])
             print(
-                "See all ({0}) parameters with ´client.parameter.data".format(
-                    len(self.parameter.data)
+                "See all ({0}) parameters with client.parameters.data".format(
+                    len(self.parameters.data)
                 )
             )
-            if self.station is not None:
-                print("Selected parameter: ", self.station.selected_parameter)
+            if self.stations:
+                print("Selected parameters: ", self.stations.selected_parameter)
             print()
 
-        if self.station is not None:
-            print("API station")
+        if self.stations:
+            print("API stations")
             print("Available stations ({0} first): ".format(num_print))
-            print(self.station.data[:num_print])
+            print(self.stations.data[:num_print])
             print(
-                "See all ({0}) stations with ´client.station.data".format(
-                    len(self.station.data)
+                "See all ({0}) stations with client.stations.data".format(
+                    len(self.stations.data)
                 )
             )
-            if self.period is not None:
+            if self.periods:
                 print(
-                    "Selected station: {0} {1}".format(
-                        self.period.selected_station,
+                    "Selected stations: {0} {1}".format(
+                        self.periods.selected_station,
                         [
                             x[2]
-                            for x in self.station.data
-                            if x[1] == self.period.selected_station
+                            for x in self.stations.data
+                            if x[1] == self.periods.selected_station
                         ][0],
                     )
                 )
             print()
 
-        if self.period is not None:
-            print("API period")
+        if self.periods:
+            print("API periods")
             print("Available periods: ")
-            print(self.period.data)
-            if self.data is not None:
-                print("Selected period: ", self.data.selected_period)
+            print(self.periods.data)
+            if self.data:
+                print("Selected periods: ", self.data.selected_period)
             print()
 
-    def get_explicit_data(
-        self,
-        version: str,
-        parameter: int,
-        station: int,
-        station_set: str,
-        select_period: str,
-    ):
-        """
-        Get data from explicit selection.
 
-        Args:
-            version: API version
-            parameter: API parameter
-            station: station
-            station_set: station_set
-            select_period: period to download
-        """
-        pass
-
-
-class SMHIParameterV1:
+class MetobsLevelV1:
     """
-    Fetch parameter for version 1 of API.
+    Base Metobs level version 1 class.
     """
 
-    def __init__(
-        self,
-        type: str = "application/json",
-        data: list = None,
-        version: Union[str, int] = "latest",
-    ):
+    def __init__(self):
         """
-        Fetch parameter from version.
+        Initialise base class.
+        """
+        self.headers = None
+        self.key = None
+        self.updated = None
+        self.title = None
+        self.summary = None
+        self.link = None
+        self.data_type = None
+
+    def _get_and_parse_request(self, url: str):
+        """
+        Get and parse API request. Only JSON supported.
 
         Args:
-            type: type of request
-            data: available API versions
-            version: selected API version
+            url: url to get from
+
+        Returns:
+            jsonified content
         """
-        self.selected_version = version
-        requested_version = [x for x in data if x["key"] == version][0]
-        url = [x["href"] for x in requested_version["link"] if x["type"] == type][0]
         response = requests.get(url)
         content = json.loads(response.content)
 
@@ -213,141 +249,242 @@ class SMHIParameterV1:
         self.title = content["title"]
         self.summary = content["summary"]
         self.link = content["link"]
+
+        return content
+
+    def _get_url(
+        self,
+        data: list,
+        key: str,
+        parameter: Union[str, int],
+        data_type: str = "json",
+    ):
+        """
+        Get the url to get data from. Defaults to type json.
+
+        Args:
+            data: data list
+            key: key to look in
+            parameter: parameter to look for
+            data_type: data type of requested url
+
+        Returns:
+            url
+
+        Raises:
+            IndexError
+        """
+        self.data_type = data_type = TYPE_MAP[data_type]
+        try:
+            requested_data = [x for x in data if x[key] == str(parameter)][0]["link"]
+            url = [x["href"] for x in requested_data if x["type"] == self.data_type][0]
+            return url
+        except IndexError:
+            raise IndexError("Can't find data for parameters: {p}".format(p=parameter))
+        except KeyError:
+            raise KeyError("Can't find key: {key}".format(key=key))
+
+
+class MetobsParametersV1(MetobsLevelV1):
+    """
+    Get parameters for version 1 of Metobs API.
+    """
+
+    def __init__(
+        self,
+        data: list = None,
+        version: Union[str, int] = "1.0",
+        data_type: str = "json",
+    ):
+        """
+        Get parameters from version.
+
+        Args:
+            data: available API versions
+            version: selected API version
+            data_type: data_type of request
+
+        Raises:
+            TypeError
+            NotImplementedError
+        """
+        super().__init__()
+
+        if data_type != "json":
+            raise TypeError("Only json supported.")
+
+        if version != 1 and version != "1.0":
+            raise NotImplementedError("Only supports version 1.0.")
+
+        self.selected_version = "1.0" if version == 1 else version
+        url = self._get_url(data, "key", version, data_type)
+        content = self._get_and_parse_request(url)
         self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
         self.data = tuple((x["key"], x["title"]) for x in self.resource)
 
 
-class SMHIStationV1:
+class MetobsStationsV1(MetobsLevelV1):
     """
-    Fetch stations from parameter for version 1 of API.
+    Get stations from parameter for version 1 of Metobs API.
     """
 
     def __init__(
         self,
-        type: str = "application/json",
-        data: list = None,
+        data: list,
         parameter: str = None,
         parameter_title: str = None,
+        data_type: str = "json",
     ):
         """
-        Fetch stations from parameter.
+        Get stations from parameters.
 
         Args:
-            type: type of request
             data: available API parameters
             parameter: data to read
             parameter_title: exact title of data
+            data_type: data_type of request
+
+        Raises:
+            TypeError
+            NotImplementedError
         """
-        self.selected_parameter = parameter
-        if parameter_title is not None:
-            requested_parameter = [x for x in data if x["title"] == parameter_title][0]
-        else:
-            requested_parameter = [x for x in data if x["key"] == str(parameter)][0]
-        url = [x["href"] for x in requested_parameter["link"] if x["type"] == type][0]
-        response = requests.get(url)
-        content = json.loads(response.content)
+        super().__init__()
 
-        self.headers = response.headers
-        self.key = content["key"]
-        self.updated = content["updated"]
-        self.title = content["title"]
-        self.summary = content["summary"]
+        if data_type != "json":
+            raise TypeError("Only json supported.")
+
+        if parameter is None and parameter_title is None:
+            raise NotImplementedError("No parameter selected.")
+
+        if parameter and parameter_title:
+            raise NotImplementedError("Can't decide which input to select.")
+
+        if parameter:
+            self.selected_parameter = parameter
+            url = self._get_url(data, "key", parameter, data_type)
+        if parameter_title:
+            self.selected_parameter = parameter_title
+            url = self._get_url(data, "title", parameter_title, data_type)
+
+        content = self._get_and_parse_request(url)
         self.valuetype = content["valueType"]
-        self.link = content["link"]
         self.stationset = content["stationSet"]
-        self.station = sorted(content["station"], key=lambda x: int(x["id"]))
-        self.data = tuple((i, x["id"], x["name"]) for i, x in enumerate(self.station))
+        self.stations = sorted(content["station"], key=lambda x: int(x["id"]))
+        self.data = tuple((x["id"], x["name"]) for i, x in enumerate(self.stations))
 
 
-class SMHIPeriodV1:
+class MetobsPeriodsV1(MetobsLevelV1):
     """
-    Fetch periods from station for version 1 of API.
+    Get periods from station for version 1 of Metobs API.
+    Note that stationset_title is not supported
     """
 
     def __init__(
         self,
-        type: str = "application/json",
-        data: list = None,
+        data: list,
         station: int = None,
         station_name: str = None,
+        stationset: str = None,
+        data_type: str = "json",
     ):
         """
-        Fetch periods from station.
+        Get periods from station.
 
         Args:
-            type: type of request
             data: available API stations
-            station: station id, not key
-            station_name: station name
-        """
-        self.selected_station = station
-        if station_name is not None:
-            requested_station = [x for x in data if x["title"] == station_name][0]
-        else:
-            requested_station = [x for x in data if x["id"] == station][0]
-        url = [x["href"] for x in requested_station["link"] if x["type"] == type][0]
-        response = requests.get(url)
-        content = json.loads(response.content)
+            station: station key to get
+            station_name: station name to get
+            stationset: station set to get
+            data_type: data_type of request
 
-        self.headers = response.headers
-        self.key = content["key"]
-        self.updated = content["updated"]
-        self.title = content["title"]
+        Raises:
+            TypeError
+            NotImplementedError
+        """
+        super().__init__()
+
+        if data_type != "json":
+            raise TypeError("Only json supported.")
+
+        if [station, station_name, stationset].count(None) == 3:
+            raise NotImplementedError("No stations selected.")
+
+        if [bool(x) for x in [station, station_name, stationset]].count(True) > 1:
+            raise NotImplementedError("Can't decide which input to select.")
+
+        if station:
+            self.selected_station = station
+            url = self._get_url(data, "key", station, data_type)
+        if station_name:
+            self.selected_station = station_name
+            url = self._get_url(data, "title", station_name, data_type)
+        if stationset:
+            self.selected_station = stationset
+            url = self._get_url(data, "key", stationset, data_type)
+
+        content = self._get_and_parse_request(url)
         self.owner = content["owner"]
         self.ownercategory = content["ownerCategory"]
         self.measuringstations = content["measuringStations"]
         self.active = content["active"]
-        self.summary = content["summary"]
         self.time_from = content["from"]
         self.time_to = content["to"]
         self.position = content["position"]
-        self.link = content["link"]
-        self.period = sorted(content["period"], key=lambda x: x["key"])
-        self.data = [x["key"] for x in self.period]
+        self.periods = sorted(content["period"], key=lambda x: x["key"])
+        self.data = [x["key"] for x in self.periods]
 
 
-class SMHIDataV1:
+class MetobsDataV1(MetobsLevelV1):
     """
-    Fetch data from period for version 1 of API.
+    Get data from period for version 1 of Metobs API.
     """
 
     def __init__(
         self,
-        type: str = "application/json",
-        data: list = None,
+        data: list,
         period: str = "corrected-archive",
+        data_type: str = "json",
     ):
         """
-        Fetch data from period.
+        Get data from period.
 
         Args:
-            type: type of request
             data: available API periods
-            period: select period from: latest-hour, latest-day, latest-months or corrected-archive
+            period: select period from:
+                    latest-hour, latest-day, latest-months or corrected-archive
+            data_type: data_type of request
+
+        Raises:
+            TypeError
+            NotImplementedError
         """
+        super().__init__()
+
+        if data_type != "json":
+            raise TypeError("Only json supported.")
+
+        if period not in METOBS_AVAILABLE_PERIODS:
+            raise NotImplementedError(
+                "Select a supported periods: }"
+                + ", ".join([p for p in METOBS_AVAILABLE_PERIODS])
+            )
+
         self.selected_period = period
-        requested_period = [x for x in data if x["key"] == period][0]
-        url = [x["href"] for x in requested_period["link"] if x["type"] == type][0]
-        response = requests.get(url)
-        content = json.loads(response.content)
-
-        self.headers = response.headers
-
-        self.key = content["key"]
-        self.updated = content["updated"]
-        self.title = content["title"]
-        self.summary = content["summary"]
+        url = self._get_url(data, "key", period, data_type)
+        content = self._get_and_parse_request(url)
         self.time_from = content["from"]
         self.time_to = content["to"]
-        self.link = content["link"]
         self.data = content["data"]
 
-    def fetch(self, type: str = "text/plain"):
+    def get(self, type: str = "text/plain"):
         """
-        Fetch the selected data file.
+        Get the selected data file.
 
         Args:
             type: type of request
+
+        Returns:
+            utf-8 decoded response
         """
         for item in self.data:
             for link in item["link"]:
