@@ -44,13 +44,13 @@ client.parameters.data
 client.get_stations(1)
 
 # list all stations
-client.station.data
+client.stations.data
 
 # get all periods that have data from station 1
 client.get_periods(1)
 
 # list all periods
-client.period.data
+client.periods.data
 
 # inspect client state
 client.inspect()
