@@ -1,15 +1,15 @@
-# Example of MetObs direct use
+# Example of Metobs direct use
 
-Direct usage of `MetObs`, without using the `SMHI` client is possible.
+Direct usage of `Metobs`, without using the `SMHI` client is possible.
 
 ## Get data from known parameters
 
 To get data from a known station (found e.g. through exploration of
-[https://www.smhi.se/data](https://www.smhi.se/data)) from `MetObs` do
+[https://www.smhi.se/data](https://www.smhi.se/data)) from `Metobs` do
 
 ```python
-from smhi.metobs import MetObs
-client = MetObs()
+from smhi.metobs import Metobs
+client = Metobs()
 header, data = client.get_data_stationset(
     1, 192840, "corrected-archive"
 )
@@ -20,9 +20,9 @@ Instead, they are explicitly returned.
 To only fetch data, write
 
 ```python
-from smhi.metobs import MetObs
+from smhi.metobs import Metobs
 
-client = MetObs()
+client = Metobs()
 _, data = client.get_data_stationset(1, 192840, "corrected-archive")
 ```
 
@@ -32,9 +32,9 @@ To inspect the API, the following methods are provided
 The following example is a common pattern of usage
 
 ```python
-from smhi.metobs import MetObs
+from smhi.metobs import Metobs
 
-client = MetObs()
+client = Metobs()
 client.get_parameters()
 
 # list all parameters
