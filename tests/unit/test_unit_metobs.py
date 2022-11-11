@@ -121,7 +121,7 @@ class TestUnitMetobs:
             client.get_stations(parameters)
             assert client.stations == expected_station
         else:
-            client.get_stations(parameters_title=parameters_title)
+            client.get_stations(parameter_title=parameters_title)
             assert client.stations == expected_station
 
         if parameters or parameters_title:
@@ -474,10 +474,10 @@ class TestUnitMetObsStationV1:
         stations = MetobsStationsV1(data, parameters, parameters_title, data_type)
 
         if parameters:
-            assert stations.selected_parameters == parameters
+            assert stations.selected_parameter == parameters
 
         if parameters_title:
-            assert stations.selected_parameters == parameters_title
+            assert stations.selected_parameter == parameters_title
 
         assert (
             stations.valuetype == mock_get_and_parse_request.return_value["valueType"]
