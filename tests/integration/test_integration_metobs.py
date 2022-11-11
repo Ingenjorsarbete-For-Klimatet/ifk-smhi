@@ -11,7 +11,7 @@ class TestIntegrationMetobs:
     """
 
     @pytest.mark.parametrize(
-        "parameters, stations, periods, init_key, init_title, parameters_data_0, "
+        "parameter, station, period, init_key, init_title, parameter_data_0, "
         + "station_data_0, period_data_0, data_title, table_loc, table, header_0",
         [
             (
@@ -56,12 +56,12 @@ class TestIntegrationMetobs:
     )
     def test_integration_metobs_init(
         self,
-        parameters,
-        stations,
-        periods,
+        parameter,
+        station,
+        period,
         init_key,
         init_title,
-        parameters_data_0,
+        parameter_data_0,
         station_data_0,
         period_data_0,
         data_title,
@@ -73,12 +73,12 @@ class TestIntegrationMetobs:
         Integration test of Metobs.
 
         Args:
-            parameters
-            stations
-            periods
+            parameter
+            station
+            period
             init_key
             init_title
-            parameters_data_0
+            parameter_data_0
             station_data_0
             period_data_0
             data_title
@@ -88,13 +88,13 @@ class TestIntegrationMetobs:
         """
         client = Metobs()
         client.get_parameters()
-        client.get_stations(parameters)
-        client.get_periods(stations)
-        header, data = client.get_data(periods)
+        client.get_stations(parameter)
+        client.get_periods(station)
+        header, data = client.get_data(period)
 
         assert client.content["key"] == init_key
         assert client.content["title"] == init_title
-        assert client.parameters.data[0] == parameters_data_0
+        assert client.parameters.data[0] == parameter_data_0
         assert client.stations.data[0] == station_data_0
         assert client.periods.data[0] == period_data_0
         assert client.data.title == data_title
