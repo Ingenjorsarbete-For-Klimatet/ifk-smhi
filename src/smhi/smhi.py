@@ -3,7 +3,7 @@ Read SMHI data.
 """
 from typing import Union
 from geopy import distance
-from smhi.metobs import MetObs
+from smhi.metobs import Metobs
 from smhi.constants import TYPE_MAP
 
 
@@ -14,7 +14,7 @@ class SMHI:
 
     def __init__(self, type: str = "json", version: str = "1.0"):
         self.type = TYPE_MAP[type]
-        self.client = MetObs(type)
+        self.client = Metobs(type)
         self.client.fetch_parameters(version)
 
     @property
