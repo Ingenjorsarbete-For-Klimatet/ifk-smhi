@@ -305,8 +305,8 @@ class MetobsParametersV1(MetobsLevelV1):
             data_type: data_type of request
 
         Raises:
-            TypeError
-            NotImplementedError
+            TypeError: data_type not supported
+            NotImplementedError: version not implemented
         """
         super().__init__()
 
@@ -345,8 +345,8 @@ class MetobsStationsV1(MetobsLevelV1):
             data_type: data_type of request
 
         Raises:
-            TypeError
-            NotImplementedError
+            TypeError: data_type not supported
+            NotImplementedError: parameter not implemented
         """
         super().__init__()
 
@@ -398,8 +398,8 @@ class MetobsPeriodsV1(MetobsLevelV1):
             data_type: data_type of request
 
         Raises:
-            TypeError
-            NotImplementedError
+            TypeError: data_type not supported
+            NotImplementedError: station not implemented
         """
         super().__init__()
 
@@ -455,8 +455,8 @@ class MetobsDataV1(MetobsLevelV1):
             data_type: data_type of request
 
         Raises:
-            TypeError
-            NotImplementedError
+            TypeError: data_type not supported
+            NotImplementedError: period not implemented
         """
         super().__init__()
 
@@ -476,7 +476,7 @@ class MetobsDataV1(MetobsLevelV1):
         self.time_to = content["to"]
         self.data = content["data"]
 
-    def get(self, type: str = "text/plain"):
+    def get(self, type: str = "text/plain") -> str:
         """
         Get the selected data file.
 
