@@ -89,7 +89,8 @@ class Strang:
             parameter: parameter
             time_from: get data from (optional),
             time_to: get data to (optional),
-            time_interval: interval of data [valid values: hourly, daily, monthly] (optional)
+            time_interval: interval of data
+                           [valid values: hourly, daily, monthly] (optional)
 
         Returns:
             status: status code
@@ -97,13 +98,14 @@ class Strang:
             data: data
 
         Raises:
-            ValueError
-            NotImplementedError
+            TypeError: wrong type of latitude and/or longitude
+            NotImplementedError: parameter not supported
         """
         parameter = self.available_parameters[parameter]
         if parameter.parameter is None:
             raise NotImplementedError(
-                "Parameter not implemented. Try client.parameters to list available parameters."
+                "Parameter not implemented."
+                + " Try client.parameters to list available parameters."
             )
 
         if longitude is None or latitude is None:
@@ -133,7 +135,8 @@ class Strang:
         Args:
             parameter: parameter
             valid_time: valid time
-            time_interval: time_interval: interval of data [valid values: hourly, daily, monthly] (optional)
+            time_interval: interval of data
+                           [valid values: hourly, daily, monthly] (optional)
 
         Returns:
             status: status code
@@ -141,13 +144,14 @@ class Strang:
             data: data
 
         Raises:
-            TypeError
-            NotImplementedError
+            TypeError: wrong type of valid time
+            NotImplementedError: parameter not supported
         """
         parameter = self.available_parameters[parameter]
         if parameter.parameter is None:
             raise NotImplementedError(
-                "Parameter not implemented. Try client.parameters to list available parameters."
+                "Parameter not implemented."
+                + " Try client.parameters to list available parameters."
             )
 
         try:
@@ -209,8 +213,8 @@ class Strang:
             url string
 
         Raises:
-            ValueError
-            NotImplementedError
+            ValueError: time_interval not valid
+            NotImplementedError: date out of bounds
         """
         time_from = self._parse_datetime(self.time_from)
         time_to = self._parse_datetime(self.time_to)
