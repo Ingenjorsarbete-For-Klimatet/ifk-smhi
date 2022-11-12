@@ -1,6 +1,7 @@
 """
 SMHI Mesan v1 unit tests.
 """
+import json
 import pytest
 from smhi.mesan import Mesan
 from unittest.mock import patch
@@ -72,7 +73,7 @@ class TestUnitMesan:
     @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
     def test_unit_mesan_get_geo_multipoint(self, mock_get_data, downsample):
         """
-        Unit test for Mesan geo_multipoint property.
+        Unit test for Mesan get_geo_multipoint method.
 
         Args:
             mock_get_data: mock _get_data method
@@ -98,3 +99,99 @@ class TestUnitMesan:
         client = Mesan()
         client.parameters
         mock_get_data.assert_called_once_with(BASE_URL + "parameter.json")
+
+    @pytest.mark.parametrize("lat, lon", [(0, 0), (1, 1)])
+    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
+    def test_unit_mesan_get_point(self, mock_get_data, lat, lon):
+        """
+        Unit test for Mesan get_point method.
+
+        Args:
+            mock_get_data: mock _get_data method
+            lat: latitude
+            lon: longitude
+        """
+        client = Mesan()
+        client.get_point(lat, lon)
+        mock_get_data.assert_called_once_with(
+            BASE_URL
+            + "geotype/point/lon/{longitude}/lat/{latitude}/data.json".format(
+                longitude=lon, latitude=lat
+            )
+        )
+
+    @pytest.mark.parametrize(
+        "validtime, parameter, leveltype, level, downsample", [(0, 0, 0, 0, 0)]
+    )
+    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
+    def test_unit_mesan_get_multipoint(
+        self, mock_get_data, validtime, parameter, leveltype, level, downsample
+    ):
+        """
+        Unit test for Mesan get_multipoint method.
+
+        Args:
+            mock_get_data: mock _get_data method
+            validtime: valid time,
+            parameter: parameter,
+            leveltype: level type,
+            level: level,
+            downsample: downsample,
+        """
+        client = Mesan()
+        client.get_multipoint(validtime, parameter, leveltype, level, downsample)
+        mock_get_data.assert_called_once_with(
+            BASE_URL
+            + "geotype/multipoint/"
+            + "validtime/{YYMMDDThhmmssZ}/parameter/{p}/leveltype/".format(
+                YYMMDDThhmmssZ=validtime,
+                p=parameter,
+            )
+            + "{lt}/level/{l}/data.json?with-geo=false&downsample={downsample}".format(
+                lt=leveltype,
+                l=level,
+                downsample=downsample,
+            )
+        )
+
+    @pytest.mark.parametrize(
+        "response",
+        [
+            (
+                type(
+                    "ResponseClass",
+                    (object,),
+                    {"ok": False, "headers": None, "content": None},
+                )()
+            ),
+            (
+                type(
+                    "ResponseClass",
+                    (object,),
+                    {"ok": True, "headers": "header", "content": r"""{"data": 1}"""},
+                )()
+            ),
+        ],
+    )
+    @patch("smhi.mesan.json.loads")
+    @patch("smhi.mesan.requests.get")
+    def test_unit_mesan_get_data(self, mock_get, mock_loads, response):
+        """
+        Unit test for Mesan _get_data method.
+
+        Args:
+            mock_get: mock requests get method
+            mock_loads: mock json loads method
+            response: response object
+        """
+        client = Mesan()
+        mock_get.return_value = response
+        status, headers, data = client._get_data("url")
+
+        mock_get.assert_called_once_with("url")
+        assert status is response.ok
+        assert headers == response.headers
+        if status:
+            assert data == json.loads(response.content)
+        else:
+            assert data is None
