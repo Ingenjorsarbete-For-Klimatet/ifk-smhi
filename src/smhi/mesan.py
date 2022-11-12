@@ -106,15 +106,15 @@ class Mesan:
     @get_data
     def get_point(
         self,
-        longitude: float,
         latitude: float,
+        longitude: float,
     ) -> dict:
         """
         Get data for given lon, lat and parameter.
 
         Args:
-            longitude: longitude
             latitude: latitude
+            longitude: longitude
             parameter: parameter
             date_from: get data from (optional),
             date_to: get data to (optional),
