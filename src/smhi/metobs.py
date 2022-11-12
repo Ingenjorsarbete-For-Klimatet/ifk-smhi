@@ -5,7 +5,7 @@ import io
 import json
 import requests
 import pandas as pd
-from typing import Union, Tuple
+from typing import Union
 from smhi.constants import METOBS_URL, TYPE_MAP, METOBS_AVAILABLE_PERIODS
 
 
@@ -96,7 +96,7 @@ class Metobs:
                 self.stations.stations, stationset=stationset
             )
 
-    def get_data(self, period: str = "corrected-archive") -> Tuple[str, pd.DataFrame]:
+    def get_data(self, period: str = "corrected-archive") -> tuple[str, pd.DataFrame]:
         """
         Get SMHI Metobs API data from given period.
 
