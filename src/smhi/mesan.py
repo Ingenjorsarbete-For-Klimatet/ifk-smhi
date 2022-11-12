@@ -3,7 +3,28 @@ SMHI MESAN API module.
 """
 import json
 import requests
+from functools import wraps
 from smhi.constants import MESAN_URL
+
+
+def get_data(func: callable) -> callable:
+    """
+    Get data from url.
+
+    Args:
+        function func
+
+    Returns:
+        function inner
+    """
+
+    @wraps(func)
+    def inner(self, *args):
+        url = func(self, *args)
+        status, headers, data = self._get_data(url)
+        return data
+
+    return inner
 
 
 class Mesan:
@@ -27,6 +48,7 @@ class Mesan:
         self.url = None
 
     @property
+    @get_data
     def approved_time(self) -> dict:
         """
         Get approved time.
@@ -34,13 +56,10 @@ class Mesan:
         Returns:
             approved times
         """
-        approved_time_url = self.base_url + "approvedtime.json"
-        status, headers, data = self._get_data(approved_time_url)
-
-        if status:
-            return data
+        return self.base_url + "approvedtime.json"
 
     @property
+    @get_data
     def valid_time(self) -> dict:
         """
         Get valid time.
@@ -48,13 +67,10 @@ class Mesan:
         Returns:
             valid times
         """
-        valid_time_url = self.base_url + "validtime.json"
-        status, headers, data = self._get_data(valid_time_url)
-
-        if status:
-            return data
+        return self.base_url + "validtime.json"
 
     @property
+    @get_data
     def geo_polygon(self) -> dict:
         """
         Get geographic area polygon.
@@ -62,32 +78,22 @@ class Mesan:
         Returns:
             polygon data
         """
-        valid_time_url = self.base_url + "geotype/polygon.json"
-        status, headers, data = self._get_data(valid_time_url)
+        return self.base_url + "geotype/polygon.json"
 
-        if status:
-            return data
-
-    @property
-    def geo_multipoint(self, downsample: int = 2) -> dict:
+    @get_data
+    def get_geo_multipoint(self, downsample: int = 2) -> dict:
         """
         Get geographic area multipoint.
 
         Args:
             multipoint data
         """
-        valid_time_url = (
-            self.base_url
-            + "geotype/multipoint.json?downsample={downsample}".format(
-                downsample=downsample
-            )
+        return self.base_url + "geotype/multipoint.json?downsample={downsample}".format(
+            downsample=downsample
         )
-        status, headers, data = self._get_data(valid_time_url)
-
-        if status:
-            return data
 
     @property
+    @get_data
     def parameters(self):
         """
         Get parameters.
@@ -95,12 +101,9 @@ class Mesan:
         Returns:
             available parameters
         """
-        parameter_url = self.base_url + "parameter.json"
-        status, headers, data = self._get_data(parameter_url)
+        return self.base_url + "parameter.json"
 
-        if status:
-            return data
-
+    @get_data
     def get_point(
         self,
         longitude: float,
@@ -121,17 +124,14 @@ class Mesan:
         Returns:
             data
         """
-        point_url = (
+        return (
             self.base_url
             + "geotype/point/lon/{longitude}/lat/{latitude}/data.json".format(
                 longitude=longitude, latitude=latitude
             )
         )
-        self.status, self.headers, self.data = self._get_data(point_url)
 
-        if self.status:
-            return self.data
-
+    @get_data
     def get_multipoint(
         self,
         validtime: str,
@@ -153,7 +153,7 @@ class Mesan:
         Returns:
             data
         """
-        multipoint_url = (
+        return (
             self.base_url
             + "geotype/multipoint/"
             + "validtime/{YYMMDDThhmmssZ}/parameter/{p}/leveltype/".format(
@@ -166,10 +166,6 @@ class Mesan:
                 downsample=downsample,
             )
         )
-        self.status, self.headers, self.data = self._get_data(multipoint_url)
-
-        if self.status:
-            return self.data
 
     def _get_data(self, url) -> tuple[bool, str, dict]:
         """
@@ -186,6 +182,8 @@ class Mesan:
         response = requests.get(url)
         status = response.ok
         headers = response.headers
-        data = json.loads(response.content)
 
-        return status, headers, data
+        if status:
+            return status, headers, json.loads(response.content)
+        else:
+            return status, headers, None
