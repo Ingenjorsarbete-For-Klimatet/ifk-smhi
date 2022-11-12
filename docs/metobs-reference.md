@@ -1,3 +1,3 @@
-# MetObs reference
+# Metobs reference
 
 ::: smhi.metobs.Metobs
