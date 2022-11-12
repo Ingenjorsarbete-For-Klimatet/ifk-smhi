@@ -19,6 +19,8 @@ def get_now():
 
 TYPE_MAP = defaultdict(lambda: "application/json", json="application/json")
 
+MESAN_URL = "https://opendata-download-metanalys.smhi.se"
+
 METOBS_URL = "https://opendata-download-metobs.smhi.se/api.json"
 METOBS_AVAILABLE_PERIODS = [
     "latest-hour",
