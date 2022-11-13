@@ -86,6 +86,9 @@ class Mesan:
         Get geographic area multipoint.
 
         Args:
+            downsample: downsample parameter
+
+        Returns:
             multipoint data
         """
         return self.base_url + "geotype/multipoint.json?downsample={downsample}".format(
@@ -94,7 +97,7 @@ class Mesan:
 
     @property
     @get_data
-    def parameters(self):
+    def parameters(self) -> list:
         """
         Get parameters.
 
@@ -115,11 +118,6 @@ class Mesan:
         Args:
             latitude: latitude
             longitude: longitude
-            parameter: parameter
-            date_from: get data from (optional),
-            date_to: get data to (optional),
-            date_interval: interval of data
-                           [valid values: hourly, daily, monthly] (optional)
 
         Returns:
             data
