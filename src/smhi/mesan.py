@@ -22,7 +22,7 @@ def get_data(func: callable) -> callable:
     def inner(self, *args):
         url = func(self, *args)
         status, headers, data = self._get_data(url)
-        return data
+        return headers, data
 
     return inner
 
