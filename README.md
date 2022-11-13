@@ -2,8 +2,9 @@
 [![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mgcth/2d8de651f24d184f5ebe101ffc3c9527/raw/ifk-smhi-coverage-badge.json)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-build.yaml)
 [![docs](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-docs.yaml/badge.svg?branch=main)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-docs.yaml)
 [![lint](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml/badge.svg?branch=main)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml)
+[![type](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-type.yaml/badge.svg?branch=main)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-type.yaml)
 [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml)
-[![mypy](https://img.shields.io/badge/mypy-checked-blue)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-type.yaml)
+[![mypy](https://img.shields.io/badge/%20type_checker-mypy-blue)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-type.yaml)
 ![code style](https://img.shields.io/badge/Code%20style-black-black)
 
 # smhi
