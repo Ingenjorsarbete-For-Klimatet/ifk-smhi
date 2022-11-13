@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-lint = ["flake8 ~= 5.0"]
+lint = ["flake8 ~= 5.0", "flake8-bandit ~= 4.1.1"]
 type = ["mypy ~= 0.990"]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
 doc = [
