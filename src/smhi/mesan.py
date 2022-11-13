@@ -136,7 +136,7 @@ class Mesan:
         parameter: str,
         leveltype: str,
         level: str,
-        downsample: int,
+        downsample: int = 2,
     ) -> dict:
         """
         Get multipoint data.
