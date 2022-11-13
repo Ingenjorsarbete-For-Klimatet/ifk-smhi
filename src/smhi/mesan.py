@@ -135,7 +135,7 @@ class Mesan:
         validtime: str,
         parameter: str,
         leveltype: str,
-        level: str,
+        level: int,
         downsample: int = 2,
     ) -> dict:
         """
