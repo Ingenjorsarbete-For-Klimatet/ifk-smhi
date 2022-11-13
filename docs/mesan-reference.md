@@ -1,3 +1,3 @@
 # Mesan reference
 
-::: smhi.strang.Mesan
+::: smhi.mesan.Mesan
