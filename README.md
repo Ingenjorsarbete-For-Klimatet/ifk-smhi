@@ -3,6 +3,7 @@
 [![docs](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-docs.yaml/badge.svg?branch=main)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-docs.yaml)
 [![lint](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml/badge.svg?branch=main)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml)
 [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml)
+[![mypy](https://img.shields.io/badge/mypy-checked-blue)](https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-type.yaml)
 ![code style](https://img.shields.io/badge/Code%20style-black-black)
 
 # smhi
