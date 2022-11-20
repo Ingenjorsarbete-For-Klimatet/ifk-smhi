@@ -2,6 +2,7 @@
 SMHI Mesan v1 unit tests.
 """
 import json
+import arrow
 import pytest
 from smhi.mesan import Mesan
 from unittest.mock import patch
@@ -147,6 +148,7 @@ class TestUnitMesan:
         """
         client = Mesan()
         client.get_multipoint(validtime, parameter, leveltype, level, downsample)
+        validtime = arrow.get(validtime).format("YYYYMMDDThhmmss") + "Z"
         mock_get_data.assert_called_once_with(
             BASE_URL
             + "geotype/multipoint/"
