@@ -1,6 +1,4 @@
-"""
-SMHI Mesan API module.
-"""
+"""SMHI Mesan API module."""
 import json
 import arrow
 import requests
@@ -9,8 +7,7 @@ from smhi.constants import MESAN_URL
 
 
 def get_data(func: callable) -> callable:
-    """
-    Get data from url.
+    """Get data from url.
 
     Args:
         function func
@@ -29,14 +26,10 @@ def get_data(func: callable) -> callable:
 
 
 class Mesan:
-    """
-    SMHI Mesan module
-    """
+    """SMHI Mesan module"""
 
     def __init__(self) -> None:
-        """
-        Initialise Mesan.
-        """
+        """Initialise Mesan."""
         self._category = "mesan1g"
         self._version = 2
 
@@ -51,8 +44,7 @@ class Mesan:
     @property
     @get_data
     def approved_time(self) -> dict:
-        """
-        Get approved time.
+        """Get approved time.
 
         Returns:
             approved times
@@ -62,8 +54,7 @@ class Mesan:
     @property
     @get_data
     def valid_time(self) -> dict:
-        """
-        Get valid time.
+        """Get valid time.
 
         Returns:
             valid times
@@ -73,8 +64,7 @@ class Mesan:
     @property
     @get_data
     def geo_polygon(self) -> dict:
-        """
-        Get geographic area polygon.
+        """Get geographic area polygon.
 
         Returns:
             polygon data
@@ -83,8 +73,7 @@ class Mesan:
 
     @get_data
     def get_geo_multipoint(self, downsample: int = 2) -> dict:
-        """
-        Get geographic area multipoint.
+        """Get geographic area multipoint.
 
         Args:
             downsample: downsample parameter
@@ -106,8 +95,7 @@ class Mesan:
     @property
     @get_data
     def parameters(self) -> list:
-        """
-        Get parameters.
+        """Get parameters.
 
         Returns:
             available parameters
@@ -120,8 +108,7 @@ class Mesan:
         latitude: float,
         longitude: float,
     ) -> dict:
-        """
-        Get data for given lon, lat and parameter.
+        """Get data for given lon, lat and parameter.
 
         Args:
             latitude: latitude
@@ -146,8 +133,7 @@ class Mesan:
         level: int,
         downsample: int = 2,
     ) -> dict:
-        """
-        Get multipoint data.
+        """Get multipoint data.
 
         Args:
             validtime: valid time
@@ -175,8 +161,7 @@ class Mesan:
         )
 
     def _get_data(self, url) -> tuple[bool, str, dict]:
-        """
-        get requested data.
+        """Get requested data.
 
         Args:
             url: url to get from
