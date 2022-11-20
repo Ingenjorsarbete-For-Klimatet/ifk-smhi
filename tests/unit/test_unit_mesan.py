@@ -1,6 +1,4 @@
-"""
-SMHI Mesan v1 unit tests.
-"""
+"""SMHI Mesan v1 unit tests."""
 import json
 import arrow
 import pytest
@@ -14,14 +12,10 @@ BASE_URL = (
 
 
 class TestUnitMesan:
-    """
-    Unit tests for Mesan class.
-    """
+    """Unit tests for Mesan class."""
 
     def test_unit_mesan_init(self):
-        """
-        Unit test for Mesan init method.
-        """
+        """Unit test for Mesan init method."""
         client = Mesan()
 
         assert client._category == "mesan1g"
@@ -36,8 +30,7 @@ class TestUnitMesan:
 
     @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
     def test_unit_mesan_approved_time(self, mock_get_data):
-        """
-        Unit test for Mesan approved_time property.
+        """Unit test for Mesan approved_time property.
 
         Args:
             mock_get_data: mock _get_data method
@@ -48,8 +41,7 @@ class TestUnitMesan:
 
     @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
     def test_unit_mesan_valid_time(self, mock_get_data):
-        """
-        Unit test for Mesan valid_time property.
+        """Unit test for Mesan valid_time property.
 
         Args:
             mock_get_data: mock _get_data method
@@ -60,8 +52,7 @@ class TestUnitMesan:
 
     @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
     def test_unit_mesan_geo_polygon(self, mock_get_data):
-        """
-        Unit test for Mesan geo_polygon property.
+        """Unit test for Mesan geo_polygon property.
 
         Args:
             mock_get_data: mock _get_data method
@@ -73,8 +64,7 @@ class TestUnitMesan:
     @pytest.mark.parametrize("downsample", [(0), (2), (20), (21)])
     @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
     def test_unit_mesan_get_geo_multipoint(self, mock_get_data, downsample):
-        """
-        Unit test for Mesan get_geo_multipoint method.
+        """Unit test for Mesan get_geo_multipoint method.
 
         Args:
             mock_get_data: mock _get_data method
@@ -98,8 +88,7 @@ class TestUnitMesan:
 
     @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
     def test_unit_mesan_parameters(self, mock_get_data):
-        """
-        Unit test for Mesan parameters property.
+        """Unit test for Mesan parameters property.
 
         Args:
             mock_get_data: mock _get_data method
@@ -111,8 +100,7 @@ class TestUnitMesan:
     @pytest.mark.parametrize("lat, lon", [(0, 0), (1, 1)])
     @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
     def test_unit_mesan_get_point(self, mock_get_data, lat, lon):
-        """
-        Unit test for Mesan get_point method.
+        """Unit test for Mesan get_point method.
 
         Args:
             mock_get_data: mock _get_data method
@@ -135,8 +123,7 @@ class TestUnitMesan:
     def test_unit_mesan_get_multipoint(
         self, mock_get_data, validtime, parameter, leveltype, level, downsample
     ):
-        """
-        Unit test for Mesan get_multipoint method.
+        """Unit test for Mesan get_multipoint method.
 
         Args:
             mock_get_data: mock _get_data method
@@ -185,8 +172,7 @@ class TestUnitMesan:
     @patch("smhi.mesan.json.loads")
     @patch("smhi.mesan.requests.get")
     def test_unit_mesan_get_data(self, mock_get, mock_loads, response):
-        """
-        Unit test for Mesan _get_data method.
+        """Unit test for Mesan _get_data method.
 
         Args:
             mock_get: mock requests get method
