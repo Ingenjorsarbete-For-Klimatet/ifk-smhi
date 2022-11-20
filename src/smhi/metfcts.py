@@ -1,19 +1,13 @@
-"""
-SMHI Metfcts API module.
-"""
+"""SMHI Metfcts API module."""
 from smhi.mesan import Mesan
 from smhi.constants import METFCTS_URL
 
 
 class Metfcts(Mesan):
-    """
-    SMHI Metfcts module
-    """
+    """SMHI Metfcts module"""
 
     def __init__(self) -> None:
-        """
-        Initialise Metfcts.
-        """
+        """Initialise Metfcts."""
         self._category = "pmp3g"
         self._version = 2
 
