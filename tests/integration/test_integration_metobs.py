@@ -1,14 +1,10 @@
-"""
-SMHI Metobs v1 integration tests.
-"""
+"""SMHI Metobs v1 integration tests."""
 import pytest
 from smhi.metobs import Metobs
 
 
 class TestIntegrationMetobs:
-    """
-    Integration tests of Metobs.
-    """
+    """Integration tests of Metobs."""
 
     @pytest.mark.parametrize(
         "parameter, station, period, init_key, init_title, parameter_data_0, "
@@ -69,8 +65,7 @@ class TestIntegrationMetobs:
         table,
         header_0,
     ):
-        """
-        Integration test of Metobs.
+        """Integration test of Metobs.
 
         Args:
             parameter
