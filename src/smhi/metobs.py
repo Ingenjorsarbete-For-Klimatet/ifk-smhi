@@ -57,8 +57,8 @@ class Metobs:
         """Get SMHI Metobs API (version 1) stations from given parameter.
 
         Args:
-            parameter: id of data
-            parameter_title: exact title of data
+            parameter: integer id of parameter
+            parameter_title: exact title of parameter
         """
         if parameter is None and parameter_title is None:
             raise NotImplementedError("Both arguments None.")
@@ -76,8 +76,8 @@ class Metobs:
         """Get SMHI Metobs API (version 1) periods from given stations or stationset.
 
         Args:
-            station: id of data
-            stationset: exact title of data
+            station: integer id of station
+            stationset: exact title of station
         """
         if station is None and stationset is None:
             raise NotImplementedError("Both arguments None.")
@@ -93,7 +93,11 @@ class Metobs:
         """Get SMHI Metobs API (version 1) data from given period.
 
         Args:
-            periods: periods
+            period: period
+
+        Returns:
+            data headers
+            data table
         """
         self.data = MetobsDataV1(self.periods.periods, period)
         self.table_raw = self.data.get()
@@ -119,9 +123,9 @@ class Metobs:
         without inspecting each level. Note, no version parameters.
 
         Args:
-            parameter: API parameters
-            station: stations
-            period: periods to download
+            parameter: parameter to get
+            station: station to get
+            period: period to get
         """
         self.get_parameters()
         self.get_stations(parameter)
@@ -141,9 +145,9 @@ class Metobs:
         without inspecting each level. Note, no version parameters.
 
         Args:
-            parameters: API parameters
-            stationset: stations
-            periods: periods to download
+            parameter: parameter to get
+            stationset: stationset to get
+            period: period to get
         """
         self.get_parameters()
         self.get_stations(parameter)
@@ -251,7 +255,7 @@ class MetobsLevelV1:
 
         Args:
             data: data list
-            key: key to look in
+            key: key to look up
             parameter: parameter to look for
             data_type: data type of requested url
 
@@ -285,12 +289,12 @@ class MetobsParametersV1(MetobsLevelV1):
 
         Args:
             data: available API versions
-            version: selected API version
+            version: selected version
             data_type: data_type of request
 
         Raises:
-            TypeError
-            NotImplementedError
+            TypeError: data_type not supported
+            NotImplementedError: version not implemented
         """
         super().__init__()
 
@@ -321,13 +325,13 @@ class MetobsStationsV1(MetobsLevelV1):
 
         Args:
             data: available API parameters
-            parameter: data to read
-            parameter_title: exact title of data
+            parameter: integer parameter key to get
+            parameter_title: exact parameter title to get
             data_type: data_type of request
 
         Raises:
-            TypeError
-            NotImplementedError
+            TypeError: data_type not supported
+            NotImplementedError: parameter not implemented
         """
         super().__init__()
 
@@ -372,14 +376,14 @@ class MetobsPeriodsV1(MetobsLevelV1):
 
         Args:
             data: available API stations
-            station: station key to get
-            station_name: station name to get
+            station: integer station key to get
+            station_name: exact station name to get
             stationset: station set to get
             data_type: data_type of request
 
         Raises:
-            TypeError
-            NotImplementedError
+            TypeError: data_type not supported
+            NotImplementedError: station not implemented
         """
         super().__init__()
 
@@ -432,8 +436,8 @@ class MetobsDataV1(MetobsLevelV1):
             data_type: data_type of request
 
         Raises:
-            TypeError
-            NotImplementedError
+            TypeError: data_type not supported
+            NotImplementedError: period not implemented
         """
         super().__init__()
 

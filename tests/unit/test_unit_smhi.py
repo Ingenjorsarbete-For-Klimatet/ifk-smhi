@@ -11,7 +11,7 @@ class TestUnitSMHI:
         """Unit test for SMHI init method.
 
         Args:
-            mock_requests_metobs: mock MetObs object
+            mock_requests_metobs: mock Metobs object
         """
         client = SMHI()
 
