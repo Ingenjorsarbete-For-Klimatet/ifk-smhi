@@ -1,9 +1,6 @@
-"""
-STRÅNG unit tests.
-"""
+"""SMHI Strang unit tests."""
 import arrow
 import pytest
-from datetime import datetime
 from functools import partial
 from unittest.mock import patch
 from smhi.strang import Strang
@@ -20,14 +17,10 @@ VERSION = 1
 
 
 class TestUnitStrang:
-    """
-    Unit tests for STRÅNG class.
-    """
+    """Unit tests for Strang class."""
 
     def test_unit_strang_init(self):
-        """
-        Unit test for STRÅNG init method.
-        """
+        """Unit test for Strang init method."""
         client = Strang()
 
         assert client._category == CATEGORY
@@ -61,8 +54,7 @@ class TestUnitStrang:
 
     @patch("smhi.strang.logging.info")
     def test_unit_strang_parameters(self, mock_logging):
-        """
-        Unit test for STRÅNG parameters get property.
+        """Unit test for Strang parameters get property.
 
         Args:
             mock_logging: mock of logging info
@@ -145,8 +137,7 @@ class TestUnitStrang:
         time_to,
         time_interval,
     ):
-        """
-        Unit test for STRÅNG get_point method.
+        """Unit test for Strang get_point method.
 
         Args:
             mock_build_time_point_url: mock _build_time_point_url method
@@ -253,8 +244,7 @@ class TestUnitStrang:
         valid_time,
         time_interval,
     ):
-        """
-        Unit test for STRÅNG get_multipoint method.
+        """Unit test for Strang get_multipoint method.
 
         Args:
             mock_build_time_multipoint_url: mock _build_time_multipoint_url method
@@ -320,8 +310,7 @@ class TestUnitStrang:
         ],
     )
     def test_unit_strang_build_base_point_url(self, lat, lon, parameter):
-        """
-        Unit test for STRÅNG _build_base_point_url method
+        """Unit test for Strang _build_base_point_url method.
 
         Args:
             lat: latitude
@@ -356,8 +345,7 @@ class TestUnitStrang:
         ],
     )
     def test_unit_strang_build_base_multipoint_url(self, parameter, valid_time):
-        """
-        Unit test for STRÅNG _build_base_point_url method
+        """Unit test for Strang _build_base_point_url method.
 
         Args:
             parameter: parmeter
@@ -395,8 +383,7 @@ class TestUnitStrang:
     def test_unit_strang_build_time_point_url(
         self, mock_parse_datetime, time_from, time_to, time_interval, expected_url
     ):
-        """
-        Unit test for STRÅNG _build_time_point_url method
+        """Unit test for Strang _build_time_point_url method.
 
         Args:
             mock_parse_datetime: mock of _parse_datetime method
@@ -434,8 +421,7 @@ class TestUnitStrang:
         ],
     )
     def test_unit_strang_build_time_multipoint_url(self, time_interval, expected_url):
-        """
-        Unit test for STRÅNG _build_time_multipoint_url method
+        """Unit test for Strang _build_time_multipoint_url method.
 
         Args:
             time_interval: interval of date
@@ -474,8 +460,7 @@ class TestUnitStrang:
     def test_unit_strang_get_and_load_data(
         self, mock_json_loads, mock_requests_get, mock_logging, ok, date_time
     ):
-        """
-        Unit test for STRÅNG Point get_and_load_strang_data method.
+        """Unit test for Strang Point get_and_load_strang_data method.
 
         Args:
             mock_requests_get: mock requests get method
@@ -516,8 +501,7 @@ class TestUnitStrang:
         ],
     )
     def test_unit_strang_parse_datetime(self, parameter, date_time, expected):
-        """
-        Unit test for STRÅNG _parse_datetime method.
+        """Unit test for Strang _parse_datetime method.
 
         Args:
             parameter: selected parameter
