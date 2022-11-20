@@ -1,5 +1,4 @@
-"""
-SMHI STRÅNG client.
+"""SMHI STRÅNG client.
 
 See validation of model: https://strang.smhi.se/validation/validation.html
 """
@@ -23,14 +22,10 @@ logging.basicConfig(level=logging.INFO)
 
 
 class Strang:
-    """
-    SMHI STRÅNG class. Only supports category strang1g and version 1.
-    """
+    """SMHI STRÅNG class. Only supports category strang1g and version 1."""
 
     def __init__(self) -> None:
-        """
-        Initialise STRÅNG object.
-        """
+        """Initialise STRÅNG object."""
         self._category = "strang1g"
         self._version = 1
 
@@ -56,8 +51,7 @@ class Strang:
 
     @property
     def parameters(self) -> defaultdict:
-        """
-        Get parameters property.
+        """Get parameters property.
 
         Returns:
             available parameters
@@ -80,8 +74,7 @@ class Strang:
         time_to: str = None,
         time_interval: str = None,
     ) -> tuple[bool, CaseInsensitiveDict, list]:
-        """
-        Get data for given lon, lat and parameter.
+        """Get data for given lon, lat and parameter.
 
         Args:
             latitude: latitude
@@ -89,7 +82,8 @@ class Strang:
             parameter: parameter
             time_from: get data from (optional),
             time_to: get data to (optional),
-            time_interval: interval of data [valid values: hourly, daily, monthly] (optional)
+            time_interval: interval of data
+                           [valid values: hourly, daily, monthly] (optional)
 
         Returns:
             status: status code
@@ -103,7 +97,8 @@ class Strang:
         parameter = self.available_parameters[parameter]
         if parameter.parameter is None:
             raise NotImplementedError(
-                "Parameter not implemented. Try client.parameters to list available parameters."
+                "Parameter not implemented."
+                + " Try client.parameters to list available parameters."
             )
 
         if longitude is None or latitude is None:
@@ -127,13 +122,14 @@ class Strang:
     def get_multipoint(
         self, parameter: int, valid_time: str, time_interval: str = None
     ) -> tuple[bool, CaseInsensitiveDict, list]:
-        """
-        Get full spatial data for given parameter and time.
+        """Get full spatial data for given parameter and time.
 
         Args:
             parameter: parameter
             valid_time: valid time
-            time_interval: time_interval: interval of data [valid values: hourly, daily, monthly] (optional)
+            time_interval: time_interval: interval of data
+                                          [valid values: hourly,
+                                           daily, monthly] (optional)
 
         Returns:
             status: status code
@@ -147,7 +143,8 @@ class Strang:
         parameter = self.available_parameters[parameter]
         if parameter.parameter is None:
             raise NotImplementedError(
-                "Parameter not implemented. Try client.parameters to list available parameters."
+                "Parameter not implemented."
+                + " Try client.parameters to list available parameters."
             )
 
         try:
@@ -168,8 +165,7 @@ class Strang:
         return status, headers, data
 
     def _build_base_point_url(self, url: partial) -> str:
-        """
-        Build base point url.
+        """Build base point url.
 
         Args:
             url: url to format
@@ -199,8 +195,7 @@ class Strang:
         )
 
     def _build_time_point_url(self, url: str) -> str:
-        """
-        Build date part of the API url.
+        """Build date part of the API url.
 
         Args:
             url: formatted url string
@@ -240,8 +235,7 @@ class Strang:
         return url
 
     def _build_time_multipoint_url(self, url: str) -> str:
-        """
-        Build date part of the API url.
+        """Build date part of the API url.
 
         Args:
             url: formatted url string
@@ -262,8 +256,7 @@ class Strang:
         return url
 
     def _get_and_load_data(self, url: str) -> tuple[bool, CaseInsensitiveDict, list]:
-        """
-        Fetch requested point data and parse it with datetime.
+        """Fetch requested point data and parse it with datetime.
 
         Args:
             url: url to fetch from
@@ -285,8 +278,7 @@ class Strang:
         return status, headers, data
 
     def _parse_datetime(self, date_time: str) -> datetime:
-        """
-        Parse date into a datetime format given as string and check bounds.
+        """Parse date into a datetime format given as string and check bounds.
 
         Args:
             date_time: date as string
