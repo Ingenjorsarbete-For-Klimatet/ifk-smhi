@@ -4,7 +4,7 @@ Direct usage of `Mesan`, without using the `SMHI` client is possible.
 To list approved and valid times to
 
 ```python
-from smhi.strang import Mesan
+from smhi.mesan import Mesan
 
 client = Mesan()
 client.approved_time
@@ -18,7 +18,7 @@ see below.
 To list available parameters, geographic area as polygon and points do
 
 ```python
-from smhi.strang import Mesan
+from smhi.mesan import Mesan
 
 client = Mesan()
 client.parameters
@@ -35,9 +35,9 @@ To get data, two methods are available.
 See above to acquire a valid time and parameter.
 
 ```python
-from smhi.strang import Strang
+from smhi.mesan import Mesan
 
-client = Strang()
+client = Mesan()
 headers, data = client.get_point(16, 58)
 headers, data = client.get_multipoint(
     "2022-11-12T23:00:00Z", "t", "hl", 2, 2
