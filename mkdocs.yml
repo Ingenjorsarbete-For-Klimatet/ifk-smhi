@@ -7,11 +7,11 @@ repo_name: Ingenjorsarbete-For-Klimatet/ifk-smhi
 nav:
 - Home: index.md
 - Examples:
-  - "MetObs": metobs-example.md
+  - "Metobs": metobs-example.md
   - "Mesan": mesan-example.md
   - "Strang": strang-example.md
 - Reference:
-  - "MetObs reference": metobs-reference.md
+  - "Metobs reference": metobs-reference.md
   - "Mesan reference": mesan-reference.md
   - "Strang reference": strang-reference.md
 
