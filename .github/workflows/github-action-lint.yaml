@@ -19,4 +19,4 @@ jobs:
           pip install -e ".[lint]"
       - name: Lint with flake8
         run: |
-          flake8 src --show-source --statistics
+          flake8 src tests --show-source --statistics
