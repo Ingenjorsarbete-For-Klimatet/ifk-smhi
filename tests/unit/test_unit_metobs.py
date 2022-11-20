@@ -350,7 +350,7 @@ class TestUnitMetobsLevelV1:
         assert url == expected_result
 
 
-class TestUnitMetObsParameterV1:
+class TestUnitMetobsParameterV1:
     """
     Unit tests for MetobsParametersV1 class.
     """
@@ -412,7 +412,7 @@ class TestUnitMetObsParameterV1:
         mock_tuple.assert_called_once()
 
 
-class TestUnitMetObsStationV1:
+class TestUnitMetobsStationV1:
     """
     Unit tests for MetobsStationsV1 class.
     """
@@ -493,7 +493,7 @@ class TestUnitMetObsStationV1:
         mock_tuple.assert_called_once()
 
 
-class TestUnitMetObsPeriodV1:
+class TestUnitMetobsPeriodV1:
     """
     Unit tests for MetobsPeriodsV1 class.
     """
@@ -586,7 +586,7 @@ class TestUnitMetObsPeriodV1:
         mock_sorted.assert_called_once()
 
 
-class TestUnitMetObsDataV1:
+class TestUnitMetobsDataV1:
     """
     Unit tests for MetobsDataV1 class.
     """
