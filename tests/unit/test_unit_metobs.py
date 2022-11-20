@@ -1,6 +1,4 @@
-"""
-SMHI Metobs v1 unit tests.
-"""
+"""SMHI Metobs v1 unit tests."""
 import pytest
 from unittest.mock import patch, MagicMock
 from smhi.metobs import (
@@ -15,9 +13,7 @@ from smhi.constants import METOBS_AVAILABLE_PERIODS
 
 
 class TestUnitMetobs:
-    """
-    Unit tests for Metobs class.
-    """
+    """Unit tests for Metobs class."""
 
     @pytest.mark.parametrize(
         "data_type, expected_type",
@@ -28,8 +24,7 @@ class TestUnitMetobs:
     def test_unit_metobs_init(
         self, mock_requests_get, mock_json_loads, data_type, expected_type
     ):
-        """
-        Unit test for Metobs init method.
+        """Unit test for Metobs init method.
 
         Args:
             mock_requests_get: mock requests get method
@@ -61,8 +56,7 @@ class TestUnitMetobs:
         mock_metobsparameterv1,
         version,
     ):
-        """
-        Unit test for Metobs get_parameters method.
+        """Unit test for Metobs get_parameters method.
 
         Args:
             mock_metobsparameterv1: mock of MetobsParametersV1
@@ -98,8 +92,7 @@ class TestUnitMetobs:
         parameters_title,
         expected_station,
     ):
-        """
-        Unit test for Metobs get_stations method.
+        """Unit test for Metobs get_stations method.
 
         Args:
             mock_metobsstationv1: mock of MetobsStationsV1
@@ -139,8 +132,7 @@ class TestUnitMetobs:
         stationset,
         expected_period,
     ):
-        """
-        Unit test for Metobs get_stations method.
+        """Unit test for Metobs get_stations method.
 
         Args:
             mock_metobsperiodv1: mock of MetobsPeriodsV1
@@ -174,8 +166,7 @@ class TestUnitMetobs:
     def test_unit_metobs_get_data(
         self, mock_metobsdatav1, mock_pd_read_csv, mock_stringio
     ):
-        """
-        Unit test for Metobs get_data method.
+        """Unit test for Metobs get_data method.
 
         Args:
             mock_metobsdatav1: mock of metobs data class
@@ -204,8 +195,7 @@ class TestUnitMetobs:
         mock_get_periods,
         mock_get_data,
     ):
-        """
-        Unit test for Metobs get_data method.
+        """Unit test for Metobs get_data method.
 
         Args:
             mock_get_parameters
@@ -232,8 +222,7 @@ class TestUnitMetobs:
         mock_get_periods,
         mock_get_data,
     ):
-        """
-        Unit test for Metobs get_data_stationset method.
+        """Unit test for Metobs get_data_stationset method.
 
         Args:
             mock_get_parameters
@@ -251,14 +240,10 @@ class TestUnitMetobs:
 
 
 class TestUnitMetobsLevelV1:
-    """
-    Unit tests for MetobsLevelV1 class.
-    """
+    """Unit tests for MetobsLevelV1 class."""
 
     def test_unit_MetobsLevelV1_init(self):
-        """
-        Unit test for MetobsLevelV1 init method.
-        """
+        """Unit test for MetobsLevelV1 init method."""
         level = MetobsLevelV1()
 
         assert level.headers is None
@@ -274,8 +259,7 @@ class TestUnitMetobsLevelV1:
     def test_unit_MetobsLevelV1_get_and_parse_request(
         self, mock_json_loads, mock_requests_get
     ):
-        """
-        Unit test for MetobsLevelV1 _get_and_parse_request method.
+        """Unit test for MetobsLevelV1 _get_and_parse_request method.
 
         Args:
             mock_json_loads: mock json loads method
@@ -327,8 +311,7 @@ class TestUnitMetobsLevelV1:
     def test_unit_MetobsLevelV1_get_url(
         self, data, key, parameters, data_type, expected_result
     ):
-        """
-        Unit test for MetobsLevelV1 _get_url method.
+        """Unit test for MetobsLevelV1 _get_url method.
 
         Args:
             data: list of data
@@ -351,9 +334,7 @@ class TestUnitMetobsLevelV1:
 
 
 class TestUnitMetObsParameterV1:
-    """
-    Unit tests for MetobsParametersV1 class.
-    """
+    """Unit tests for MetobsParametersV1 class."""
 
     @pytest.mark.parametrize(
         "data, version, data_type",
@@ -379,8 +360,7 @@ class TestUnitMetObsParameterV1:
         version,
         data_type,
     ):
-        """
-        Unit test for MetobsParametersV1 init method.
+        """Unit test for MetobsParametersV1 init method.
 
         Args:
             mock_get_url: mock _get_url method
@@ -413,9 +393,7 @@ class TestUnitMetObsParameterV1:
 
 
 class TestUnitMetObsStationV1:
-    """
-    Unit tests for MetobsStationsV1 class.
-    """
+    """Unit tests for MetobsStationsV1 class."""
 
     @pytest.mark.parametrize(
         "data, parameters, parameters_title, data_type",
@@ -443,8 +421,7 @@ class TestUnitMetObsStationV1:
         parameters_title,
         data_type,
     ):
-        """
-        Unit test for MetobsStationsV1 init method.
+        """Unit test for MetobsStationsV1 init method.
 
         Args:
             mock_get_url: mock of _get_url method
@@ -494,9 +471,7 @@ class TestUnitMetObsStationV1:
 
 
 class TestUnitMetObsPeriodV1:
-    """
-    Unit tests for MetobsPeriodsV1 class.
-    """
+    """Unit tests for MetobsPeriodsV1 class."""
 
     @pytest.mark.parametrize(
         "data, stations, station_name, stationset, data_type",
@@ -526,8 +501,7 @@ class TestUnitMetObsPeriodV1:
         stationset,
         data_type,
     ):
-        """
-        Unit test for MetobsPeriodsV1 init method.
+        """Unit test for MetobsPeriodsV1 init method.
 
         Args:
             mock_get_url: mock of _get_url method
@@ -587,9 +561,7 @@ class TestUnitMetObsPeriodV1:
 
 
 class TestUnitMetObsDataV1:
-    """
-    Unit tests for MetobsDataV1 class.
-    """
+    """Unit tests for MetobsDataV1 class."""
 
     @pytest.mark.parametrize(
         "data, periods, data_type",
@@ -612,8 +584,7 @@ class TestUnitMetObsDataV1:
         periods,
         data_type,
     ):
-        """
-        Unit test for MetobsDataV1 init method.
+        """Unit test for MetobsDataV1 init method.
 
         Args:
             mock_get_url: mock of _get_url method
@@ -622,7 +593,6 @@ class TestUnitMetObsDataV1:
             periods: periods
             data_type: type of data
         """
-
         if data_type != "json":
             with pytest.raises(TypeError):
                 MetobsDataV1(data, periods, data_type)
@@ -674,8 +644,7 @@ class TestUnitMetObsDataV1:
         data_type,
         data_type_init,
     ):
-        """
-        Unit test for MetobsDataV1 get method.
+        """Unit test for MetobsDataV1 get method.
 
         Args:
             mock_get_url: mock of _get_url method
