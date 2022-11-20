@@ -1,5 +1,5 @@
 """
-SMHI MESAN API module.
+SMHI Mesan API module.
 """
 import json
 import arrow
@@ -30,12 +30,12 @@ def get_data(func: callable) -> callable:
 
 class Mesan:
     """
-    SMHI MESAN module
+    SMHI Mesan module
     """
 
     def __init__(self) -> None:
         """
-        Initialise MESAN.
+        Initialise Mesan.
         """
         self._category = "mesan1g"
         self._version = 2
