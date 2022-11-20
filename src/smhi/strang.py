@@ -1,5 +1,5 @@
 """
-SMHI STRÅNG client.
+SMHI Strang client.
 
 See validation of model: https://strang.smhi.se/validation/validation.html
 """
@@ -24,12 +24,12 @@ logging.basicConfig(level=logging.INFO)
 
 class Strang:
     """
-    SMHI STRÅNG class. Only supports category strang1g and version 1.
+    SMHI Strang class. Only supports category strang1g and version 1.
     """
 
     def __init__(self) -> None:
         """
-        Initialise STRÅNG object.
+        Initialise Strang object.
         """
         self._category = "strang1g"
         self._version = 1
