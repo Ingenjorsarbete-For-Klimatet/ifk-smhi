@@ -1,6 +1,4 @@
-"""
-SMHI Meteorological Observations client.
-"""
+"""SMHI Metobs client."""
 import io
 import json
 import requests
@@ -10,13 +8,11 @@ from smhi.constants import METOBS_URL, TYPE_MAP, METOBS_AVAILABLE_PERIODS
 
 
 class Metobs:
-    """
-    SMHI data class.
-    """
+    """SMHI Metobs class."""
 
     def __init__(self, data_type: str = "json"):
-        """
-        Initialise the SMHI Metobs class with a data type format used to get data.
+        """Initialise the SMHI Metobs class with a data type format used to get data.
+
         For now, only supports `json` and version 1.
 
         Args:
@@ -41,8 +37,7 @@ class Metobs:
         self.table_raw = None
 
     def get_parameters(self, version: Union[str, int] = "1.0"):
-        """
-        Get SMHI Metobs API parameters from version. Only supports `version = 1.0`.
+        """Get SMHI Metobs API parameters from version. Only supports `version = 1.0`.
 
         Args:
             version: selected API version
@@ -59,8 +54,7 @@ class Metobs:
         self.parameters = MetobsParametersV1(self.available_versions)
 
     def get_stations(self, parameter: str = None, parameter_title: str = None):
-        """
-        Get SMHI Metobs API (version 1) stations from given parameter.
+        """Get SMHI Metobs API (version 1) stations from given parameter.
 
         Args:
             parameter: id of data
@@ -79,8 +73,7 @@ class Metobs:
             )
 
     def get_periods(self, station: str = None, stationset: str = None):
-        """
-        Get SMHI Metobs API (version 1) periods from given stations or stationset.
+        """Get SMHI Metobs API (version 1) periods from given stations or stationset.
 
         Args:
             station: id of data
@@ -97,8 +90,7 @@ class Metobs:
             )
 
     def get_data(self, period: str = "corrected-archive"):
-        """
-        Get SMHI Metobs API (version 1) data from given period.
+        """Get SMHI Metobs API (version 1) data from given period.
 
         Args:
             periods: periods
@@ -121,7 +113,8 @@ class Metobs:
         station: int,
         period: str,
     ):
-        """
+        """Get data from explicit parameters.
+
         Get data from explicit parameter, station and period,
         without inspecting each level. Note, no version parameters.
 
@@ -142,7 +135,8 @@ class Metobs:
         stationset: int,
         period: str,
     ):
-        """
+        """Get data from stationset.
+
         Get data from explicit parameters, stations set and period,
         without inspecting each level. Note, no version parameters.
 
@@ -158,8 +152,7 @@ class Metobs:
         return header, table
 
     def inspect(self, num_print: int = 10):
-        """
-        Inspect object state.
+        """Inspect object state.
 
         Args:
             num_print: number of items to print
@@ -214,14 +207,10 @@ class Metobs:
 
 
 class MetobsLevelV1:
-    """
-    Base Metobs level version 1 class.
-    """
+    """Base Metobs level version 1 class."""
 
     def __init__(self):
-        """
-        Initialise base class.
-        """
+        """Initialise base class."""
         self.headers = None
         self.key = None
         self.updated = None
@@ -231,8 +220,7 @@ class MetobsLevelV1:
         self.data_type = None
 
     def _get_and_parse_request(self, url: str):
-        """
-        Get and parse API request. Only JSON supported.
+        """Get and parse API request. Only JSON supported.
 
         Args:
             url: url to get from
@@ -259,8 +247,7 @@ class MetobsLevelV1:
         parameter: Union[str, int],
         data_type: str = "json",
     ):
-        """
-        Get the url to get data from. Defaults to type json.
+        """Get the url to get data from. Defaults to type json.
 
         Args:
             data: data list
@@ -286,9 +273,7 @@ class MetobsLevelV1:
 
 
 class MetobsParametersV1(MetobsLevelV1):
-    """
-    Get parameters for version 1 of Metobs API.
-    """
+    """Get parameters for version 1 of Metobs API."""
 
     def __init__(
         self,
@@ -296,8 +281,7 @@ class MetobsParametersV1(MetobsLevelV1):
         version: Union[str, int] = "1.0",
         data_type: str = "json",
     ):
-        """
-        Get parameters from version.
+        """Get parameters from version.
 
         Args:
             data: available API versions
@@ -324,9 +308,7 @@ class MetobsParametersV1(MetobsLevelV1):
 
 
 class MetobsStationsV1(MetobsLevelV1):
-    """
-    Get stations from parameter for version 1 of Metobs API.
-    """
+    """Get stations from parameter for version 1 of Metobs API."""
 
     def __init__(
         self,
@@ -335,8 +317,7 @@ class MetobsStationsV1(MetobsLevelV1):
         parameter_title: str = None,
         data_type: str = "json",
     ):
-        """
-        Get stations from parameters.
+        """Get stations from parameters.
 
         Args:
             data: available API parameters
@@ -374,8 +355,8 @@ class MetobsStationsV1(MetobsLevelV1):
 
 
 class MetobsPeriodsV1(MetobsLevelV1):
-    """
-    Get periods from station for version 1 of Metobs API.
+    """Get periods from station for version 1 of Metobs API.
+
     Note that stationset_title is not supported
     """
 
@@ -387,8 +368,7 @@ class MetobsPeriodsV1(MetobsLevelV1):
         stationset: str = None,
         data_type: str = "json",
     ):
-        """
-        Get periods from station.
+        """Get periods from station.
 
         Args:
             data: available API stations
@@ -435,9 +415,7 @@ class MetobsPeriodsV1(MetobsLevelV1):
 
 
 class MetobsDataV1(MetobsLevelV1):
-    """
-    Get data from period for version 1 of Metobs API.
-    """
+    """Get data from period for version 1 of Metobs API."""
 
     def __init__(
         self,
@@ -445,8 +423,7 @@ class MetobsDataV1(MetobsLevelV1):
         period: str = "corrected-archive",
         data_type: str = "json",
     ):
-        """
-        Get data from period.
+        """Get data from period.
 
         Args:
             data: available API periods
@@ -477,8 +454,7 @@ class MetobsDataV1(MetobsLevelV1):
         self.data = content["data"]
 
     def get(self, type: str = "text/plain"):
-        """
-        Get the selected data file.
+        """Get the selected data file.
 
         Args:
             type: type of request
