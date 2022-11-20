@@ -7,7 +7,7 @@ from smhi.constants import TYPE_MAP
 class SMHI:
     """SMHI class with high-level functions."""
 
-    def __init__(self, type: str = "json", version: str = "1.0"):
+    def __init__(self, type: str = "json", version: str = "1.0") -> None:
         """Initialise SMHI class.
 
         Args:
@@ -53,7 +53,7 @@ class SMHI:
 
     def find_stations_from_gps(
         self, parameter: int, dist: float, latitude: float, longitude: float
-    ):
+    ) -> None:
         """Find stations for parameter from gps location.
 
         Args:
