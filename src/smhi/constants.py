@@ -1,6 +1,4 @@
-"""
-Constans.
-"""
+"""Constans."""
 import arrow
 from collections import namedtuple
 from collections import defaultdict
