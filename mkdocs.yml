@@ -8,9 +8,11 @@ nav:
 - Home: index.md
 - Examples:
   - "MetObs": metobs-example.md
+  - "Metfcts": metfcts-example.md
   - "Strang": strang-example.md
 - Reference:
   - "MetObs reference": metobs-reference.md
+  - "Metfcts reference": metfcts-reference.md
   - "Strang reference": strang-reference.md
 
 watch:
