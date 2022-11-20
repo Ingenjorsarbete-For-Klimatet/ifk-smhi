@@ -69,7 +69,7 @@ class TestUnitMesan:
         client.geo_polygon
         mock_get_data.assert_called_once_with(BASE_URL + "geotype/polygon.json")
 
-    @pytest.mark.parametrize("downsample", [(0), (20)])
+    @pytest.mark.parametrize("downsample", [(0), (2), (20), (21)])
     @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
     def test_unit_mesan_get_geo_multipoint(self, mock_get_data, downsample):
         """
@@ -81,12 +81,19 @@ class TestUnitMesan:
         """
         client = Mesan()
         client.get_geo_multipoint(downsample)
-        mock_get_data.assert_called_once_with(
-            BASE_URL
-            + "geotype/multipoint.json?downsample={downsample}".format(
-                downsample=downsample
+        if downsample < 1:
+            mock_get_data.assert_called_once_with(BASE_URL + "geotype/multipoint.json")
+        elif downsample > 20:
+            mock_get_data.assert_called_once_with(
+                BASE_URL + "geotype/multipoint.json?downsample=20"
             )
-        )
+        else:
+            mock_get_data.assert_called_once_with(
+                BASE_URL
+                + "geotype/multipoint.json?downsample={downsample}".format(
+                    downsample=downsample
+                )
+            )
 
     @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
     def test_unit_mesan_parameters(self, mock_get_data):

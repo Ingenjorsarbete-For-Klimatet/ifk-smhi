@@ -91,9 +91,16 @@ class Mesan:
         Returns:
             multipoint data
         """
-        return self.base_url + "geotype/multipoint.json?downsample={downsample}".format(
-            downsample=downsample
-        )
+        if downsample < 1:
+            multipoint_url = "geotype/multipoint.json"
+        elif downsample > 20:
+            multipoint_url = "geotype/multipoint.json?downsample=20"
+        else:
+            multipoint_url = "geotype/multipoint.json?downsample={downsample}".format(
+                downsample=downsample
+            )
+
+        return self.base_url + multipoint_url
 
     @property
     @get_data
