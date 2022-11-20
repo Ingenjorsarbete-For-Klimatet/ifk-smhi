@@ -2,6 +2,7 @@
 SMHI MESAN API module.
 """
 import json
+import arrow
 import requests
 from functools import wraps
 from smhi.constants import MESAN_URL
@@ -158,6 +159,7 @@ class Mesan:
         Returns:
             data
         """
+        validtime = arrow.get(validtime).format("YYYYMMDDThhmmss") + "Z"
         return (
             self.base_url
             + "geotype/multipoint/"
