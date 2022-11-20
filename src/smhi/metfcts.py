@@ -1,10 +1,11 @@
 """
 SMHI Metfcts API module.
 """
+from smhi.mesan import Mesan
 from smhi.constants import METFCTS_URL
 
 
-class Metfcts:
+class Metfcts(Mesan):
     """
     SMHI Metfcts module
     """
