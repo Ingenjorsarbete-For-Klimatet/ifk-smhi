@@ -1,5 +1,5 @@
 """
-SMHI Meteorological Observations client.
+SMHI Metobs client.
 """
 import io
 import json
@@ -11,7 +11,7 @@ from smhi.constants import METOBS_URL, TYPE_MAP, METOBS_AVAILABLE_PERIODS
 
 class Metobs:
     """
-    SMHI data class.
+    SMHI Metobs data class.
     """
 
     def __init__(self, data_type: str = "json"):
