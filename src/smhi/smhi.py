@@ -1,15 +1,11 @@
-"""
-Read SMHI data.
-"""
+"""Read SMHI data."""
 from geopy import distance
 from smhi.metobs import Metobs
 from smhi.constants import TYPE_MAP
 
 
 class SMHI:
-    """
-    SMHI class with high-level functions.
-    """
+    """SMHI class with high-level functions."""
 
     def __init__(self, type: str = "json", version: str = "1.0"):
         """Initialise SMHI class.
