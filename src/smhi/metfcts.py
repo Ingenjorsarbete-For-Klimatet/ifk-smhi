@@ -4,7 +4,7 @@ from smhi.constants import METFCTS_URL
 
 
 class Metfcts(Mesan):
-    """SMHI Metfcts module"""
+    """SMHI Metfcts module."""
 
     def __init__(self) -> None:
         """Initialise Metfcts."""
