@@ -51,12 +51,11 @@ STRANG = NamedTuple(
         ("parameter", Optional[int]),
         ("meaning", Optional[str]),
         ("time_from", Optional[arrow.Arrow]),
-        ("time_to", Optional[Callable]),
+        ("time_to", Callable),
     ],
 )
-STRANG_PARAMETERS: defaultdict[int, STRANG] = defaultdict(
-    lambda: STRANG(None, "Missing", None, None)
-)
+STRANG_EMPTY = STRANG(None, "Missing", None, lambda: None)
+STRANG_PARAMETERS: defaultdict[int, STRANG] = defaultdict(lambda: STRANG_EMPTY)
 STRANG_PARAMETERS[116] = STRANG(
     116,
     "CIE UV irradiance [mW/m²]",
