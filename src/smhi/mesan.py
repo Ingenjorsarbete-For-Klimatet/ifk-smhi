@@ -4,9 +4,11 @@ import arrow
 import requests
 from functools import wraps
 from smhi.constants import MESAN_URL
+from typing import Any, Callable, Optional
+from requests.structures import CaseInsensitiveDict
 
 
-def get_data(func: callable) -> callable:
+def get_data(func: Callable) -> Callable:
     """Get data from url.
 
     Args:
@@ -17,7 +19,7 @@ def get_data(func: callable) -> callable:
     """
 
     @wraps(func)
-    def inner(self, *args):
+    def inner(self, *args) -> tuple[dict[str, str], dict[str, Any]]:
         url = func(self, *args)
         status, headers, data = self._get_data(url)
         return headers, data
@@ -30,20 +32,22 @@ class Mesan:
 
     def __init__(self) -> None:
         """Initialise Mesan."""
-        self._category = "mesan1g"
-        self._version = 2
+        self._category: str = "mesan1g"
+        self._version: int = 2
 
-        self.latitude = None
-        self.longitude = None
-        self.status = None
-        self.header = None
-        self.data = None
-        self.base_url = MESAN_URL.format(category=self._category, version=self._version)
-        self.url = None
+        self.latitude: Optional[float] = None
+        self.longitude: Optional[float] = None
+        self.status: Optional[bool] = None
+        self.header: Optional[dict[str, str]] = None
+        self.data: Optional[dict[str, Any]] = None
+        self.base_url: str = MESAN_URL.format(
+            category=self._category, version=self._version
+        )
+        self.url: Optional[str] = None
 
     @property
     @get_data
-    def approved_time(self) -> dict:
+    def approved_time(self) -> str:
         """Get approved time.
 
         Returns:
@@ -53,7 +57,7 @@ class Mesan:
 
     @property
     @get_data
-    def valid_time(self) -> dict:
+    def valid_time(self) -> str:
         """Get valid time.
 
         Returns:
@@ -63,7 +67,7 @@ class Mesan:
 
     @property
     @get_data
-    def geo_polygon(self) -> dict:
+    def geo_polygon(self) -> str:
         """Get geographic area polygon.
 
         Returns:
@@ -72,7 +76,7 @@ class Mesan:
         return self.base_url + "geotype/polygon.json"
 
     @get_data
-    def get_geo_multipoint(self, downsample: int = 2) -> dict:
+    def get_geo_multipoint(self, downsample: int = 2) -> str:
         """Get geographic area multipoint.
 
         Args:
@@ -94,7 +98,7 @@ class Mesan:
 
     @property
     @get_data
-    def parameters(self) -> list:
+    def parameters(self) -> str:
         """Get parameters.
 
         Returns:
@@ -107,7 +111,7 @@ class Mesan:
         self,
         latitude: float,
         longitude: float,
-    ) -> dict:
+    ) -> str:
         """Get data for given lon, lat and parameter.
 
         Args:
@@ -132,7 +136,7 @@ class Mesan:
         leveltype: str,
         level: int,
         downsample: int = 2,
-    ) -> dict:
+    ) -> str:
         """Get multipoint data.
 
         Args:
@@ -160,7 +164,9 @@ class Mesan:
             )
         )
 
-    def _get_data(self, url) -> tuple[bool, str, dict]:
+    def _get_data(
+        self, url
+    ) -> tuple[bool, CaseInsensitiveDict[str], Optional[dict[str, Any]]]:
         """Get requested data.
 
         Args:
