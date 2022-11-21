@@ -26,7 +26,7 @@ def get_data(func: callable) -> callable:
 
 
 class Mesan:
-    """SMHI Mesan module"""
+    """SMHI Mesan module."""
 
     def __init__(self) -> None:
         """Initialise Mesan."""
