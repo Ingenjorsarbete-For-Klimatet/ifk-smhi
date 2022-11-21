@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 
 BASE_URL = (
-    "https://opendata-download-metanalys.smhi.se/" + "api/category/pmp3g/version/2/"
+    "https://opendata-download-metfcst.smhi.se/" + "api/category/pmp3g/version/2/"
 )
 
 
