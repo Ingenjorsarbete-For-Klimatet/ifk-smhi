@@ -17,4 +17,4 @@ class TestUnitSMHI:
 
         assert client.type == "application/json"
         mock_requests_metobs.assert_called_once()
-        mock_requests_metobs.return_value.fetch_parameters.assert_called_once()
+        mock_requests_metobs.return_value.get_parameters.assert_called_once()
