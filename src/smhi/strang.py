@@ -18,7 +18,7 @@ from smhi.constants import (
 )
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 class Strang:
