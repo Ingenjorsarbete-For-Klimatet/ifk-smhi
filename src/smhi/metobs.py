@@ -492,9 +492,6 @@ class MetobsDataV1(MetobsLevelV1):
 
         Returns:
             utf-8 decoded response
-
-        Raises:
-            UnicodeEncodeError
         """
         for item in self.data:
             for link in item["link"]:
@@ -506,7 +503,4 @@ class MetobsDataV1(MetobsLevelV1):
                 break
             break
 
-        try:
-            return response.content.decode("utf-8")
-        except UnicodeError:
-            raise UnicodeError("Can't decode response.")
+        return response.content.decode("utf-8")
