@@ -1,8 +1,12 @@
 """Constans."""
 import arrow
+import logging
 from collections import defaultdict
 from posixpath import join as urljoin
 from typing import NamedTuple, Optional, Callable
+
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def get_now():
