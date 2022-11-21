@@ -6,6 +6,7 @@ from unittest.mock import patch
 from smhi.strang import Strang
 from smhi.constants import (
     STRANG,
+    STRANG_EMPTY,
     STRANG_POINT_URL,
     STRANG_PARAMETERS,
     STRANG_MULTIPOINT_URL,
@@ -28,7 +29,7 @@ class TestUnitStrang:
 
         assert client.latitude is None
         assert client.longitude is None
-        assert client.parameter is None
+        assert client.parameter is STRANG_EMPTY
         assert client.status is None
         assert client.header is None
         assert client.data is None
@@ -488,7 +489,7 @@ class TestUnitStrang:
         else:
             assert status is ok
             assert headers == "header"
-            assert data is None
+            assert data == []
             mock_logging.assert_called_once()
 
     @pytest.mark.parametrize(
