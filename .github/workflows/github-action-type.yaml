@@ -18,4 +18,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[type]"
       - name: Type checking with mypy
-        run: mypy --strict $(git ls-files "src/*.py")
+        run: MYPYPATH=src mypy --namespace-packages --explicit-package-bases src
