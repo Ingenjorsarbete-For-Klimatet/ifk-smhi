@@ -3,14 +3,14 @@ import io
 import json
 import requests
 import pandas as pd
-from typing import Union
+from typing import Union, Optional, Any
 from smhi.constants import METOBS_URL, TYPE_MAP, METOBS_AVAILABLE_PERIODS
 
 
 class Metobs:
     """SMHI Metobs class."""
 
-    def __init__(self, data_type: str = "json"):
+    def __init__(self, data_type: str = "json") -> None:
         """Initialise the SMHI Metobs class with a data type format used to get data.
 
         For now, only supports `json` and version 1.
@@ -29,12 +29,12 @@ class Metobs:
         self.content = json.loads(response.content)
         self.available_versions = self.content["version"]
 
-        self.version = None
-        self.parameters = None
-        self.stations = None
-        self.periods = None
-        self.data = None
-        self.table_raw = None
+        self.version: Optional[Union[str, int]] = None
+        self.parameters: Optional[MetobsParametersV1] = None
+        self.stations: Optional[MetobsStationsV1] = None
+        self.periods: Optional[MetobsPeriodsV1] = None
+        self.data: Optional[MetobsDataV1] = None
+        self.table_raw: Optional[str] = None
 
     def get_parameters(self, version: Union[str, int] = "1.0"):
         """Get SMHI Metobs API parameters from version. Only supports `version = 1.0`.
@@ -53,7 +53,9 @@ class Metobs:
         self.version = version
         self.parameters = MetobsParametersV1(self.available_versions)
 
-    def get_stations(self, parameter: str = None, parameter_title: str = None):
+    def get_stations(
+        self, parameter: Optional[int] = None, parameter_title: Optional[str] = None
+    ):
         """Get SMHI Metobs API (version 1) stations from given parameter.
 
         Args:
@@ -69,10 +71,12 @@ class Metobs:
             )
         else:
             self.stations = MetobsStationsV1(
-                self.parameters.resource, parameters_title=parameter_title
+                self.parameters.resource, parameter_title=parameter_title
             )
 
-    def get_periods(self, station: str = None, stationset: str = None):
+    def get_periods(
+        self, station: Optional[int] = None, stationset: Optional[str] = None
+    ):
         """Get SMHI Metobs API (version 1) periods from given stations or stationset.
 
         Args:
@@ -126,6 +130,10 @@ class Metobs:
             parameter: parameter to get
             station: station to get
             period: period to get
+
+        Returns:
+            data headers
+            data table
         """
         self.get_parameters()
         self.get_stations(parameter)
@@ -136,7 +144,7 @@ class Metobs:
     def get_data_stationset(
         self,
         parameter: int,
-        stationset: int,
+        stationset: str,
         period: str,
     ):
         """Get data from stationset.
@@ -148,6 +156,10 @@ class Metobs:
             parameter: parameter to get
             stationset: stationset to get
             period: period to get
+
+        Returns:
+            data headers
+            data table
         """
         self.get_parameters()
         self.get_stations(parameter)
@@ -155,7 +167,7 @@ class Metobs:
         header, table = self.get_data(period)
         return header, table
 
-    def inspect(self, num_print: int = 10):
+    def inspect(self, num_print: int = 10) -> None:
         """Inspect object state.
 
         Args:
@@ -193,9 +205,9 @@ class Metobs:
                     "Selected stations: {0} {1}".format(
                         self.periods.selected_station,
                         [
-                            x[2]
+                            x[1]
                             for x in self.stations.data
-                            if x[1] == self.periods.selected_station
+                            if x[0] == self.periods.selected_station
                         ][0],
                     )
                 )
@@ -246,11 +258,11 @@ class MetobsLevelV1:
 
     def _get_url(
         self,
-        data: list,
+        data: list[Any],
         key: str,
         parameter: Union[str, int],
         data_type: str = "json",
-    ):
+    ) -> str:
         """Get the url to get data from. Defaults to type json.
 
         Args:
@@ -281,10 +293,10 @@ class MetobsParametersV1(MetobsLevelV1):
 
     def __init__(
         self,
-        data: list = None,
+        data: Optional[list[Any]] = None,
         version: Union[str, int] = "1.0",
         data_type: str = "json",
-    ):
+    ) -> None:
         """Get parameters from version.
 
         Args:
@@ -317,10 +329,10 @@ class MetobsStationsV1(MetobsLevelV1):
     def __init__(
         self,
         data: list,
-        parameter: str = None,
-        parameter_title: str = None,
+        parameter: Optional[int] = None,
+        parameter_title: Optional[str] = None,
         data_type: str = "json",
-    ):
+    ) -> None:
         """Get stations from parameters.
 
         Args:
@@ -367,11 +379,11 @@ class MetobsPeriodsV1(MetobsLevelV1):
     def __init__(
         self,
         data: list,
-        station: int = None,
-        station_name: str = None,
-        stationset: str = None,
+        station: Optional[int] = None,
+        station_name: Optional[str] = None,
+        stationset: Optional[str] = None,
         data_type: str = "json",
-    ):
+    ) -> None:
         """Get periods from station.
 
         Args:
@@ -386,6 +398,7 @@ class MetobsPeriodsV1(MetobsLevelV1):
             NotImplementedError: station not implemented
         """
         super().__init__()
+        self.selected_station: Optional[Union[int, str]] = None
 
         if data_type != "json":
             raise TypeError("Only json supported.")
@@ -426,7 +439,7 @@ class MetobsDataV1(MetobsLevelV1):
         data: list,
         period: str = "corrected-archive",
         data_type: str = "json",
-    ):
+    ) -> None:
         """Get data from period.
 
         Args:
@@ -457,7 +470,7 @@ class MetobsDataV1(MetobsLevelV1):
         self.time_to = content["to"]
         self.data = content["data"]
 
-    def get(self, type: str = "text/plain"):
+    def get(self, type: str = "text/plain") -> Optional[str]:
         """Get the selected data file.
 
         Args:
@@ -473,3 +486,5 @@ class MetobsDataV1(MetobsLevelV1):
 
                 response = requests.get(link["href"])
                 return response.content.decode("utf-8")
+
+        return None
