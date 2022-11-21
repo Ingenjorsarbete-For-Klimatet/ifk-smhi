@@ -1,4 +1,5 @@
 """Read SMHI data."""
+import logging
 from geopy import distance
 from typing import Optional
 from smhi.metobs import Metobs
@@ -37,10 +38,14 @@ class SMHI:
         Returns:
             stations
         """
+        if self.client.parameters is None:
+            logging.info("No parameters available.")
+            return None
+
         self.client.get_stations(parameter)
         return self.client.stations.data
 
-    def get_stations_from_title(self, title: str = None):
+    def get_stations_from_title(self, title: Optional[str] = None):
         """Get stations from title.
 
         Args:
@@ -49,6 +54,10 @@ class SMHI:
         Returns:
             stations
         """
+        if self.client.stations is None:
+            logging.info("No stations available.")
+            return None
+
         self.client.get_stations(None, title)
         return self.client.stations.data
 
@@ -63,6 +72,10 @@ class SMHI:
             latitude: latitude
             longitude: longitude
         """
+        if self.client.stations is None:
+            logging.info("No stations available.")
+            return None
+
         user_position = (latitude, longitude)
         self.get_stations(parameter)
         self.d = []
