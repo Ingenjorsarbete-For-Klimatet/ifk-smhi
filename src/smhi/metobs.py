@@ -1,6 +1,7 @@
 """SMHI Metobs client."""
 import io
 import json
+import logging
 import requests
 import pandas as pd
 from typing import Union, Optional, Any
@@ -62,6 +63,10 @@ class Metobs:
             parameter: integer id of parameter
             parameter_title: exact title of parameter
         """
+        if self.parameters is None:
+            logging.info("No parameters found, call get_parameters first.")
+            return
+
         if parameter is None and parameter_title is None:
             raise NotImplementedError("Both arguments None.")
 
@@ -83,6 +88,10 @@ class Metobs:
             station: integer id of station
             stationset: exact title of station
         """
+        if self.stations is None:
+            logging.info("No stations found, call get_stations first.")
+            return
+
         if station is None and stationset is None:
             raise NotImplementedError("Both arguments None.")
 
@@ -93,7 +102,7 @@ class Metobs:
                 self.stations.stations, stationset=stationset
             )
 
-    def get_data(self, period: str = "corrected-archive"):
+    def get_data(self, period: str = "corrected-archive") -> tuple[Any, Any]:
         """Get SMHI Metobs API (version 1) data from given period.
 
         Args:
@@ -103,6 +112,10 @@ class Metobs:
             data headers
             data table
         """
+        if self.periods is None:
+            logging.info("No periods found, call get_periods first.")
+            return None, None
+
         self.data = MetobsDataV1(self.periods.periods, period)
         self.table_raw = self.data.get()
         data_starting_point = self.table_raw.find("Datum")
@@ -293,7 +306,7 @@ class MetobsParametersV1(MetobsLevelV1):
 
     def __init__(
         self,
-        data: Optional[list[Any]] = None,
+        data: list[Any],
         version: Union[str, int] = "1.0",
         data_type: str = "json",
     ) -> None:
@@ -328,7 +341,7 @@ class MetobsStationsV1(MetobsLevelV1):
 
     def __init__(
         self,
-        data: list,
+        data: list[Any],
         parameter: Optional[int] = None,
         parameter_title: Optional[str] = None,
         data_type: str = "json",
@@ -346,6 +359,7 @@ class MetobsStationsV1(MetobsLevelV1):
             NotImplementedError: parameter not implemented
         """
         super().__init__()
+        self.selected_parameter: Optional[Union[int, str]] = None
 
         if data_type != "json":
             raise TypeError("Only json supported.")
@@ -378,7 +392,7 @@ class MetobsPeriodsV1(MetobsLevelV1):
 
     def __init__(
         self,
-        data: list,
+        data: list[Any],
         station: Optional[int] = None,
         station_name: Optional[str] = None,
         stationset: Optional[str] = None,
@@ -436,7 +450,7 @@ class MetobsDataV1(MetobsLevelV1):
 
     def __init__(
         self,
-        data: list,
+        data: list[Any],
         period: str = "corrected-archive",
         data_type: str = "json",
     ) -> None:
@@ -470,7 +484,7 @@ class MetobsDataV1(MetobsLevelV1):
         self.time_to = content["to"]
         self.data = content["data"]
 
-    def get(self, type: str = "text/plain") -> Optional[str]:
+    def get(self, type: str = "text/plain") -> str:
         """Get the selected data file.
 
         Args:
@@ -478,6 +492,9 @@ class MetobsDataV1(MetobsLevelV1):
 
         Returns:
             utf-8 decoded response
+
+        Raises:
+            UnicodeEncodeError
         """
         for item in self.data:
             for link in item["link"]:
@@ -485,6 +502,11 @@ class MetobsDataV1(MetobsLevelV1):
                     continue
 
                 response = requests.get(link["href"])
-                return response.content.decode("utf-8")
 
-        return None
+                break
+            break
+
+        try:
+            return response.content.decode("utf-8")
+        except UnicodeError:
+            raise UnicodeError("Can't decode response.")

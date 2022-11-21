@@ -21,9 +21,6 @@ from smhi.constants import (
 )
 
 
-logging.basicConfig(level=logging.INFO, format="%(message)s")
-
-
 class Strang:
     """SMHI Strang class. Only supports category strang1g and version 1."""
 
