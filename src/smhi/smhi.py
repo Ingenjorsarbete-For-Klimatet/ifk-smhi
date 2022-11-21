@@ -1,5 +1,6 @@
 """Read SMHI data."""
 from geopy import distance
+from typing import Optional
 from smhi.metobs import Metobs
 from smhi.constants import TYPE_MAP
 
@@ -16,7 +17,7 @@ class SMHI:
         """
         self.type = TYPE_MAP[type]
         self.client = Metobs(type)
-        self.client.fetch_parameters(version)
+        self.client.get_parameters()
 
     @property
     def parameters(self):
@@ -25,9 +26,9 @@ class SMHI:
         Returns:
             parameters
         """
-        return self.client.parameter.data
+        return self.client.parameters.data
 
-    def get_stations(self, parameter: str = None):
+    def get_stations(self, parameter: Optional[int] = None):
         """Get stations from parameter.
 
         Args:
@@ -36,8 +37,8 @@ class SMHI:
         Returns:
             stations
         """
-        self.client.fetch_stations(parameter)
-        return self.client.station.data
+        self.client.get_stations(parameter)
+        return self.client.stations.data
 
     def get_stations_from_title(self, title: str = None):
         """Get stations from title.
@@ -48,8 +49,8 @@ class SMHI:
         Returns:
             stations
         """
-        self.client.fetch_stations(None, title)
-        return self.client.station.data
+        self.client.get_stations(None, title)
+        return self.client.stations.data
 
     def find_stations_from_gps(
         self, parameter: int, dist: float, latitude: float, longitude: float
@@ -66,7 +67,7 @@ class SMHI:
         self.get_stations(parameter)
         self.d = []
 
-        all_stations = self.client.station.station
+        all_stations = self.client.stations.data
         self.d = [
             s
             for s in all_stations
