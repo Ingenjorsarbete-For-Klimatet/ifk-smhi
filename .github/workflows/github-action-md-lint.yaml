@@ -1,7 +1,7 @@
-name: Lint
+name: Markdown Lint
 on: [push]
 jobs:
-  lint:
+  mdlint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -13,10 +13,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[lint]"
-      - name: Lint with flake8
-        run: |
-          flake8 src tests --show-source --statistics
+      - name: Markdown lint
+        uses: nosborn/github-action-markdown-cli@v3.2.0
+        with:
+          files: .
+          config_file: .markdownlint.yaml
+          ignore_files: README.md
