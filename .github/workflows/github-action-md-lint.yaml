@@ -1,0 +1,21 @@
+name: Markdown Lint
+on: [push]
+jobs:
+  mdlint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Markdown lint
+        uses: nosborn/github-action-markdown-cli@v3.2.0
+        with:
+          files: .
+          config_file: .markdownlint.yaml
+          ignore_files: README.md
