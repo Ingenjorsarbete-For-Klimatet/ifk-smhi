@@ -18,3 +18,4 @@ jobs:
         with:
           files: .
           config_file: .markdownlint.yaml
+          ignore_files: README.md

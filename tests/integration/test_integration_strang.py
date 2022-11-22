@@ -1,6 +1,4 @@
-"""
-STRÅNG integration tests.
-"""
+"""Strang integration tests."""
 import pytest
 import datetime
 from dateutil.tz import tzutc
@@ -66,9 +64,7 @@ RESULT_MULTIPOINT_2020_01_01_MONTHLY_10 = [
 
 
 class TestIntegrationStrang:
-    """
-    Integration tests for STRÅNG class.
-    """
+    """Integration tests for Strang class."""
 
     @pytest.mark.parametrize(
         "lat, lon, parameter, time_from, time_to, time_interval, expected_result",
@@ -114,8 +110,9 @@ class TestIntegrationStrang:
     def test_integration_strang_point(
         self, lat, lon, parameter, time_from, time_to, time_interval, expected_result
     ):
-        """
-        STRÅNG Point class integration tests. These tests require internet connectivity.
+        """Strang Point class integration tests.
+
+        These tests require internet connectivity.
 
         Args:
             lat: longitude
@@ -138,8 +135,9 @@ class TestIntegrationStrang:
             assert expected_result in data[0]
 
     def test_integration_strang_multipoint(self):
-        """
-        STRÅNG MultiPoint integration tests. These tests require internet connectivity.
+        """Strang MultiPoint integration tests.
+
+        These tests require internet connectivity.
         """
         client = Strang()
         parameter = 116

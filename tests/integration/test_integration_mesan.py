@@ -1,6 +1,4 @@
-"""
-Mesan integration tests.
-"""
+"""Mesan integration tests."""
 import json
 import arrow
 import pytest
@@ -38,28 +36,20 @@ PARAMETERS_NOW = json.loads(requests.get(PARAMETERS).content)
 
 
 class TestIntegrationMesan:
-    """
-    Integration tests for Mesan class.
-    """
+    """Integration tests for Mesan class."""
 
     def test_integration_mesan_approved_time(self):
-        """
-        Integration test for approved time property.
-        """
+        """Integration test for approved time property."""
         client = Mesan()
         assert client.approved_time[1] == APPROVED_TIME_NOW
 
     def test_integration_mesan_valid_time(self):
-        """
-        Integration test for approved time property.
-        """
+        """Integration test for approved time property."""
         client = Mesan()
         assert client.valid_time[1] == VALID_TIME_NOW
 
     def test_integration_mesan_geo_polygon(self):
-        """
-        Integration test for geo_polygon property.
-        """
+        """Integration test for geo_polygon property."""
         client = Mesan()
         assert client.geo_polygon[1] == GEO_POLYGON_NOW
 
@@ -74,8 +64,7 @@ class TestIntegrationMesan:
         ],
     )
     def test_integration_mesan_get_geo_multipoint(self, downsample, result):
-        """
-        Integration test for get_geo_multipoint method.
+        """Integration test for get_geo_multipoint method.
 
         Args:
             downsample: downsample parameter
@@ -85,16 +74,13 @@ class TestIntegrationMesan:
         assert client.get_geo_multipoint(downsample)[1] == result
 
     def test_integration_mesan_parameters(self):
-        """
-        Integration test for parameters property.
-        """
+        """Integration test for parameters property."""
         client = Mesan()
         assert client.parameters[1] == PARAMETERS_NOW
 
     @pytest.mark.parametrize("lat, lon", [(58, 16)])
     def test_integration_mesan_get_point(self, lat, lon):
-        """
-        Integration test for get_point method.
+        """Integration test for get_point method.
 
         Args:
             lat: latitude parameter
@@ -119,8 +105,7 @@ class TestIntegrationMesan:
     def test_integration_mesan_get_multipoint(
         self, validtime, parameter, level_type, level, downsample
     ):
-        """
-        Integration test for get_multipoint method.
+        """Integration test for get_multipoint method.
 
         Args:
             validtime: valid time

@@ -1,7 +1,7 @@
-name: Lint
+name: Type
 on: [push]
 jobs:
-  lint:
+  type:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -16,7 +16,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[lint]"
-      - name: Lint with flake8
-        run: |
-          flake8 src tests --show-source --statistics
+          pip install -e ".[type]"
+      - name: Type checking with mypy
+        run: >
+          MYPYPATH=src
+          mypy
+          --namespace-packages
+          --explicit-package-bases
+          --allow-redefinition
+          src
