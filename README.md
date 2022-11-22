@@ -20,37 +20,39 @@
 
 <p align="center">
     <a href="https://www.python.org">
-        <img src="https://img.shields.io/badge/Python-3.9%20|%203.10%-blue" alt="type checker: mypy" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Python-3.9%20|%203.10-blue" alt="Python: 3.9 | 3.10" style="max-width: 100%;">
     </a>
     <a href="https://pytest.org">
-        <img src="https://img.shields.io/badge/Testing_framework-pytest-a04000" alt="linter: flake8" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Testing_framework-pytest-a04000" alt="Testing framework: pytest" style="max-width: 100%;">
     </a>
     <a href="hhttps://flake8.pycqa.org">
-        <img src="https://img.shields.io/badge/Linter-flake8-ff69b4" alt="linter: flake8" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Linter-flake8-ff69b4" alt="Linter: flake8" style="max-width: 100%;">
     </a>
     <a href="http://mypy-lang.org">
-        <img src="https://img.shields.io/badge/Type_checker-mypy-1674b1" alt="linter: flake8" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Type_checker-mypy-1674b1" alt="Type checker: mypy" style="max-width: 100%;">
     </a>
     <a href="https://github.com/PyCQA/bandit">
-        <img src="https://img.shields.io/badge/Security-bandit-yellow.svg" alt="security: bandit" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Security-bandit-yellow.svg" alt="Security: bandit" style="max-width: 100%;">
     </a>
     <a href="https://github.com/psf/black">
-        <img src="https://img.shields.io/badge/Code_style-black-black" alt="code style: black" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Code_style-black-black" alt="Code style: black" style="max-width: 100%;">
     </a>
 </p>
 
-Web scraper for SMHI climate data.
+## Description
 
-The 1-versions of the code are intended to generalize the concept,
-include functional tests and build functionality such as listing
-of data sources with relevant information, searchability w r t nearest
-gps position etc. The work will be a joint effort, but the idea is
-that it will primarily be led by Mladen Gibanica (mgcth).
+Python SMHI (Swedish Meteorological and Hydrological Institute) client.
+Currently supports these APIs
 
-The 0-versions of this code (starting at 0.2 to acknowledge that the
-first version, 0.1, was a part of an ongoing ad-hoc initiative t
- model solar panels - still under development) are written by
- Anders Nord (docNord) for the swedish non-profit environmental
- community "Ingenjörsarbete För Klimatet" <https://ingenjorsarbeteforklimatet.se>.
- They sport a series of hard-coded solutions to reach relevant data in
- the Gothenburg area, which was the initial target of the code.
+- Meteorological Observations Metobs
+- Meteorological Forecasts Metfcts
+- Meteorological Analysis Mesan
+- Meteorological Analysis Strang
+
+## Installation
+
+The package isn't registered and needs to be installed from GitHub
+
+```bash
+pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi.git@main
+```
