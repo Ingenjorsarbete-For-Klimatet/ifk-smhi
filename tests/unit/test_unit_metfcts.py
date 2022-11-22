@@ -1,9 +1,5 @@
 """SMHI Metfcts v1 unit tests."""
-import json
-import arrow
-import pytest
 from smhi.metfcts import Metfcts
-from unittest.mock import patch
 
 
 BASE_URL = (

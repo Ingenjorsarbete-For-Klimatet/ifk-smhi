@@ -1,16 +1,15 @@
-"""
-SMHI Mesan API module.
-"""
+"""SMHI Mesan API module."""
 import json
 import arrow
 import requests
 from functools import wraps
 from smhi.constants import MESAN_URL
+from typing import Any, Callable, Optional
+from requests.structures import CaseInsensitiveDict
 
 
-def get_data(func: callable) -> callable:
-    """
-    Get data from url.
+def get_data(func: Callable) -> Callable:
+    """Get data from url.
 
     Args:
         function func
@@ -20,7 +19,7 @@ def get_data(func: callable) -> callable:
     """
 
     @wraps(func)
-    def inner(self, *args):
+    def inner(self, *args) -> tuple[dict[str, str], dict[str, Any]]:
         url = func(self, *args)
         status, headers, data = self._get_data(url)
         return headers, data
@@ -29,30 +28,27 @@ def get_data(func: callable) -> callable:
 
 
 class Mesan:
-    """
-    SMHI Mesan module
-    """
+    """SMHI Mesan module."""
 
     def __init__(self) -> None:
-        """
-        Initialise Mesan.
-        """
-        self._category = "mesan1g"
-        self._version = 2
+        """Initialise Mesan."""
+        self._category: str = "mesan1g"
+        self._version: int = 2
 
-        self.latitude = None
-        self.longitude = None
-        self.status = None
-        self.header = None
-        self.data = None
-        self.base_url = MESAN_URL.format(category=self._category, version=self._version)
-        self.url = None
+        self.latitude: Optional[float] = None
+        self.longitude: Optional[float] = None
+        self.status: Optional[bool] = None
+        self.header: Optional[dict[str, str]] = None
+        self.data: Optional[dict[str, Any]] = None
+        self.base_url: str = MESAN_URL.format(
+            category=self._category, version=self._version
+        )
+        self.url: Optional[str] = None
 
     @property
     @get_data
-    def approved_time(self) -> dict:
-        """
-        Get approved time.
+    def approved_time(self) -> str:
+        """Get approved time.
 
         Returns:
             approved times
@@ -61,9 +57,8 @@ class Mesan:
 
     @property
     @get_data
-    def valid_time(self) -> dict:
-        """
-        Get valid time.
+    def valid_time(self) -> str:
+        """Get valid time.
 
         Returns:
             valid times
@@ -72,9 +67,8 @@ class Mesan:
 
     @property
     @get_data
-    def geo_polygon(self) -> dict:
-        """
-        Get geographic area polygon.
+    def geo_polygon(self) -> str:
+        """Get geographic area polygon.
 
         Returns:
             polygon data
@@ -82,9 +76,8 @@ class Mesan:
         return self.base_url + "geotype/polygon.json"
 
     @get_data
-    def get_geo_multipoint(self, downsample: int = 2) -> dict:
-        """
-        Get geographic area multipoint.
+    def get_geo_multipoint(self, downsample: int = 2) -> str:
+        """Get geographic area multipoint.
 
         Args:
             downsample: downsample parameter
@@ -105,9 +98,8 @@ class Mesan:
 
     @property
     @get_data
-    def parameters(self) -> list:
-        """
-        Get parameters.
+    def parameters(self) -> str:
+        """Get parameters.
 
         Returns:
             available parameters
@@ -119,9 +111,8 @@ class Mesan:
         self,
         latitude: float,
         longitude: float,
-    ) -> dict:
-        """
-        Get data for given lon, lat and parameter.
+    ) -> str:
+        """Get data for given lon, lat and parameter.
 
         Args:
             latitude: latitude
@@ -145,9 +136,8 @@ class Mesan:
         leveltype: str,
         level: int,
         downsample: int = 2,
-    ) -> dict:
-        """
-        Get multipoint data.
+    ) -> str:
+        """Get multipoint data.
 
         Args:
             validtime: valid time
@@ -174,9 +164,10 @@ class Mesan:
             )
         )
 
-    def _get_data(self, url) -> tuple[bool, str, dict]:
-        """
-        get requested data.
+    def _get_data(
+        self, url
+    ) -> tuple[bool, CaseInsensitiveDict[str], Optional[dict[str, Any]]]:
+        """Get requested data.
 
         Args:
             url: url to get from

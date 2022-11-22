@@ -1,10 +1,12 @@
-"""
-Constans.
-"""
+"""Constans."""
 import arrow
-from collections import namedtuple
+import logging
 from collections import defaultdict
 from posixpath import join as urljoin
+from typing import NamedTuple, Optional, Callable
+
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def get_now():
@@ -50,8 +52,17 @@ STRANG_MULTIPOINT_URL = urljoin(
     + "parameter/{parameter}/data.json",
 )
 STRANG_TIME_INTERVALS = ["hourly", "daily", "monthly"]
-STRANG = namedtuple("STRANG", "parameter meaning time_from time_to")
-STRANG_PARAMETERS = defaultdict(lambda: STRANG(None, "Missing", None, None))
+STRANG = NamedTuple(
+    "STRANG",
+    [
+        ("parameter", Optional[int]),
+        ("meaning", Optional[str]),
+        ("time_from", Optional[arrow.Arrow]),
+        ("time_to", Callable),
+    ],
+)
+STRANG_EMPTY = STRANG(None, "Missing", None, lambda: None)
+STRANG_PARAMETERS: defaultdict[int, STRANG] = defaultdict(lambda: STRANG_EMPTY)
 STRANG_PARAMETERS[116] = STRANG(
     116,
     "CIE UV irradiance [mW/m²]",

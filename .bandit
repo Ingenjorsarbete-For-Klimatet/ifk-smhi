@@ -1,0 +1,2 @@
+[bandit]
+skips = S101
