@@ -1,4 +1,4 @@
-# smhi
+<h1 align="center">ifk-smhi</h1>
 
 <p align="center">
     <a href="https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-build.yaml">
@@ -19,20 +19,23 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml">
-        <img src="https://img.shields.io/badge/Python-3.9-blue" alt="type checker: mypy" style="max-width: 100%;">
+    <a href="https://www.python.org">
+        <img src="https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11-blue" alt="type checker: mypy" style="max-width: 100%;">
     </a>
-    <a href="https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml">
-        <img src="https://img.shields.io/badge/Linter-flake8-red" alt="linter: flake8" style="max-width: 100%;">
+    <a href="https://pytest.org">
+        <img src="https://img.shields.io/badge/Testing framework-pytest-a04000" alt="linter: flake8" style="max-width: 100%;">
     </a>
-    <a href="https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml">
+    <a href="hhttps://flake8.pycqa.org">
+        <img src="https://img.shields.io/badge/Linter-flake8-ff69b4" alt="linter: flake8" style="max-width: 100%;">
+    </a>
+    <a href="http://mypy-lang.org">
+        <img src="https://img.shields.io/badge/Type checker-mypy-1674b1" alt="linter: flake8" style="max-width: 100%;">
+    </a>
+    <a href="https://github.com/PyCQA/bandit">
         <img src="https://img.shields.io/badge/Security-bandit-yellow.svg" alt="security: bandit" style="max-width: 100%;">
     </a>
-    <a href="https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-lint.yaml">
+    <a href="https://github.com/psf/black">
         <img src="https://img.shields.io/badge/Code_style-black-black" alt="code style: black" style="max-width: 100%;">
-    </a>
-    <a href="https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi/actions/workflows/github-action-type.yaml">
-        <img src="https://img.shields.io/badge/Type_checker-mypy-blue" alt="type checker: mypy" style="max-width: 100%;">
     </a>
 </p>
 
