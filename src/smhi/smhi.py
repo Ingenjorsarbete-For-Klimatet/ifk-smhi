@@ -82,7 +82,8 @@ class SMHI:
 
         all_stations = self.client.stations.stations
         self.d = [
-            s['name']
+            (s['name'], distance.distance(user_position, (s["latitude"], s["longitude"])).km)
             for s in all_stations
             if distance.distance(user_position, (s["latitude"], s["longitude"])) <= dist
         ]
+        self.d = sorted(self.d, key=lambda x: x[1])
