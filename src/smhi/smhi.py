@@ -112,3 +112,17 @@ class SMHI:
         loc = geolocator.geocode(city)
         self.find_stations_from_gps(parameter=parameter, dist=dist,
                                     latitude=loc.latitude, longitude=loc.longitude)
+
+    def get_data(
+        self, parameter: int, station: int, period: str = 'corrected-archive'
+    ) -> None:
+        """Get data from station.
+
+        Args:
+            parameter: data parameter
+            station: station id
+            period: period to get
+        """
+        header, data = self.client.get_data_from_selection(
+            parameter=parameter, station=station, period=period)
+        return header, data
