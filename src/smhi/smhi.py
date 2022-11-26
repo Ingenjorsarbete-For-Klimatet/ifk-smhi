@@ -83,19 +83,19 @@ class SMHI:
         all_stations = self.client.stations.stations
         if dist == 0:
             stations = [
-                (s['name'], distance.distance(
+                (s['id'], s['name'], distance.distance(
                     user_position, (s["latitude"], s["longitude"])).km)
                 for s in all_stations
             ]
-            self.nearby_stations = min(stations, key=lambda x: x[1])
+            self.nearby_stations = min(stations, key=lambda x: x[2])
         else:
             self.nearby_stations = [
-                (s['name'], distance.distance(
+                (s['id'], s['name'], distance.distance(
                     user_position, (s["latitude"], s["longitude"])).km)
                 for s in all_stations
                 if distance.distance(user_position, (s["latitude"], s["longitude"])) <= dist
             ]
-            self.nearby_stations = sorted(self.nearby_stations, key=lambda x: x[1])
+            self.nearby_stations = sorted(self.nearby_stations, key=lambda x: x[2])
 
     def find_stations_by_city(
         self, parameter: int, city: str, dist: float = 0
