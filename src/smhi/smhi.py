@@ -80,9 +80,9 @@ class SMHI:
         self.get_stations(parameter)
         self.d = []
 
-        all_stations = self.client.stations.data
+        all_stations = self.client.stations.stations
         self.d = [
-            s
+            s['name']
             for s in all_stations
             if distance.distance(user_position, (s["latitude"], s["longitude"])) <= dist
         ]
