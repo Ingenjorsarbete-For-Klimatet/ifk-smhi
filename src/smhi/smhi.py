@@ -1,6 +1,7 @@
 """Read SMHI data."""
 import logging
 from geopy import distance
+from geopy.geocoders import Nominatim
 from typing import Optional
 from smhi.metobs import Metobs
 from smhi.constants import TYPE_MAP
@@ -95,3 +96,19 @@ class SMHI:
                 if distance.distance(user_position, (s["latitude"], s["longitude"])) <= dist
             ]
             self.nearby_stations = sorted(self.nearby_stations, key=lambda x: x[1])
+
+    def find_stations_by_city(
+        self, parameter: int, city: str, dist: float = 0
+    ) -> None:
+        """Find stations for parameter from city name.
+
+        Args:
+            parameter: station parameter
+            dist: distance from city
+            city: name of city
+        """
+
+        geolocator = Nominatim(user_agent='ifk-smhi')
+        loc = geolocator.geocode(city)
+        self.find_stations_from_gps(parameter=parameter, dist=dist,
+                                    latitude=loc.latitude, longitude=loc.longitude)
