@@ -62,7 +62,7 @@ class SMHI:
         return self.client.stations.data
 
     def find_stations_from_gps(
-        self, parameter: int, dist: float, latitude: float, longitude: float
+        self, parameter: int, latitude: float, longitude: float, dist: float = 0
     ) -> None:
         """Find stations for parameter from gps location.
 
@@ -79,11 +79,19 @@ class SMHI:
         user_position = (latitude, longitude)
         self.get_stations(parameter)
         self.nearby_stations = []
-
         all_stations = self.client.stations.stations
-        self.nearby_stations = [
-            (s['name'], distance.distance(user_position, (s["latitude"], s["longitude"])).km)
-            for s in all_stations
-            if distance.distance(user_position, (s["latitude"], s["longitude"])) <= dist
-        ]
-        self.nearby_stations = sorted(self.nearby_stations, key=lambda x: x[1])
+        if dist == 0:
+            stations = [
+                (s['name'], distance.distance(
+                    user_position, (s["latitude"], s["longitude"])).km)
+                for s in all_stations
+            ]
+            self.nearby_stations = min(stations, key=lambda x: x[1])
+        else:
+            self.nearby_stations = [
+                (s['name'], distance.distance(
+                    user_position, (s["latitude"], s["longitude"])).km)
+                for s in all_stations
+                if distance.distance(user_position, (s["latitude"], s["longitude"])) <= dist
+            ]
+            self.nearby_stations = sorted(self.nearby_stations, key=lambda x: x[1])
