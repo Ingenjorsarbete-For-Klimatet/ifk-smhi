@@ -1,5 +1,6 @@
 """Read SMHI data."""
 import logging
+import pandas as pd
 from geopy import distance
 from geopy.geocoders import Nominatim
 from typing import Optional
@@ -114,7 +115,7 @@ class SMHI:
                                     latitude=loc.latitude, longitude=loc.longitude)
 
     def get_data(
-        self, parameter: int, station: int, period: str = 'corrected-archive'
+        self, parameter: int, station: int, period: str = 'corrected-archive', interpolate: int = 0
     ) -> None:
         """Get data from station.
 
@@ -125,4 +126,32 @@ class SMHI:
         """
         header, data = self.client.get_data_from_selection(
             parameter=parameter, station=station, period=period)
+        if interpolate == 1:
+            # Find the station latitude and longitude information from Metobs
+            stat = next(
+                item for item in self.client.stations.stations if item["id"] == station)
+            latitude = stat["latitude"]
+            longitude = stat["longitude"]
+
+            freq = data.index.to_series().diff().median()
+            holes_to_fill = data[data.index.to_series().diff(
+            ) > data.index.to_series().diff().median()]
+            # Find stations within a given radius - set to 20km for now.
+            self.find_stations_from_gps(parameter=parameter,
+                                        latitude=latitude, longitude=longitude, dist=20)
+
+            # Iterate over nearby stations, starting with the closest one and moving outwards.
+            for nearby_station in self.nearby_stations[1:]:
+                _, tmpdata = self.get_data(parameter, nearby_station[0])
+                for time, _ in holes_to_fill.iterrows():
+                    earliertime = data[data.index < time].index.max()
+
+                    if len(tmpdata[(tmpdata.index > earliertime) &
+                           (tmpdata.index < time)]) > 0:
+                        data = pd.concat([data, tmpdata], axis=0, join='outer')
+
+                # Re-check how many holes remain
+                holes_to_fill = data[data.index.to_series().diff(
+                ) > data.index.to_series().diff().median()]
+        data = data.sort_index()
         return header, data
