@@ -31,7 +31,7 @@ class Metobs:
         self.available_versions = self.content["version"]
 
         self.version: Optional[Union[str, int]] = None
-        self.parameters: Optional[MetobsParametersV1] = None
+        self.parameters: Optional[Parameters] = None
         self.stations: Optional[MetobsStationsV1] = None
         self.periods: Optional[MetobsPeriodsV1] = None
         self.data: Optional[MetobsDataV1] = None
@@ -52,7 +52,7 @@ class Metobs:
             )
 
         self.version = version
-        self.parameters = MetobsParametersV1(self.available_versions)
+        self.parameters = Parameters(self.available_versions)
 
     def get_stations(
         self, parameter: Optional[int] = None, parameter_title: Optional[str] = None
@@ -301,7 +301,7 @@ class BaseLevel:
             raise KeyError("Can't find key: {key}".format(key=key))
 
 
-class MetobsParametersV1(BaseLevel):
+class Parameters(BaseLevel):
     """Get parameters for version 1 of Metobs API."""
 
     def __init__(

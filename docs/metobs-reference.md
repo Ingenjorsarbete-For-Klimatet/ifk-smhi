@@ -4,7 +4,7 @@
 
 ::: smhi.metobs.BaseLevel
 
-::: smhi.metobs.MetobsParametersV1
+::: smhi.metobs.Parameters
 
 ::: smhi.metobs.MetobsStationsV1
 

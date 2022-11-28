@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from smhi.metobs import (
     Metobs,
     BaseLevel,
-    MetobsParametersV1,
+    Parameters,
     MetobsStationsV1,
     MetobsPeriodsV1,
     MetobsDataV1,
@@ -50,7 +50,7 @@ class TestUnitMetobs:
         mock_json_loads.assert_called_once()
 
     @pytest.mark.parametrize("version", [("1.0"), ("latest"), (1)])
-    @patch("smhi.metobs.MetobsParametersV1")
+    @patch("smhi.metobs.Parameters")
     def test_unit_metobs_get_parameters(
         self,
         mock_metobsparameterv1,
@@ -59,7 +59,7 @@ class TestUnitMetobs:
         """Unit test for Metobs get_parameters method.
 
         Args:
-            mock_metobsparameterv1: mock of MetobsParametersV1
+            mock_metobsparameterv1: mock of Parameters
             version: version of api
         """
         client = Metobs()
@@ -363,7 +363,7 @@ class TestUnitBaseLevel:
 
 
 class TestUnitMetObsParameterV1:
-    """Unit tests for MetobsParametersV1 class."""
+    """Unit tests for Parameters class."""
 
     @pytest.mark.parametrize(
         "data, version, data_type",
@@ -389,7 +389,7 @@ class TestUnitMetObsParameterV1:
         version,
         data_type,
     ):
-        """Unit test for MetobsParametersV1 init method.
+        """Unit test for Parameters init method.
 
         Args:
             mock_get_url: mock _get_url method
@@ -402,17 +402,17 @@ class TestUnitMetObsParameterV1:
         """
         if data_type != "json":
             with pytest.raises(TypeError):
-                MetobsParametersV1(data, version, data_type)
+                Parameters(data, version, data_type)
 
             return None
 
         if ("1.0" if version == 1 else version) != "1.0":
             with pytest.raises(NotImplementedError):
-                MetobsParametersV1(data, version, data_type)
+                Parameters(data, version, data_type)
 
             return None
 
-        parameters = MetobsParametersV1(data, version, data_type)
+        parameters = Parameters(data, version, data_type)
         assert parameters.resource == mock_sorted.return_value
         assert parameters.data == mock_tuple.return_value
         mock_get_url.assert_called_once()
