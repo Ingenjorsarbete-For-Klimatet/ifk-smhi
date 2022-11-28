@@ -31,10 +31,10 @@ class Metobs:
         self.available_versions = self.content["version"]
 
         self.version: Optional[Union[str, int]] = None
-        self.parameters: Optional[MetobsParametersV1] = None
-        self.stations: Optional[MetobsStationsV1] = None
-        self.periods: Optional[MetobsPeriodsV1] = None
-        self.data: Optional[MetobsDataV1] = None
+        self.parameters: Optional[Parameters] = None
+        self.stations: Optional[Stations] = None
+        self.periods: Optional[Periods] = None
+        self.data: Optional[Data] = None
         self.table_raw: Optional[str] = None
 
     def get_parameters(self, version: Union[str, int] = "1.0"):
@@ -52,7 +52,7 @@ class Metobs:
             )
 
         self.version = version
-        self.parameters = MetobsParametersV1(self.available_versions)
+        self.parameters = Parameters(self.available_versions)
 
     def get_stations(
         self, parameter: Optional[int] = None, parameter_title: Optional[str] = None
@@ -71,11 +71,9 @@ class Metobs:
             raise NotImplementedError("Both arguments None.")
 
         if parameter:
-            self.stations = MetobsStationsV1(
-                self.parameters.resource, parameter=parameter
-            )
+            self.stations = Stations(self.parameters.resource, parameter=parameter)
         else:
-            self.stations = MetobsStationsV1(
+            self.stations = Stations(
                 self.parameters.resource, parameter_title=parameter_title
             )
 
@@ -96,11 +94,9 @@ class Metobs:
             raise NotImplementedError("Both arguments None.")
 
         if station:
-            self.periods = MetobsPeriodsV1(self.stations.stations, station)
+            self.periods = Periods(self.stations.stations, station)
         else:
-            self.periods = MetobsPeriodsV1(
-                self.stations.stations, stationset=stationset
-            )
+            self.periods = Periods(self.stations.stations, stationset=stationset)
 
     def get_data(self, period: str = "corrected-archive") -> tuple[Any, Any]:
         """Get SMHI Metobs API (version 1) data from given period.
@@ -116,7 +112,7 @@ class Metobs:
             logging.info("No periods found, call get_periods first.")
             return None, None
 
-        self.data = MetobsDataV1(self.periods.periods, period)
+        self.data = Data(self.periods.periods, period)
         self.table_raw = self.data.get()
         data_starting_point = self.table_raw.find("Datum")
         header = self.table_raw[0:data_starting_point]
@@ -235,7 +231,7 @@ class Metobs:
             print()
 
 
-class MetobsLevelV1:
+class BaseLevel:
     """Base Metobs level version 1 class."""
 
     def __init__(self):
@@ -301,7 +297,7 @@ class MetobsLevelV1:
             raise KeyError("Can't find key: {key}".format(key=key))
 
 
-class MetobsParametersV1(MetobsLevelV1):
+class Parameters(BaseLevel):
     """Get parameters for version 1 of Metobs API."""
 
     def __init__(
@@ -336,7 +332,7 @@ class MetobsParametersV1(MetobsLevelV1):
         self.data = tuple((x["key"], x["title"]) for x in self.resource)
 
 
-class MetobsStationsV1(MetobsLevelV1):
+class Stations(BaseLevel):
     """Get stations from parameter for version 1 of Metobs API."""
 
     def __init__(
@@ -384,7 +380,7 @@ class MetobsStationsV1(MetobsLevelV1):
         self.data = tuple((x["id"], x["name"]) for i, x in enumerate(self.stations))
 
 
-class MetobsPeriodsV1(MetobsLevelV1):
+class Periods(BaseLevel):
     """Get periods from station for version 1 of Metobs API.
 
     Note that stationset_title is not supported
@@ -445,7 +441,7 @@ class MetobsPeriodsV1(MetobsLevelV1):
         self.data = [x["key"] for x in self.periods]
 
 
-class MetobsDataV1(MetobsLevelV1):
+class Data(BaseLevel):
     """Get data from period for version 1 of Metobs API."""
 
     def __init__(

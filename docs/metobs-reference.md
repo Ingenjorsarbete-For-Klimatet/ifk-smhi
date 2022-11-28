@@ -2,12 +2,12 @@
 
 ::: smhi.metobs.Metobs
 
-::: smhi.metobs.MetobsLevelV1
+::: smhi.metobs.BaseLevel
 
-::: smhi.metobs.MetobsParametersV1
+::: smhi.metobs.Parameters
 
-::: smhi.metobs.MetobsStationsV1
+::: smhi.metobs.Stations
 
-::: smhi.metobs.MetobsPeriodsV1
+::: smhi.metobs.Periods
 
-::: smhi.metobs.MetobsDataV1
+::: smhi.metobs.Data
