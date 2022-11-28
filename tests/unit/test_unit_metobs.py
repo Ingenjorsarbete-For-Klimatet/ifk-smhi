@@ -362,7 +362,7 @@ class TestUnitBaseLevel:
         assert url == expected_result
 
 
-class TestUnitMetObsParameterV1:
+class TestUnitParameter:
     """Unit tests for Parameters class."""
 
     @pytest.mark.parametrize(
@@ -421,7 +421,7 @@ class TestUnitMetObsParameterV1:
         mock_tuple.assert_called_once()
 
 
-class TestUnitMetObsStationV1:
+class TestUnitStation:
     """Unit tests for Stations class."""
 
     @pytest.mark.parametrize(
@@ -499,7 +499,7 @@ class TestUnitMetObsStationV1:
         mock_tuple.assert_called_once()
 
 
-class TestUnitMetObsPeriodV1:
+class TestUnitPeriod:
     """Unit tests for Periods class."""
 
     @pytest.mark.parametrize(
@@ -589,7 +589,7 @@ class TestUnitMetObsPeriodV1:
         mock_sorted.assert_called_once()
 
 
-class TestUnitMetObsDataV1:
+class TestUnitData:
     """Unit tests for Data class."""
 
     @pytest.mark.parametrize(
