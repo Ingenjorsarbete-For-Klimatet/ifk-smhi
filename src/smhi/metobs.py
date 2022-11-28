@@ -32,7 +32,7 @@ class Metobs:
 
         self.version: Optional[Union[str, int]] = None
         self.parameters: Optional[Parameters] = None
-        self.stations: Optional[MetobsStationsV1] = None
+        self.stations: Optional[Stations] = None
         self.periods: Optional[MetobsPeriodsV1] = None
         self.data: Optional[MetobsDataV1] = None
         self.table_raw: Optional[str] = None
@@ -71,11 +71,9 @@ class Metobs:
             raise NotImplementedError("Both arguments None.")
 
         if parameter:
-            self.stations = MetobsStationsV1(
-                self.parameters.resource, parameter=parameter
-            )
+            self.stations = Stations(self.parameters.resource, parameter=parameter)
         else:
-            self.stations = MetobsStationsV1(
+            self.stations = Stations(
                 self.parameters.resource, parameter_title=parameter_title
             )
 
@@ -336,7 +334,7 @@ class Parameters(BaseLevel):
         self.data = tuple((x["key"], x["title"]) for x in self.resource)
 
 
-class MetobsStationsV1(BaseLevel):
+class Stations(BaseLevel):
     """Get stations from parameter for version 1 of Metobs API."""
 
     def __init__(

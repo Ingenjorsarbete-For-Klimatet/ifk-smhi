@@ -5,7 +5,7 @@ from smhi.metobs import (
     Metobs,
     BaseLevel,
     Parameters,
-    MetobsStationsV1,
+    Stations,
     MetobsPeriodsV1,
     MetobsDataV1,
 )
@@ -89,7 +89,7 @@ class TestUnitMetobs:
             (None, None, None, None),
         ],
     )
-    @patch("smhi.metobs.MetobsStationsV1", return_value=1)
+    @patch("smhi.metobs.Stations", return_value=1)
     def test_unit_metobs_get_stations(
         self,
         mock_metobsstationv1,
@@ -101,7 +101,7 @@ class TestUnitMetobs:
         """Unit test for Metobs get_stations method.
 
         Args:
-            mock_metobsstationv1: mock of MetobsStationsV1
+            mock_metobsstationv1: mock of Stations
             parameters: parameters of api
             parameters_title: parameters title of api
             client_parameters: client parameters
@@ -422,7 +422,7 @@ class TestUnitMetObsParameterV1:
 
 
 class TestUnitMetObsStationV1:
-    """Unit tests for MetobsStationsV1 class."""
+    """Unit tests for Stations class."""
 
     @pytest.mark.parametrize(
         "data, parameters, parameters_title, data_type",
@@ -450,7 +450,7 @@ class TestUnitMetObsStationV1:
         parameters_title,
         data_type,
     ):
-        """Unit test for MetobsStationsV1 init method.
+        """Unit test for Stations init method.
 
         Args:
             mock_get_url: mock of _get_url method
@@ -464,20 +464,20 @@ class TestUnitMetObsStationV1:
         """
         if data_type != "json":
             with pytest.raises(TypeError):
-                MetobsStationsV1(data, parameters, parameters_title, data_type)
+                Stations(data, parameters, parameters_title, data_type)
             return None
 
         if parameters is None and parameters_title is None:
             with pytest.raises(NotImplementedError):
-                MetobsStationsV1(data, parameters, parameters_title, data_type)
+                Stations(data, parameters, parameters_title, data_type)
             return None
 
         if parameters and parameters_title:
             with pytest.raises(NotImplementedError):
-                MetobsStationsV1(data, parameters, parameters_title, data_type)
+                Stations(data, parameters, parameters_title, data_type)
             return None
 
-        stations = MetobsStationsV1(data, parameters, parameters_title, data_type)
+        stations = Stations(data, parameters, parameters_title, data_type)
 
         if parameters:
             assert stations.selected_parameter == parameters

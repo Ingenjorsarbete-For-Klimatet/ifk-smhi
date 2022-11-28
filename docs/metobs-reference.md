@@ -6,7 +6,7 @@
 
 ::: smhi.metobs.Parameters
 
-::: smhi.metobs.MetobsStationsV1
+::: smhi.metobs.Stations
 
 ::: smhi.metobs.MetobsPeriodsV1
 
