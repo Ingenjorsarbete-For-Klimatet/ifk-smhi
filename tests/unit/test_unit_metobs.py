@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from smhi.metobs import (
     Metobs,
-    MetobsLevelV1,
+    BaseLevel,
     MetobsParametersV1,
     MetobsStationsV1,
     MetobsPeriodsV1,
@@ -268,12 +268,12 @@ class TestUnitMetobs:
         mock_get_data.assert_called_once()
 
 
-class TestUnitMetobsLevelV1:
-    """Unit tests for MetobsLevelV1 class."""
+class TestUnitBaseLevel:
+    """Unit tests for BaseLevel class."""
 
-    def test_unit_MetobsLevelV1_init(self):
-        """Unit test for MetobsLevelV1 init method."""
-        level = MetobsLevelV1()
+    def test_unit_BaseLevel_init(self):
+        """Unit test for BaseLevel init method."""
+        level = BaseLevel()
 
         assert level.headers is None
         assert level.key is None
@@ -285,16 +285,16 @@ class TestUnitMetobsLevelV1:
 
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.json.loads")
-    def test_unit_MetobsLevelV1_get_and_parse_request(
+    def test_unit_BaseLevel_get_and_parse_request(
         self, mock_json_loads, mock_requests_get
     ):
-        """Unit test for MetobsLevelV1 _get_and_parse_request method.
+        """Unit test for BaseLevel _get_and_parse_request method.
 
         Args:
             mock_json_loads: mock json loads method
             mock_requests_get: mock requests get method
         """
-        level = MetobsLevelV1()
+        level = BaseLevel()
         url = "URL"
 
         content = level._get_and_parse_request(url)
@@ -337,10 +337,10 @@ class TestUnitMetobsLevelV1:
             ([{"link": []}], None, None, None, KeyError),
         ],
     )
-    def test_unit_MetobsLevelV1_get_url(
+    def test_unit_BaseLevel_get_url(
         self, data, key, parameters, data_type, expected_result
     ):
-        """Unit test for MetobsLevelV1 _get_url method.
+        """Unit test for BaseLevel _get_url method.
 
         Args:
             data: list of data
@@ -349,7 +349,7 @@ class TestUnitMetobsLevelV1:
             data_type: format of api data
             expected_result: expected result
         """
-        level = MetobsLevelV1()
+        level = BaseLevel()
 
         if type(expected_result) != str:
             with pytest.raises(expected_result):
@@ -377,8 +377,8 @@ class TestUnitMetObsParameterV1:
     )
     @patch("smhi.metobs.tuple")
     @patch("smhi.metobs.sorted")
-    @patch("smhi.metobs.MetobsLevelV1._get_and_parse_request")
-    @patch("smhi.metobs.MetobsLevelV1._get_url")
+    @patch("smhi.metobs.BaseLevel._get_and_parse_request")
+    @patch("smhi.metobs.BaseLevel._get_url")
     def test_unit_metobsparameterv1_init(
         self,
         mock_get_url,
@@ -437,8 +437,8 @@ class TestUnitMetObsStationV1:
     )
     @patch("smhi.metobs.tuple")
     @patch("smhi.metobs.sorted")
-    @patch("smhi.metobs.MetobsLevelV1._get_and_parse_request")
-    @patch("smhi.metobs.MetobsLevelV1._get_url")
+    @patch("smhi.metobs.BaseLevel._get_and_parse_request")
+    @patch("smhi.metobs.BaseLevel._get_url")
     def test_unit_metobsstationv1_init(
         self,
         mock_get_url,
@@ -517,8 +517,8 @@ class TestUnitMetObsPeriodV1:
         ],
     )
     @patch("smhi.metobs.sorted")
-    @patch("smhi.metobs.MetobsLevelV1._get_and_parse_request")
-    @patch("smhi.metobs.MetobsLevelV1._get_url")
+    @patch("smhi.metobs.BaseLevel._get_and_parse_request")
+    @patch("smhi.metobs.BaseLevel._get_url")
     def test_unit_metobsperiodv1_init(
         self,
         mock_get_url,
@@ -603,8 +603,8 @@ class TestUnitMetObsDataV1:
             ([], "corrected-archive", "json"),
         ],
     )
-    @patch("smhi.metobs.MetobsLevelV1._get_and_parse_request")
-    @patch("smhi.metobs.MetobsLevelV1._get_url")
+    @patch("smhi.metobs.BaseLevel._get_and_parse_request")
+    @patch("smhi.metobs.BaseLevel._get_url")
     def test_unit_metobsdatav1_init(
         self,
         mock_get_url,
@@ -677,8 +677,8 @@ class TestUnitMetObsDataV1:
         ],
     )
     @patch("smhi.metobs.requests.get")
-    @patch("smhi.metobs.MetobsLevelV1._get_and_parse_request")
-    @patch("smhi.metobs.MetobsLevelV1._get_url")
+    @patch("smhi.metobs.BaseLevel._get_and_parse_request")
+    @patch("smhi.metobs.BaseLevel._get_url")
     def test_unit_metobsdatav1_get(
         self,
         mock_get_url,

@@ -2,7 +2,7 @@
 
 ::: smhi.metobs.Metobs
 
-::: smhi.metobs.MetobsLevelV1
+::: smhi.metobs.BaseLevel
 
 ::: smhi.metobs.MetobsParametersV1
 

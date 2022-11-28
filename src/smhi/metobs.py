@@ -235,7 +235,7 @@ class Metobs:
             print()
 
 
-class MetobsLevelV1:
+class BaseLevel:
     """Base Metobs level version 1 class."""
 
     def __init__(self):
@@ -301,7 +301,7 @@ class MetobsLevelV1:
             raise KeyError("Can't find key: {key}".format(key=key))
 
 
-class MetobsParametersV1(MetobsLevelV1):
+class MetobsParametersV1(BaseLevel):
     """Get parameters for version 1 of Metobs API."""
 
     def __init__(
@@ -336,7 +336,7 @@ class MetobsParametersV1(MetobsLevelV1):
         self.data = tuple((x["key"], x["title"]) for x in self.resource)
 
 
-class MetobsStationsV1(MetobsLevelV1):
+class MetobsStationsV1(BaseLevel):
     """Get stations from parameter for version 1 of Metobs API."""
 
     def __init__(
@@ -384,7 +384,7 @@ class MetobsStationsV1(MetobsLevelV1):
         self.data = tuple((x["id"], x["name"]) for i, x in enumerate(self.stations))
 
 
-class MetobsPeriodsV1(MetobsLevelV1):
+class MetobsPeriodsV1(BaseLevel):
     """Get periods from station for version 1 of Metobs API.
 
     Note that stationset_title is not supported
@@ -445,7 +445,7 @@ class MetobsPeriodsV1(MetobsLevelV1):
         self.data = [x["key"] for x in self.periods]
 
 
-class MetobsDataV1(MetobsLevelV1):
+class MetobsDataV1(BaseLevel):
     """Get data from period for version 1 of Metobs API."""
 
     def __init__(
