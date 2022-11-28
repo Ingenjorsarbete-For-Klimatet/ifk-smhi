@@ -34,7 +34,7 @@ class Metobs:
         self.parameters: Optional[Parameters] = None
         self.stations: Optional[Stations] = None
         self.periods: Optional[Periods] = None
-        self.data: Optional[MetobsDataV1] = None
+        self.data: Optional[Data] = None
         self.table_raw: Optional[str] = None
 
     def get_parameters(self, version: Union[str, int] = "1.0"):
@@ -112,7 +112,7 @@ class Metobs:
             logging.info("No periods found, call get_periods first.")
             return None, None
 
-        self.data = MetobsDataV1(self.periods.periods, period)
+        self.data = Data(self.periods.periods, period)
         self.table_raw = self.data.get()
         data_starting_point = self.table_raw.find("Datum")
         header = self.table_raw[0:data_starting_point]
@@ -441,7 +441,7 @@ class Periods(BaseLevel):
         self.data = [x["key"] for x in self.periods]
 
 
-class MetobsDataV1(BaseLevel):
+class Data(BaseLevel):
     """Get data from period for version 1 of Metobs API."""
 
     def __init__(

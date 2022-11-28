@@ -7,7 +7,7 @@ from smhi.metobs import (
     Parameters,
     Stations,
     Periods,
-    MetobsDataV1,
+    Data,
 )
 from smhi.constants import METOBS_AVAILABLE_PERIODS
 
@@ -185,7 +185,7 @@ class TestUnitMetobs:
     @pytest.mark.parametrize("client_periods", [(MagicMock()), (None)])
     @patch("smhi.metobs.io.StringIO")
     @patch("smhi.metobs.pd.read_csv")
-    @patch("smhi.metobs.MetobsDataV1")
+    @patch("smhi.metobs.Data")
     def test_unit_metobs_get_data(
         self, mock_metobsdatav1, mock_pd_read_csv, mock_stringio, client_periods
     ):
@@ -590,7 +590,7 @@ class TestUnitMetObsPeriodV1:
 
 
 class TestUnitMetObsDataV1:
-    """Unit tests for MetobsDataV1 class."""
+    """Unit tests for Data class."""
 
     @pytest.mark.parametrize(
         "data, periods, data_type",
@@ -613,7 +613,7 @@ class TestUnitMetObsDataV1:
         periods,
         data_type,
     ):
-        """Unit test for MetobsDataV1 init method.
+        """Unit test for Data init method.
 
         Args:
             mock_get_url: mock of _get_url method
@@ -624,15 +624,15 @@ class TestUnitMetObsDataV1:
         """
         if data_type != "json":
             with pytest.raises(TypeError):
-                MetobsDataV1(data, periods, data_type)
+                Data(data, periods, data_type)
             return None
 
         if periods not in METOBS_AVAILABLE_PERIODS:
             with pytest.raises(NotImplementedError):
-                MetobsDataV1(data, periods, data_type)
+                Data(data, periods, data_type)
             return None
 
-        data = MetobsDataV1(data, periods, data_type)
+        data = Data(data, periods, data_type)
 
         assert data.selected_period == periods
         assert data.time_from == mock_get_and_parse_request.return_value["from"]
@@ -690,7 +690,7 @@ class TestUnitMetObsDataV1:
         data_type_init,
         raise_error,
     ):
-        """Unit test for MetobsDataV1 get method.
+        """Unit test for Data get method.
 
         Args:
             mock_get_url: mock of _get_url method
@@ -702,7 +702,7 @@ class TestUnitMetObsDataV1:
             data_type: data type
             raise_error: raise error or not
         """
-        data_object = MetobsDataV1(data, periods, data_type_init)
+        data_object = Data(data, periods, data_type_init)
         data_object.data = data
         read_data = data_object.get(data_type)
 

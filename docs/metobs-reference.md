@@ -10,4 +10,4 @@
 
 ::: smhi.metobs.Periods
 
-::: smhi.metobs.MetobsDataV1
+::: smhi.metobs.Data
