@@ -6,7 +6,7 @@ from smhi.metobs import (
     BaseLevel,
     Parameters,
     Stations,
-    MetobsPeriodsV1,
+    Periods,
     MetobsDataV1,
 )
 from smhi.constants import METOBS_AVAILABLE_PERIODS
@@ -140,7 +140,7 @@ class TestUnitMetobs:
             (None, None, None, None),
         ],
     )
-    @patch("smhi.metobs.MetobsPeriodsV1", return_value=1)
+    @patch("smhi.metobs.Periods", return_value=1)
     def test_unit_metobs_get_periods(
         self,
         mock_metobsperiodv1,
@@ -152,7 +152,7 @@ class TestUnitMetobs:
         """Unit test for Metobs get_stations method.
 
         Args:
-            mock_metobsperiodv1: mock of MetobsPeriodsV1
+            mock_metobsperiodv1: mock of Periods
             stations: stations of api
             stationset: stations set of api
             client_stations: client stations
@@ -500,7 +500,7 @@ class TestUnitMetObsStationV1:
 
 
 class TestUnitMetObsPeriodV1:
-    """Unit tests for MetobsPeriodsV1 class."""
+    """Unit tests for Periods class."""
 
     @pytest.mark.parametrize(
         "data, stations, station_name, stationset, data_type",
@@ -530,7 +530,7 @@ class TestUnitMetObsPeriodV1:
         stationset,
         data_type,
     ):
-        """Unit test for MetobsPeriodsV1 init method.
+        """Unit test for Periods init method.
 
         Args:
             mock_get_url: mock of _get_url method
@@ -544,20 +544,20 @@ class TestUnitMetObsPeriodV1:
         """
         if data_type != "json":
             with pytest.raises(TypeError):
-                MetobsPeriodsV1(data, stations, station_name, stationset, data_type)
+                Periods(data, stations, station_name, stationset, data_type)
             return None
 
         if [stations, station_name, stationset].count(None) == 3:
             with pytest.raises(NotImplementedError):
-                MetobsPeriodsV1(data, stations, station_name, stationset, data_type)
+                Periods(data, stations, station_name, stationset, data_type)
             return None
 
         if [bool(x) for x in [stations, station_name, stationset]].count(True) > 1:
             with pytest.raises(NotImplementedError):
-                MetobsPeriodsV1(data, stations, station_name, stationset, data_type)
+                Periods(data, stations, station_name, stationset, data_type)
             return None
 
-        periods = MetobsPeriodsV1(data, stations, station_name, stationset, data_type)
+        periods = Periods(data, stations, station_name, stationset, data_type)
 
         if stations:
             assert periods.selected_station == stations

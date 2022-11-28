@@ -33,7 +33,7 @@ class Metobs:
         self.version: Optional[Union[str, int]] = None
         self.parameters: Optional[Parameters] = None
         self.stations: Optional[Stations] = None
-        self.periods: Optional[MetobsPeriodsV1] = None
+        self.periods: Optional[Periods] = None
         self.data: Optional[MetobsDataV1] = None
         self.table_raw: Optional[str] = None
 
@@ -94,11 +94,9 @@ class Metobs:
             raise NotImplementedError("Both arguments None.")
 
         if station:
-            self.periods = MetobsPeriodsV1(self.stations.stations, station)
+            self.periods = Periods(self.stations.stations, station)
         else:
-            self.periods = MetobsPeriodsV1(
-                self.stations.stations, stationset=stationset
-            )
+            self.periods = Periods(self.stations.stations, stationset=stationset)
 
     def get_data(self, period: str = "corrected-archive") -> tuple[Any, Any]:
         """Get SMHI Metobs API (version 1) data from given period.
@@ -382,7 +380,7 @@ class Stations(BaseLevel):
         self.data = tuple((x["id"], x["name"]) for i, x in enumerate(self.stations))
 
 
-class MetobsPeriodsV1(BaseLevel):
+class Periods(BaseLevel):
     """Get periods from station for version 1 of Metobs API.
 
     Note that stationset_title is not supported

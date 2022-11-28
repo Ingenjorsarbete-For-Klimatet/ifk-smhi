@@ -8,6 +8,6 @@
 
 ::: smhi.metobs.Stations
 
-::: smhi.metobs.MetobsPeriodsV1
+::: smhi.metobs.Periods
 
 ::: smhi.metobs.MetobsDataV1
