@@ -31,7 +31,6 @@ class Metobs:
         self.stations: Optional[Stations] = None
         self.periods: Optional[Periods] = None
         self.data: Optional[Data] = None
-        self.table_raw: Optional[str] = None
 
     def get_parameters(self, version: Union[str, int] = "1.0"):
         """Get SMHI Metobs API parameters from version. Only supports `version = 1.0`.
@@ -46,6 +45,9 @@ class Metobs:
             raise NotImplementedError(
                 "Version {} not supported. Only supports version = 1.0.".format(version)
             )
+
+        if self.versions is None:
+            self.versions = Versions()
 
         self.version = version
         self.parameters = Parameters(self.versions)
@@ -107,11 +109,11 @@ class Metobs:
             return None, None
 
         self.data = Data(self.periods, period)
-        self.table_raw = self.data.data
-        data_starting_point = self.table_raw.find("Datum")
-        header = self.table_raw[:data_starting_point]
+        table_raw = self.data.data
+        data_starting_point = table_raw.find("Datum")
+        header = table_raw[:data_starting_point]
         table = pd.read_csv(
-            io.StringIO(self.table_raw[data_starting_point:-1]),
+            io.StringIO(table_raw[data_starting_point:-1]),
             sep=";",
             on_bad_lines="skip",
             usecols=[0, 1, 2],
@@ -177,7 +179,7 @@ class Metobs:
             num_print: number of items to print
         """
         print("API version")
-        print("Available versions: ", [x["key"] for x in self.available_versions])
+        print("Available versions: ", [x["key"] for x in self.versions.data])
         print("Selected version: ", self.version)
         print()
 
@@ -237,7 +239,7 @@ class BaseLevel:
         self.summary = None
         self.link = None
         self.data_type = None
-        self.data = None
+        self.data: Any = None
 
     @property
     def show(self):
