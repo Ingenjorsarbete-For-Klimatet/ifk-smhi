@@ -45,7 +45,6 @@ class TestUnitMetobs:
         assert client.stations is None
         assert client.periods is None
         assert client.data is None
-        assert client.table_raw is None
         mock_requests_get.assert_called_once()
         mock_json_loads.assert_called_once()
 
@@ -207,7 +206,6 @@ class TestUnitMetobs:
         client.get_data()
 
         assert client.data == mock_data.return_value
-        assert client.table_raw == mock_data.return_value.get()
 
         mock_data.assert_called_once()
         mock_pd_read_csv.assert_called_once()
@@ -366,13 +364,13 @@ class TestUnitParameter:
     """Unit tests for Parameters class."""
 
     @pytest.mark.parametrize(
-        "data, version, data_type",
+        "versions, version, data_type",
         [
-            ([], "1.0", "json"),
-            ([], 1, "json"),
-            ([], 1, "yaml"),
-            ([], None, "json"),
-            ([], None, None),
+            (MagicMock(), "1.0", "json"),
+            (MagicMock(), 1, "json"),
+            (MagicMock(), 1, "yaml"),
+            (MagicMock(), None, "json"),
+            (MagicMock(), None, None),
         ],
     )
     @patch("smhi.metobs.tuple")
@@ -385,7 +383,7 @@ class TestUnitParameter:
         mock_get_and_parse_request,
         mock_sorted,
         mock_tuple,
-        data,
+        versions,
         version,
         data_type,
     ):
@@ -396,23 +394,23 @@ class TestUnitParameter:
             mock_get_and_parse_request: mock _get_and_parse_request get method
             mock_sorted: mock of sorted call
             mock_tuple: mock of tuple call
-            data: list of data
+            versions: versions object
             version: version of API
             data_type: format of api data
         """
         if data_type != "json":
             with pytest.raises(TypeError):
-                Parameters(data, version, data_type)
+                Parameters(versions, version, data_type)
 
             return None
 
         if ("1.0" if version == 1 else version) != "1.0":
             with pytest.raises(NotImplementedError):
-                Parameters(data, version, data_type)
+                Parameters(versions, version, data_type)
 
             return None
 
-        parameters = Parameters(data, version, data_type)
+        parameters = Parameters(versions, version, data_type)
         assert parameters.resource == mock_sorted.return_value
         assert parameters.data == mock_tuple.return_value
         mock_get_url.assert_called_once()
@@ -425,14 +423,14 @@ class TestUnitStation:
     """Unit tests for Stations class."""
 
     @pytest.mark.parametrize(
-        "data, parameters, parameters_title, data_type",
+        "parameters, parameter, parameter_title, data_type",
         [
-            ([], None, None, "yaml"),
-            ([], None, None, "json"),
-            ([], "key", None, "json"),
-            ([], None, "title", "json"),
-            ([], "key", "title", "json"),
-            ([], "key", "title", None),
+            (MagicMock(), None, None, "yaml"),
+            (MagicMock(), None, None, "json"),
+            (MagicMock(), "key", None, "json"),
+            (MagicMock(), None, "title", "json"),
+            (MagicMock(), "key", "title", "json"),
+            (MagicMock(), "key", "title", None),
         ],
     )
     @patch("smhi.metobs.tuple")
@@ -445,9 +443,9 @@ class TestUnitStation:
         mock_get_and_parse_request,
         mock_sorted,
         mock_tuple,
-        data,
         parameters,
-        parameters_title,
+        parameter,
+        parameter_title,
         data_type,
     ):
         """Unit test for Stations init method.
@@ -457,33 +455,33 @@ class TestUnitStation:
             mock_get_and_parse_request: mock of _get_and_parse_request method
             mock_sorted: mock sorted call
             mock_tuple: mock tuple call
-            data: data list
-            parameters: parameters
-            parameters_title: parameters title
+            parameters: parameter object
+            parameter: parameter
+            parameter_title: parameter title
             data_type: type of data
         """
         if data_type != "json":
             with pytest.raises(TypeError):
-                Stations(data, parameters, parameters_title, data_type)
+                Stations(parameters, parameter, parameter_title, data_type)
             return None
 
-        if parameters is None and parameters_title is None:
+        if parameter is None and parameter_title is None:
             with pytest.raises(NotImplementedError):
-                Stations(data, parameters, parameters_title, data_type)
+                Stations(parameters, parameter, parameter_title, data_type)
             return None
 
-        if parameters and parameters_title:
+        if parameter and parameter_title:
             with pytest.raises(NotImplementedError):
-                Stations(data, parameters, parameters_title, data_type)
+                Stations(parameters, parameter, parameter_title, data_type)
             return None
 
-        stations = Stations(data, parameters, parameters_title, data_type)
+        stations = Stations(parameters, parameter, parameter_title, data_type)
 
-        if parameters:
-            assert stations.selected_parameter == parameters
+        if parameter:
+            assert stations.selected_parameter == parameter
 
-        if parameters_title:
-            assert stations.selected_parameter == parameters_title
+        if parameter_title:
+            assert stations.selected_parameter == parameter_title
 
         assert (
             stations.valuetype == mock_get_and_parse_request.return_value["valueType"]
@@ -503,17 +501,17 @@ class TestUnitPeriod:
     """Unit tests for Periods class."""
 
     @pytest.mark.parametrize(
-        "data, stations, station_name, stationset, data_type",
+        "stations, station, station_name, stationset, data_type",
         [
-            ([], None, None, None, "yaml"),
-            ([], None, None, None, "json"),
-            ([], "p1", None, None, "json"),
-            ([], None, "p2", None, "json"),
-            ([], None, None, "p3", "json"),
-            ([], "p1", "p2", None, "json"),
-            ([], "p1", None, "p3", "json"),
-            ([], None, "p2", "p3", "json"),
-            ([], "p1", "p2", "p3", "json"),
+            (MagicMock(), None, None, None, "yaml"),
+            (MagicMock(), None, None, None, "json"),
+            (MagicMock(), "p1", None, None, "json"),
+            (MagicMock(), None, "p2", None, "json"),
+            (MagicMock(), None, None, "p3", "json"),
+            (MagicMock(), "p1", "p2", None, "json"),
+            (MagicMock(), "p1", None, "p3", "json"),
+            (MagicMock(), None, "p2", "p3", "json"),
+            (MagicMock(), "p1", "p2", "p3", "json"),
         ],
     )
     @patch("smhi.metobs.sorted")
@@ -524,8 +522,8 @@ class TestUnitPeriod:
         mock_get_url,
         mock_get_and_parse_request,
         mock_sorted,
-        data,
         stations,
+        station,
         station_name,
         stationset,
         data_type,
@@ -536,31 +534,31 @@ class TestUnitPeriod:
             mock_get_url: mock of _get_url method
             mock_get_and_parse_request: mock of _get_and_parse_request method
             mock_sorted: mock sorted call
-            data: data list
-            stations: stations
+            stations: stations object
+            station: station
             station_name: stations name
             stationset: stations set
             data_type: type of data
         """
         if data_type != "json":
             with pytest.raises(TypeError):
-                Periods(data, stations, station_name, stationset, data_type)
+                Periods(stations, station, station_name, stationset, data_type)
             return None
 
-        if [stations, station_name, stationset].count(None) == 3:
+        if [station, station_name, stationset].count(None) == 3:
             with pytest.raises(NotImplementedError):
-                Periods(data, stations, station_name, stationset, data_type)
+                Periods(stations, station, station_name, stationset, data_type)
             return None
 
-        if [bool(x) for x in [stations, station_name, stationset]].count(True) > 1:
+        if [bool(x) for x in [station, station_name, stationset]].count(True) > 1:
             with pytest.raises(NotImplementedError):
-                Periods(data, stations, station_name, stationset, data_type)
+                Periods(stations, station, station_name, stationset, data_type)
             return None
 
-        periods = Periods(data, stations, station_name, stationset, data_type)
+        periods = Periods(stations, station, station_name, stationset, data_type)
 
-        if stations:
-            assert periods.selected_station == stations
+        if station:
+            assert periods.selected_station == station
 
         if station_name:
             assert periods.selected_station == station_name
@@ -582,7 +580,7 @@ class TestUnitPeriod:
         assert periods.time_to == mock_get_and_parse_request.return_value["to"]
         assert periods.position == mock_get_and_parse_request.return_value["position"]
         assert periods.periods == mock_sorted.return_value
-        assert periods.data == []
+        assert periods.data == ()
 
         mock_get_url.assert_called_once()
         mock_get_and_parse_request.assert_called_once()
@@ -593,56 +591,59 @@ class TestUnitData:
     """Unit tests for Data class."""
 
     @pytest.mark.parametrize(
-        "data, periods, data_type",
+        "periods, period, data_type",
         [
-            ([], None, "yaml"),
-            ([], None, "json"),
-            ([], "latest-hour", "json"),
-            ([], "latest", "json"),
-            ([], "latest-months", "json"),
-            ([], "corrected-archive", "json"),
+            (MagicMock(), None, "yaml"),
+            (MagicMock(), None, "json"),
+            (MagicMock(), "latest-hour", "json"),
+            (MagicMock(), "latest", "json"),
+            (MagicMock(), "latest-months", "json"),
+            (MagicMock(), "corrected-archive", "json"),
         ],
     )
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
     @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.Data._get_data")
     def test_unit_data_init(
         self,
+        mock_get_data,
         mock_get_url,
         mock_get_and_parse_request,
-        data,
         periods,
+        period,
         data_type,
     ):
         """Unit test for Data init method.
 
         Args:
+            mock_get_data: mock of _get_data method
             mock_get_url: mock of _get_url method
             mock_get_and_parse_request: mock of _get_and_parse_request method
-            data: data list
-            periods: periods
+            period: period object
+            period: period
             data_type: type of data
         """
         if data_type != "json":
             with pytest.raises(TypeError):
-                Data(data, periods, data_type)
+                Data(periods, period, data_type)
             return None
 
-        if periods not in METOBS_AVAILABLE_PERIODS:
+        if period not in METOBS_AVAILABLE_PERIODS:
             with pytest.raises(NotImplementedError):
-                Data(data, periods, data_type)
+                Data(periods, period, data_type)
             return None
 
-        data = Data(data, periods, data_type)
+        data = Data(periods, period, data_type)
 
-        assert data.selected_period == periods
+        assert data.selected_period == period
         assert data.time_from == mock_get_and_parse_request.return_value["from"]
         assert data.time_to == mock_get_and_parse_request.return_value["to"]
-        assert data.data == mock_get_and_parse_request.return_value["data"]
+        assert data.data == mock_get_data.return_value
         mock_get_url.assert_called_once()
         mock_get_and_parse_request.assert_called_once()
 
     @pytest.mark.parametrize(
-        "data, periods, data_type, data_type_init, raise_error",
+        "periods, period, data_type, data_type_init, raise_error",
         [
             (
                 [
@@ -679,13 +680,13 @@ class TestUnitData:
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
     @patch("smhi.metobs.BaseLevel._get_url")
-    def test_unit_data_get(
+    def test_unit_data_get_data(
         self,
         mock_get_url,
         mock_get_and_parse_request,
         mock_request_get,
-        data,
         periods,
+        period,
         data_type,
         data_type_init,
         raise_error,
@@ -693,18 +694,19 @@ class TestUnitData:
         """Unit test for Data get method.
 
         Args:
-            mock_get_url: mock of _get_url method
-            mock_get_and_parse_request: mock of _get_and_parse_request method
+            mock_get_url: mock of get_url
+            mock_get_and_parse_request: mock of _get_and_parse_request
             mock_request_get: mock of requests get method
-            data: data
-            periods: periods
+            periods: periods object
+            period: period
             data_type_init: data type init
             data_type: data type
             raise_error: raise error or not
         """
-        data_object = Data(data, periods, data_type_init)
-        data_object.data = data
-        read_data = data_object.get(data_type)
+        data_object = Data(MagicMock(), period, data_type_init)
+        data_object.raw_data = periods
+        # data_object.data = periods
+        read_data = data_object._get_data(data_type)
 
         if raise_error is True:
 

@@ -322,7 +322,7 @@ class Versions(BaseLevel):
             raise TypeError("Only json supported.")
 
         content = self._get_and_parse_request(METOBS_URL)
-        self.data = content["version"]
+        self.data = tuple(content["version"])
 
 
 class Parameters(BaseLevel):
@@ -361,7 +361,7 @@ class Parameters(BaseLevel):
         url = self._get_url(versions_object.data, "key", version, data_type)
         content = self._get_and_parse_request(url)
         self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
-        self.data = [(x["key"], x["title"]) for x in self.resource]
+        self.data = tuple((x["key"], x["title"]) for x in self.resource)
 
 
 class Stations(BaseLevel):
@@ -412,7 +412,7 @@ class Stations(BaseLevel):
         self.valuetype = content["valueType"]
         self.stationset = content["stationSet"]
         self.stations = sorted(content["station"], key=lambda x: int(x["id"]))
-        self.data = [(x["id"], x["name"]) for i, x in enumerate(self.stations)]
+        self.data = tuple((x["id"], x["name"]) for i, x in enumerate(self.stations))
 
 
 class Periods(BaseLevel):
@@ -476,7 +476,7 @@ class Periods(BaseLevel):
         self.time_to = content["to"]
         self.position = content["position"]
         self.periods = sorted(content["period"], key=lambda x: x["key"])
-        self.data = [x["key"] for x in self.periods]
+        self.data = tuple(x["key"] for x in self.periods)
 
 
 class Data(BaseLevel):
@@ -529,14 +529,16 @@ class Data(BaseLevel):
         Returns:
             utf-8 decoded response
         """
+        content = b""
+
         for item in self.raw_data:
             for link in item["link"]:
                 if link["type"] != type:
                     continue
 
-                response = requests.get(link["href"])
+                content = requests.get(link["href"]).content
 
                 break
             break
 
-        return response.content.decode("utf-8")
+        return content.decode("utf-8")
