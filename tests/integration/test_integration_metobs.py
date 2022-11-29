@@ -87,8 +87,6 @@ class TestIntegrationMetobs:
         client.get_periods(station)
         header, data = client.get_data(period)
 
-        assert client.content["key"] == init_key
-        assert client.content["title"] == init_title
         assert client.parameters.data[0] == parameter_data_0
         assert client.stations.data[0] == station_data_0
         assert client.periods.data[0] == period_data_0
