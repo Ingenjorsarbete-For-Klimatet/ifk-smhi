@@ -47,9 +47,6 @@ class Metobs:
                 "Version {} not supported. Only supports version = 1.0.".format(version)
             )
 
-        if self.versions is None:
-            self.versions = Versions()
-
         self.version = version
         self.parameters = Parameters(self.versions)
 

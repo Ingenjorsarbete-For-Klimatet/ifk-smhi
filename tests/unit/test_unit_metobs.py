@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 from smhi.metobs import (
     Metobs,
     BaseLevel,
+    Versions,
     Parameters,
     Stations,
     Periods,
@@ -55,7 +56,7 @@ class TestUnitMetobs:
         mock_requests_get.assert_called_once()
         mock_json_loads.assert_called_once()
 
-    @pytest.mark.parametrize("version", [("1.0"), ("latest"), (1)])
+    @pytest.mark.parametrize("version", [("1.0"), ("latest"), (1), (None)])
     @patch("smhi.metobs.Parameters")
     def test_unit_metobs_get_parameters(
         self,
@@ -279,6 +280,11 @@ class TestUnitBaseLevel:
         assert level.link is None
         assert level.data_type is None
 
+    def test_baselevel_unit_show(self):
+        """Unit test for BaseLevel show property."""
+        level = BaseLevel()
+        assert level.show is None
+
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.json.loads")
     def test_unit_baselevel_get_and_parse_request(
@@ -358,6 +364,40 @@ class TestUnitBaseLevel:
         assert url == expected_result
 
 
+class TestUnitVersions:
+    """Unit tests for Versionss class."""
+
+    @pytest.mark.parametrize(
+        "data_type",
+        [("json"), ("yaml"), ("json"), (None)],
+    )
+    @patch("smhi.metobs.tuple")
+    @patch("smhi.metobs.BaseLevel._get_and_parse_request")
+    def test_unit_versions_init(
+        self,
+        mock_get_and_parse_request,
+        mock_tuple,
+        data_type,
+    ):
+        """Unit test for Parameters init method.
+
+        Args:
+            mock_get_and_parse_request: mock _get_and_parse_request get method
+            mock_tuple: mock of tuple call
+            data_type: format of api data
+        """
+        if data_type != "json":
+            with pytest.raises(TypeError):
+                Versions(data_type)
+
+            return None
+
+        versions = Versions(data_type)
+        assert versions.data == mock_tuple.return_value
+        mock_get_and_parse_request.assert_called_once()
+        mock_tuple.assert_called_once()
+
+
 class TestUnitParameter:
     """Unit tests for Parameters class."""
 
@@ -369,14 +409,17 @@ class TestUnitParameter:
             (MagicMock(), 1, "yaml"),
             (MagicMock(), None, "json"),
             (MagicMock(), None, None),
+            (None, "1.0", "json"),
         ],
     )
     @patch("smhi.metobs.tuple")
     @patch("smhi.metobs.sorted")
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
     @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.Versions")
     def test_unit_parameters_init(
         self,
+        mock_versions,
         mock_get_url,
         mock_get_and_parse_request,
         mock_sorted,
@@ -388,6 +431,7 @@ class TestUnitParameter:
         """Unit test for Parameters init method.
 
         Args:
+            mock_versions: mock of Versions class
             mock_get_url: mock _get_url method
             mock_get_and_parse_request: mock _get_and_parse_request get method
             mock_sorted: mock of sorted call
@@ -415,6 +459,9 @@ class TestUnitParameter:
         mock_get_and_parse_request.assert_called_once()
         mock_sorted.assert_called_once()
         mock_tuple.assert_called_once()
+
+        if versions is None:
+            mock_versions.assert_called_once()
 
 
 class TestUnitStation:
