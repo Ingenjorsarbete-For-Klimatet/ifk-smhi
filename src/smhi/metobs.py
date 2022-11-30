@@ -530,7 +530,7 @@ class Data(BaseLevel):
                 return
 
     def _parse_data(self, table_raw: str) -> None:
-        """Parse string data
+        """Parse string data.
 
         Args:
             utf-8 decoded response
