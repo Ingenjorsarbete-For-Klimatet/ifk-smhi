@@ -13,10 +13,10 @@ from smhi.constants import METOBS_AVAILABLE_PERIODS
 
 
 with open("tests/fixtures/unit_metobs_data.txt") as f:
-    METOBS_DATA = f.readline()
-    METOBS_NODATA = f.readline()
-    METOBS_DATA_RESULT = f.readline()
-    METOBS_NODATA_RESULT = f.readline()
+    METOBS_DATA = f.readline().encode("latin1").decode("unicode-escape")
+    METOBS_NODATA = f.readline().encode("latin1").decode("unicode-escape")
+    METOBS_DATA_RESULT = f.readline().encode("latin1").decode("unicode-escape")[:-1]
+    METOBS_NODATA_RESULT = f.readline().encode("latin1").decode("unicode-escape")
 
 
 class TestUnitMetobs:
@@ -714,3 +714,27 @@ class TestUnitData:
         mock_parse_data.assert_called_once_with(
             mock_request_get.return_value.content.decode("utf-8")
         )
+
+    @pytest.mark.parametrize(
+        "data, result",
+        [(METOBS_DATA, METOBS_DATA_RESULT), (METOBS_NODATA, METOBS_NODATA_RESULT)],
+    )
+    @patch("smhi.metobs.BaseLevel._get_and_parse_request")
+    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.Data._get_data")
+    def test_unit_data_parse_data(
+        self, _get_data, mock_get_url, mock_get_and_parse_request, data, result
+    ):
+        """Unit test for Data get method.
+
+        Args:
+            _get_data: mock of _get_data
+            mock_get_url: mock of _get_url
+            mock_get_and_parse_request: mock of _get_and_parse_request
+            data: data
+            result: expected result
+        """
+        data_object = Data(MagicMock(), "corrected-archive", "json")
+        data_object._parse_data(data)
+
+        assert data_object.data.to_string() == result
