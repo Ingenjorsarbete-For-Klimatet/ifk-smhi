@@ -4,7 +4,8 @@ import json
 import logging
 import requests
 import pandas as pd
-from typing import Union, Optional, Any
+from typing import Union, Optional, Any, Dict
+from requests.structures import CaseInsensitiveDict
 from smhi.constants import METOBS_URL, TYPE_MAP, METOBS_AVAILABLE_PERIODS
 
 
@@ -109,16 +110,8 @@ class Metobs:
             return None, None
 
         self.data = Data(self.periods, period)
-        table_raw = self.data.data
-        data_starting_point = table_raw.find("Datum")
-        header = table_raw[:data_starting_point]
-        table = pd.read_csv(
-            io.StringIO(table_raw[data_starting_point:-1]),
-            sep=";",
-            on_bad_lines="skip",
-            usecols=[0, 1, 2],
-        )
-        return header, table
+
+        return self.data.data_header, self.data.data
 
     def get_data_from_selection(
         self,
@@ -230,23 +223,24 @@ class Metobs:
 class BaseLevel:
     """Base Metobs level version 1 class."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise base class."""
-        self.headers = None
-        self.key = None
-        self.updated = None
-        self.title = None
-        self.summary = None
-        self.link = None
-        self.data_type = None
+        self.headers: Optional[CaseInsensitiveDict] = None
+        self.key: Optional[str] = None
+        self.updated: Optional[str] = None
+        self.title: Optional[str] = None
+        self.summary: Optional[str] = None
+        self.link: Optional[str] = None
+        self.data_type: Optional[str] = None
+        self.data_header: Optional[str] = None
         self.data: Any = None
 
     @property
-    def show(self):
+    def show(self) -> Any:
         """Show property."""
         return self.data
 
-    def _get_and_parse_request(self, url: str):
+    def _get_and_parse_request(self, url: str) -> Dict[Any, Any]:
         """Get and parse API request. Only JSON supported.
 
         Args:
@@ -288,7 +282,7 @@ class BaseLevel:
         Raises:
             IndexError
         """
-        self.data_type = data_type = TYPE_MAP[data_type]
+        self.data_type = TYPE_MAP[data_type]
         try:
             requested_data = [x for x in data if x[key] == str(parameter)][0]["link"]
             url = [x["href"] for x in requested_data if x["type"] == self.data_type][0]
@@ -518,27 +512,39 @@ class Data(BaseLevel):
         self.time_from = content["from"]
         self.time_to = content["to"]
         self.raw_data = content["data"]
-        self.data = self._get_data()
+        self._get_data()
 
-    def _get_data(self, type: str = "text/plain") -> str:
+    def _get_data(self, type: str = "text/plain") -> None:
         """Get the selected data file.
 
         Args:
             type: type of request
-
-        Returns:
-            utf-8 decoded response
         """
-        content = b""
-
         for item in self.raw_data:
             for link in item["link"]:
                 if link["type"] != type:
                     continue
 
-                content = requests.get(link["href"]).content
+                content = requests.get(link["href"]).content.decode("utf-8")
+                self._parse_data(content)
+                return
 
-                break
-            break
+    def _parse_data(self, table_raw: str) -> None:
+        """Parse string data
 
-        return content.decode("utf-8")
+        Args:
+            utf-8 decoded response
+        """
+        data_starting_point = table_raw.find("Datum")
+        self.data_header = table_raw[:data_starting_point]
+        self.data = pd.read_csv(
+            io.StringIO(table_raw[data_starting_point:-1]),
+            sep=";",
+            on_bad_lines="skip",
+            usecols=[0, 1, 2],
+        )
+        print()
+        print(table_raw[data_starting_point:-1])
+
+        print()
+        print(self.data)
