@@ -12,6 +12,13 @@ from smhi.metobs import (
 from smhi.constants import METOBS_AVAILABLE_PERIODS
 
 
+with open("tests/fixtures/unit_metobs_data.txt") as f:
+    METOBS_DATA = f.readline()
+    METOBS_NODATA = f.readline()
+    METOBS_DATA_RESULT = f.readline()
+    METOBS_NODATA_RESULT = f.readline()
+
+
 class TestUnitMetobs:
     """Unit tests for Metobs class."""
 
@@ -182,18 +189,12 @@ class TestUnitMetobs:
             mock_period.assert_called_once()
 
     @pytest.mark.parametrize("client_periods", [(MagicMock()), (None)])
-    @patch("smhi.metobs.io.StringIO")
-    @patch("smhi.metobs.pd.read_csv")
     @patch("smhi.metobs.Data")
-    def test_unit_metobs_get_data(
-        self, mock_data, mock_pd_read_csv, mock_stringio, client_periods
-    ):
+    def test_unit_metobs_get_data(self, mock_data, client_periods):
         """Unit test for Metobs get_data method.
 
         Args:
             mock_data: mock of metobs data class
-            mock_pd_read_csv: mock of pandas read_csv
-            mock_stringio: mock of io StringIO
             client_periods: client periods
         """
         client = Metobs()
@@ -203,13 +204,10 @@ class TestUnitMetobs:
             assert client.get_data() == (None, None)
             return
 
-        client.get_data()
+        header, data = client.get_data()
 
-        assert client.data == mock_data.return_value
-
+        assert header, data == mock_data.return_value
         mock_data.assert_called_once()
-        mock_pd_read_csv.assert_called_once()
-        mock_stringio.assert_called_once()
 
     @patch("smhi.metobs.Metobs.get_parameters")
     @patch("smhi.metobs.Metobs.get_stations")
@@ -638,7 +636,6 @@ class TestUnitData:
         assert data.selected_period == period
         assert data.time_from == mock_get_and_parse_request.return_value["from"]
         assert data.time_to == mock_get_and_parse_request.return_value["to"]
-        assert data.data == mock_get_data.return_value
         mock_get_url.assert_called_once()
         mock_get_and_parse_request.assert_called_once()
 
@@ -680,8 +677,10 @@ class TestUnitData:
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
     @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.Data._parse_data")
     def test_unit_data_get_data(
         self,
+        mock_parse_data,
         mock_get_url,
         mock_get_and_parse_request,
         mock_request_get,
@@ -694,7 +693,8 @@ class TestUnitData:
         """Unit test for Data get method.
 
         Args:
-            mock_get_url: mock of get_url
+            mock_parse_data: mock of _parse_data
+            mock_get_url: mock of _get_url
             mock_get_and_parse_request: mock of _get_and_parse_request
             mock_request_get: mock of requests get method
             periods: periods object
@@ -705,11 +705,12 @@ class TestUnitData:
         """
         data_object = Data(MagicMock(), period, data_type_init)
         data_object.raw_data = periods
-        # data_object.data = periods
-        read_data = data_object._get_data(data_type)
+        data_object._get_data(data_type)
 
         if raise_error is True:
-
             return
-        assert read_data == mock_request_get.return_value.content.decode("utf-8")
+
         mock_request_get.assert_called_once()
+        mock_parse_data.assert_called_once_with(
+            mock_request_get.return_value.content.decode("utf-8")
+        )

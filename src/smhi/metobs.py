@@ -543,8 +543,3 @@ class Data(BaseLevel):
             on_bad_lines="skip",
             usecols=[0, 1, 2],
         )
-        print()
-        print(table_raw[data_starting_point:-1])
-
-        print()
-        print(self.data)
