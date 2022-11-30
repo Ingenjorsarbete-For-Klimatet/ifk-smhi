@@ -122,6 +122,11 @@ class Metobs:
             on_bad_lines="skip",
             usecols=[0, 1, 2],
         )
+        table["datetime"] = table["Datum"] + ' ' + table["Tid (UTC)"]
+        table["datetime"] = pd.to_datetime(table["datetime"])
+        table.drop('Datum', axis=1, inplace=True)
+        table.drop('Tid (UTC)', axis=1, inplace=True)
+        table.set_index('datetime', inplace=True)
         return header, table
 
     def get_data_from_selection(
