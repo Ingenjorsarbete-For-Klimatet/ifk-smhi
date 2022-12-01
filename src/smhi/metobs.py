@@ -360,7 +360,7 @@ class Stations(BaseLevel):
 
     def __init__(
         self,
-        parameters_object: Parameters,
+        parameters_in_version: Parameters,
         parameter: Optional[int] = None,
         parameter_title: Optional[str] = None,
         data_type: str = "json",
@@ -368,7 +368,7 @@ class Stations(BaseLevel):
         """Get stations from parameters.
 
         Args:
-            parameters_object: parameters object
+            parameters_in_version: parameters object
             parameter: integer parameter key to get
             parameter_title: exact parameter title to get
             data_type: data_type of request
@@ -389,14 +389,16 @@ class Stations(BaseLevel):
         if parameter and parameter_title:
             raise NotImplementedError("Can't decide which input to select.")
 
-        self.parameters_object = parameters_object
+        self.parameters_in_version = parameters_in_version
         if parameter:
             self.selected_parameter = parameter
-            url = self._get_url(parameters_object.resource, "key", parameter, data_type)
+            url = self._get_url(
+                parameters_in_version.resource, "key", parameter, data_type
+            )
         if parameter_title:
             self.selected_parameter = parameter_title
             url = self._get_url(
-                parameters_object.resource, "title", parameter_title, data_type
+                parameters_in_version.resource, "title", parameter_title, data_type
             )
 
         content = self._get_and_parse_request(url)
@@ -414,7 +416,7 @@ class Periods(BaseLevel):
 
     def __init__(
         self,
-        stations_object: Stations,
+        stations_in_parameter: Stations,
         station: Optional[int] = None,
         station_name: Optional[str] = None,
         stationset: Optional[str] = None,
@@ -423,7 +425,7 @@ class Periods(BaseLevel):
         """Get periods from station.
 
         Args:
-            stations_object: stations object
+            stations_in_parameter: stations object
             station: integer station key to get
             station_name: exact station name to get
             stationset: station set to get
@@ -445,18 +447,22 @@ class Periods(BaseLevel):
         if [bool(x) for x in [station, station_name, stationset]].count(True) > 1:
             raise NotImplementedError("Can't decide which input to select.")
 
-        self.stations_object = stations_object
+        self.stations_in_parameter = stations_in_parameter
         if station:
             self.selected_station = station
-            url = self._get_url(stations_object.stations, "key", station, data_type)
+            url = self._get_url(
+                stations_in_parameter.stations, "key", station, data_type
+            )
         if station_name:
             self.selected_station = station_name
             url = self._get_url(
-                stations_object.stations, "title", station_name, data_type
+                stations_in_parameter.stations, "title", station_name, data_type
             )
         if stationset:
             self.selected_station = stationset
-            url = self._get_url(stations_object.stations, "key", stationset, data_type)
+            url = self._get_url(
+                stations_in_parameter.stations, "key", stationset, data_type
+            )
 
         content = self._get_and_parse_request(url)
         self.owner = content["owner"]
@@ -475,14 +481,14 @@ class Data(BaseLevel):
 
     def __init__(
         self,
-        periods_object: Periods,
+        periods_in_station: Periods,
         period: str = "corrected-archive",
         data_type: str = "json",
     ) -> None:
         """Get data from period.
 
         Args:
-            periods_object: periods object
+            periods_in_station: periods object
             period: select period from:
                     latest-hour, latest-day, latest-months or corrected-archive
             data_type: data_type of request
@@ -502,9 +508,9 @@ class Data(BaseLevel):
                 + ", ".join([p for p in METOBS_AVAILABLE_PERIODS])
             )
 
-        self.periods_object = periods_object
+        self.periods_in_station = periods_in_station
         self.selected_period = period
-        url = self._get_url(periods_object.periods, "key", period, data_type)
+        url = self._get_url(periods_in_station.periods, "key", period, data_type)
         content = self._get_and_parse_request(url)
         self.time_from = content["from"]
         self.time_to = content["to"]
