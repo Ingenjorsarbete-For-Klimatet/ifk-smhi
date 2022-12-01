@@ -9,14 +9,15 @@ To get data from a known station (found e.g. through exploration of
 
 ```python
 from smhi.metobs import Metobs
+
 client = Metobs()
 header, data = client.get_data_stationset(
     1, 192840, "corrected-archive"
 )
 ```
 
-Headers and data are never stored inside the `client` object.
-Instead, they are explicitly returned.
+Headers and data are stored inside the `client` object and also
+explicitly returned.
 To only fetch data, write
 
 ```python
@@ -57,4 +58,33 @@ client.inspect()
 
 # get data from parameter 1, station 1 and period corrected-archive
 header, data = client.get_data()
+```
+
+## Alternative way of using the client
+
+Instead of using the `Metobs` client, the objects used by that client can be
+used directly. The following example is a recommended pattern of usage
+
+```python
+from smhi.metobs import Versions, Parameters, Stations, Periods, Data
+
+versions = Versions()  # defaults to type = json, this step can be skipped
+versions.show
+# print all available versions
+
+parameters = Parameters(versions)  # can be called by simply Parameters()
+parameters.show
+# print all available parameters in that API version
+
+stations = Stations(parameters, 1)
+stations.show
+# print all available stations for parameter 1
+
+periods = Periods(stations, 1)
+periods.show
+# print all available periods of data for station 1
+
+data = Data(periods)  # defaults to corrected-archive period
+data.data_headers  # data headers
+data.data  # actual data
 ```
