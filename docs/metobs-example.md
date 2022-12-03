@@ -85,6 +85,6 @@ periods.show
 # print all available periods of data for station 1
 
 data = Data(periods)  # defaults to corrected-archive period
-data.data_headers  # data headers
+data.data_header  # data headers
 data.data  # actual data
 ```
