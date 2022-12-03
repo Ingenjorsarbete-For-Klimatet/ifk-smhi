@@ -1,5 +1,6 @@
 """SMHI Metobs v1 integration tests."""
 import pytest
+import datetime
 from smhi.metobs import Metobs, Parameters, Stations, Periods, Data
 
 
@@ -45,7 +46,7 @@ class TestIntegrationMetobs:
                 + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
                 + "1 gång/tim;degree celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
                 + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
-                + "(decimalgrader)\n2008-11-01 00:00:00;2022-11-01 08:00:00;329.68;"
+                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 08:00:00;329.68;"
                 + "68.4418;22.4435\n\n",
             ),
         ],
@@ -81,6 +82,11 @@ class TestIntegrationMetobs:
             table
             header_0
         """
+        if header_0:
+            header_0 = header_0.replace(
+                "{{ date }}", datetime.date.today().strftime("%Y-%m") + "-01"
+            )
+
         client = Metobs()
         client.get_parameters()
         client.get_stations(parameter)
@@ -134,7 +140,7 @@ class TestIntegrationMetobs:
                 + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
                 + "1 gång/tim;degree celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
                 + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
-                + "(decimalgrader)\n2008-11-01 00:00:00;2022-11-01 08:00:00;329.68;"
+                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 08:00:00;329.68;"
                 + "68.4418;22.4435\n\n",
             ),
         ],
@@ -170,6 +176,11 @@ class TestIntegrationMetobs:
             table
             header_0
         """
+        if header_0:
+            header_0 = header_0.replace(
+                "{{ date }}", datetime.date.today().strftime("%Y-%m") + "-01"
+            )
+
         parameters = Parameters()
         stations = Stations(parameters, parameter)
         periods = Periods(stations, station)
