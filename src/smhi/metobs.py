@@ -4,7 +4,8 @@ import json
 import logging
 import requests
 import pandas as pd
-from typing import Union, Optional, Any
+from typing import Union, Optional, Any, Dict
+from requests.structures import CaseInsensitiveDict
 from smhi.constants import METOBS_URL, TYPE_MAP, METOBS_AVAILABLE_PERIODS
 
 
@@ -25,17 +26,12 @@ class Metobs:
             )
 
         self.data_type = TYPE_MAP[data_type]
-        response = requests.get(METOBS_URL)
-        self.headers = response.headers
-        self.content = json.loads(response.content)
-        self.available_versions = self.content["version"]
-
         self.version: Optional[Union[str, int]] = None
+        self.versions = Versions()
         self.parameters: Optional[Parameters] = None
         self.stations: Optional[Stations] = None
         self.periods: Optional[Periods] = None
         self.data: Optional[Data] = None
-        self.table_raw: Optional[str] = None
 
     def get_parameters(self, version: Union[str, int] = "1.0"):
         """Get SMHI Metobs API parameters from version. Only supports `version = 1.0`.
@@ -52,7 +48,7 @@ class Metobs:
             )
 
         self.version = version
-        self.parameters = Parameters(self.available_versions)
+        self.parameters = Parameters(self.versions)
 
     def get_stations(
         self, parameter: Optional[int] = None, parameter_title: Optional[str] = None
@@ -71,11 +67,9 @@ class Metobs:
             raise NotImplementedError("Both arguments None.")
 
         if parameter:
-            self.stations = Stations(self.parameters.resource, parameter=parameter)
+            self.stations = Stations(self.parameters, parameter=parameter)
         else:
-            self.stations = Stations(
-                self.parameters.resource, parameter_title=parameter_title
-            )
+            self.stations = Stations(self.parameters, parameter_title=parameter_title)
 
     def get_periods(
         self, station: Optional[int] = None, stationset: Optional[str] = None
@@ -94,9 +88,9 @@ class Metobs:
             raise NotImplementedError("Both arguments None.")
 
         if station:
-            self.periods = Periods(self.stations.stations, station)
+            self.periods = Periods(self.stations, station)
         else:
-            self.periods = Periods(self.stations.stations, stationset=stationset)
+            self.periods = Periods(self.stations, stationset=stationset)
 
     def get_data(self, period: str = "corrected-archive") -> tuple[Any, Any]:
         """Get SMHI Metobs API (version 1) data from given period.
@@ -112,17 +106,9 @@ class Metobs:
             logging.info("No periods found, call get_periods first.")
             return None, None
 
-        self.data = Data(self.periods.periods, period)
-        self.table_raw = self.data.get()
-        data_starting_point = self.table_raw.find("Datum")
-        header = self.table_raw[0:data_starting_point]
-        table = pd.read_csv(
-            io.StringIO(self.table_raw[data_starting_point:-1]),
-            sep=";",
-            on_bad_lines="skip",
-            usecols=[0, 1, 2],
-        )
-        return header, table
+        self.data = Data(self.periods, period)
+
+        return self.data.data_header, self.data.data
 
     def get_data_from_selection(
         self,
@@ -183,7 +169,7 @@ class Metobs:
             num_print: number of items to print
         """
         print("API version")
-        print("Available versions: ", [x["key"] for x in self.available_versions])
+        print("Available versions: ", [x["key"] for x in self.versions.data])
         print("Selected version: ", self.version)
         print()
 
@@ -234,17 +220,24 @@ class Metobs:
 class BaseLevel:
     """Base Metobs level version 1 class."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise base class."""
-        self.headers = None
-        self.key = None
-        self.updated = None
-        self.title = None
-        self.summary = None
-        self.link = None
-        self.data_type = None
+        self.headers: Optional[CaseInsensitiveDict] = None
+        self.key: Optional[str] = None
+        self.updated: Optional[str] = None
+        self.title: Optional[str] = None
+        self.summary: Optional[str] = None
+        self.link: Optional[str] = None
+        self.data_type: Optional[str] = None
+        self.data_header: Optional[str] = None
+        self.data: Any = None
 
-    def _get_and_parse_request(self, url: str):
+    @property
+    def show(self) -> Any:
+        """Show property."""
+        return self.data
+
+    def _get_and_parse_request(self, url: str) -> Dict[Any, Any]:
         """Get and parse API request. Only JSON supported.
 
         Args:
@@ -286,7 +279,7 @@ class BaseLevel:
         Raises:
             IndexError
         """
-        self.data_type = data_type = TYPE_MAP[data_type]
+        self.data_type = TYPE_MAP[data_type]
         try:
             requested_data = [x for x in data if x[key] == str(parameter)][0]["link"]
             url = [x["href"] for x in requested_data if x["type"] == self.data_type][0]
@@ -297,19 +290,45 @@ class BaseLevel:
             raise KeyError("Can't find key: {key}".format(key=key))
 
 
+class Versions(BaseLevel):
+    """Get versions of Metobs API."""
+
+    def __init__(
+        self,
+        data_type: str = "json",
+    ) -> None:
+        """Get versions.
+
+        For now, only supports `json` and version 1.
+
+        Args:
+            data_type: data_type of request
+
+        Raises:
+            TypeError: data_type not supported
+        """
+        super().__init__()
+
+        if data_type != "json":
+            raise TypeError("Only json supported.")
+
+        content = self._get_and_parse_request(METOBS_URL)
+        self.data = tuple(content["version"])
+
+
 class Parameters(BaseLevel):
     """Get parameters for version 1 of Metobs API."""
 
     def __init__(
         self,
-        data: list[Any],
+        versions_object: Optional[Versions] = None,
         version: Union[str, int] = "1.0",
         data_type: str = "json",
     ) -> None:
         """Get parameters from version.
 
         Args:
-            data: available API versions
+            versions_object: versions object
             version: selected version
             data_type: data_type of request
 
@@ -325,8 +344,12 @@ class Parameters(BaseLevel):
         if version != 1 and version != "1.0":
             raise NotImplementedError("Only supports version 1.0.")
 
+        if versions_object is None:
+            versions_object = Versions()
+
+        self.versions_object = versions_object
         self.selected_version = "1.0" if version == 1 else version
-        url = self._get_url(data, "key", version, data_type)
+        url = self._get_url(versions_object.data, "key", version, data_type)
         content = self._get_and_parse_request(url)
         self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
         self.data = tuple((x["key"], x["title"]) for x in self.resource)
@@ -337,7 +360,7 @@ class Stations(BaseLevel):
 
     def __init__(
         self,
-        data: list[Any],
+        parameters_in_version: Parameters,
         parameter: Optional[int] = None,
         parameter_title: Optional[str] = None,
         data_type: str = "json",
@@ -345,7 +368,7 @@ class Stations(BaseLevel):
         """Get stations from parameters.
 
         Args:
-            data: available API parameters
+            parameters_in_version: parameters object
             parameter: integer parameter key to get
             parameter_title: exact parameter title to get
             data_type: data_type of request
@@ -366,12 +389,17 @@ class Stations(BaseLevel):
         if parameter and parameter_title:
             raise NotImplementedError("Can't decide which input to select.")
 
+        self.parameters_in_version = parameters_in_version
         if parameter:
             self.selected_parameter = parameter
-            url = self._get_url(data, "key", parameter, data_type)
+            url = self._get_url(
+                parameters_in_version.resource, "key", parameter, data_type
+            )
         if parameter_title:
             self.selected_parameter = parameter_title
-            url = self._get_url(data, "title", parameter_title, data_type)
+            url = self._get_url(
+                parameters_in_version.resource, "title", parameter_title, data_type
+            )
 
         content = self._get_and_parse_request(url)
         self.valuetype = content["valueType"]
@@ -388,7 +416,7 @@ class Periods(BaseLevel):
 
     def __init__(
         self,
-        data: list[Any],
+        stations_in_parameter: Stations,
         station: Optional[int] = None,
         station_name: Optional[str] = None,
         stationset: Optional[str] = None,
@@ -397,7 +425,7 @@ class Periods(BaseLevel):
         """Get periods from station.
 
         Args:
-            data: available API stations
+            stations_in_parameter: stations object
             station: integer station key to get
             station_name: exact station name to get
             stationset: station set to get
@@ -419,15 +447,22 @@ class Periods(BaseLevel):
         if [bool(x) for x in [station, station_name, stationset]].count(True) > 1:
             raise NotImplementedError("Can't decide which input to select.")
 
+        self.stations_in_parameter = stations_in_parameter
         if station:
             self.selected_station = station
-            url = self._get_url(data, "key", station, data_type)
+            url = self._get_url(
+                stations_in_parameter.stations, "key", station, data_type
+            )
         if station_name:
             self.selected_station = station_name
-            url = self._get_url(data, "title", station_name, data_type)
+            url = self._get_url(
+                stations_in_parameter.stations, "title", station_name, data_type
+            )
         if stationset:
             self.selected_station = stationset
-            url = self._get_url(data, "key", stationset, data_type)
+            url = self._get_url(
+                stations_in_parameter.stations, "key", stationset, data_type
+            )
 
         content = self._get_and_parse_request(url)
         self.owner = content["owner"]
@@ -438,7 +473,7 @@ class Periods(BaseLevel):
         self.time_to = content["to"]
         self.position = content["position"]
         self.periods = sorted(content["period"], key=lambda x: x["key"])
-        self.data = [x["key"] for x in self.periods]
+        self.data = tuple(x["key"] for x in self.periods)
 
 
 class Data(BaseLevel):
@@ -446,14 +481,14 @@ class Data(BaseLevel):
 
     def __init__(
         self,
-        data: list[Any],
+        periods_in_station: Periods,
         period: str = "corrected-archive",
         data_type: str = "json",
     ) -> None:
         """Get data from period.
 
         Args:
-            data: available API periods
+            periods_in_station: periods object
             period: select period from:
                     latest-hour, latest-day, latest-months or corrected-archive
             data_type: data_type of request
@@ -473,30 +508,41 @@ class Data(BaseLevel):
                 + ", ".join([p for p in METOBS_AVAILABLE_PERIODS])
             )
 
+        self.periods_in_station = periods_in_station
         self.selected_period = period
-        url = self._get_url(data, "key", period, data_type)
+        url = self._get_url(periods_in_station.periods, "key", period, data_type)
         content = self._get_and_parse_request(url)
         self.time_from = content["from"]
         self.time_to = content["to"]
-        self.data = content["data"]
+        self.raw_data = content["data"]
+        self._get_data()
 
-    def get(self, type: str = "text/plain") -> str:
+    def _get_data(self, type: str = "text/plain") -> None:
         """Get the selected data file.
 
         Args:
             type: type of request
-
-        Returns:
-            utf-8 decoded response
         """
-        for item in self.data:
+        for item in self.raw_data:
             for link in item["link"]:
                 if link["type"] != type:
                     continue
 
-                response = requests.get(link["href"])
+                content = requests.get(link["href"]).content.decode("utf-8")
+                self._parse_data(content)
+                return
 
-                break
-            break
+    def _parse_data(self, table_raw: str) -> None:
+        """Parse string data.
 
-        return response.content.decode("utf-8")
+        Args:
+            utf-8 decoded response
+        """
+        data_starting_point = table_raw.find("Datum")
+        self.data_header = table_raw[:data_starting_point]
+        self.data = pd.read_csv(
+            io.StringIO(table_raw[data_starting_point:-1]),
+            sep=";",
+            on_bad_lines="skip",
+            usecols=[0, 1, 2],
+        )
