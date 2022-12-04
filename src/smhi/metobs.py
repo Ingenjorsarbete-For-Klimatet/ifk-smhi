@@ -114,7 +114,7 @@ class Metobs:
         parameter: int,
         station: int,
         period: str,
-    ) -> pd.DataFrame:
+    ) -> Optional[pd.DataFrame]:
         """Get data from explicit parameters.
 
         Get data from explicit parameter, station and period,
@@ -139,7 +139,7 @@ class Metobs:
         parameter: int,
         stationset: str,
         period: str,
-    ) -> pd.DataFrame:
+    ) -> Optional[pd.DataFrame]:
         """Get data from stationset.
 
         Get data from explicit parameters, stations set and period,
