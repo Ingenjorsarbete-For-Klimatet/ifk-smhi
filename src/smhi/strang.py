@@ -52,7 +52,7 @@ class Strang:
     @property
     def parameters(
         self,
-    ) -> defaultdict[int, STRANG]:
+    ) -> list[int]:
         """Get parameters property.
 
         Returns:
@@ -65,7 +65,7 @@ class Strang:
                 )
             )
 
-        return self.available_parameters
+        return list(self.available_parameters.keys())
 
     def get_point(
         self,

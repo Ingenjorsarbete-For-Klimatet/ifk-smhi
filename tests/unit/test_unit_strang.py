@@ -61,7 +61,7 @@ class TestUnitStrang:
             mock_logging: mock of logging info
         """
         client = Strang()
-        assert client.parameters == STRANG_PARAMETERS
+        assert client.parameters == list(STRANG_PARAMETERS.keys())
         assert mock_logging.call_count == len(STRANG_PARAMETERS)
 
     @pytest.mark.parametrize(
