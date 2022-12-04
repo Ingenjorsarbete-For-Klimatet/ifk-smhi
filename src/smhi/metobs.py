@@ -92,7 +92,7 @@ class Metobs:
         else:
             self.periods = Periods(self.stations, stationset=stationset)
 
-    def get_data(self, period: str = "corrected-archive") -> pd.DataFrame:
+    def get_data(self, period: str = "corrected-archive") -> Optional[pd.DataFrame]:
         """Get SMHI Metobs API (version 1) data from given period.
 
         Args:

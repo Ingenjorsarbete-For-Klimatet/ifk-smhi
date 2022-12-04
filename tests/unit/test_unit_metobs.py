@@ -202,24 +202,24 @@ class TestUnitMetobs:
         client.periods = client_periods
 
         if client_periods is None:
-            assert client.get_data() == (None, None)
+            assert client.get_data() == None
             return
 
-        header, data = client.get_data()
+        data = client.get_data()
 
-        assert header, data == mock_data.return_value
+        assert data == mock_data.return_value.data
         mock_data.assert_called_once()
 
     @patch("smhi.metobs.Metobs.get_parameters")
     @patch("smhi.metobs.Metobs.get_stations")
     @patch("smhi.metobs.Metobs.get_periods")
-    @patch("smhi.metobs.Metobs.get_data", return_value=("test1", "test2"))
+    @patch("smhi.metobs.Metobs.get_data", return_value=("test1"))
     def test_unit_metobs_get_data_from_selection(
         self,
-        mock_get_parameters,
-        mock_get_stations,
-        mock_get_periods,
         mock_get_data,
+        mock_get_periods,
+        mock_get_stations,
+        mock_get_parameters,
     ):
         """Unit test for Metobs get_data method.
 
@@ -230,23 +230,25 @@ class TestUnitMetobs:
             mock_get_data
         """
         client = Metobs()
-        client.get_data_from_selection(1, 1, "1")
+        data = client.get_data_from_selection(1, 1, "1")
 
         mock_get_parameters.assert_called_once()
         mock_get_stations.assert_called_once()
         mock_get_periods.assert_called_once()
         mock_get_data.assert_called_once()
 
+        assert data == mock_get_data.return_value
+
     @patch("smhi.metobs.Metobs.get_parameters")
     @patch("smhi.metobs.Metobs.get_stations")
     @patch("smhi.metobs.Metobs.get_periods")
-    @patch("smhi.metobs.Metobs.get_data", return_value=("test1", "test2"))
+    @patch("smhi.metobs.Metobs.get_data", return_value=("test1"))
     def test_unit_metobs_get_data_stationset(
         self,
-        mock_get_parameters,
-        mock_get_stations,
-        mock_get_periods,
         mock_get_data,
+        mock_get_periods,
+        mock_get_stations,
+        mock_get_parameters,
     ):
         """Unit test for Metobs get_data_stationset method.
 
@@ -257,12 +259,14 @@ class TestUnitMetobs:
             mock_get_data
         """
         client = Metobs()
-        client.get_data_stationset(1, 1, "corrected-data")
+        data = client.get_data_stationset(1, 1, "corrected-data")
 
         mock_get_parameters.assert_called_once()
         mock_get_stations.assert_called_once()
         mock_get_periods.assert_called_once()
         mock_get_data.assert_called_once()
+
+        assert data == mock_get_data.return_value
 
 
 class TestUnitBaseLevel:
