@@ -28,7 +28,9 @@ class TestUnitMesan:
         assert client.base_url == BASE_URL
         assert client.url is None
 
-    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
+    @patch(
+        "smhi.mesan.Mesan._get_data", return_value=(None, None, {"approvedTime": None})
+    )
     def test_unit_mesan_approved_time(self, mock_get_data):
         """Unit test for Mesan approved_time property.
 
@@ -36,10 +38,11 @@ class TestUnitMesan:
             mock_get_data: mock _get_data method
         """
         client = Mesan()
-        client.approved_time
+        data, _ = client.approved_time
         mock_get_data.assert_called_once_with(BASE_URL + "approvedtime.json")
+        assert data == mock_get_data.return_value[2]["approvedTime"]
 
-    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
+    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, {"validTime": None}))
     def test_unit_mesan_valid_time(self, mock_get_data):
         """Unit test for Mesan valid_time property.
 
@@ -47,10 +50,13 @@ class TestUnitMesan:
             mock_get_data: mock _get_data method
         """
         client = Mesan()
-        client.valid_time
+        data, _ = client.valid_time
         mock_get_data.assert_called_once_with(BASE_URL + "validtime.json")
+        assert data == mock_get_data.return_value[2]["validTime"]
 
-    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
+    @patch(
+        "smhi.mesan.Mesan._get_data", return_value=(None, None, {"coordinates": None})
+    )
     def test_unit_mesan_geo_polygon(self, mock_get_data):
         """Unit test for Mesan geo_polygon property.
 
@@ -58,11 +64,14 @@ class TestUnitMesan:
             mock_get_data: mock _get_data method
         """
         client = Mesan()
-        client.geo_polygon
+        data, _ = client.geo_polygon
         mock_get_data.assert_called_once_with(BASE_URL + "geotype/polygon.json")
+        assert data == mock_get_data.return_value[2]["coordinates"]
 
     @pytest.mark.parametrize("downsample", [(0), (2), (20), (21)])
-    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
+    @patch(
+        "smhi.mesan.Mesan._get_data", return_value=(None, None, {"coordinates": None})
+    )
     def test_unit_mesan_get_geo_multipoint(self, mock_get_data, downsample):
         """Unit test for Mesan get_geo_multipoint method.
 
@@ -71,7 +80,7 @@ class TestUnitMesan:
             downsample: downsample parameter
         """
         client = Mesan()
-        client.get_geo_multipoint(downsample)
+        data, _ = client.get_geo_multipoint(downsample)
         if downsample < 1:
             mock_get_data.assert_called_once_with(BASE_URL + "geotype/multipoint.json")
         elif downsample > 20:
@@ -86,7 +95,9 @@ class TestUnitMesan:
                 )
             )
 
-    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
+        assert data == mock_get_data.return_value[2]["coordinates"]
+
+    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, {"parameter": None}))
     def test_unit_mesan_parameters(self, mock_get_data):
         """Unit test for Mesan parameters property.
 
@@ -94,8 +105,9 @@ class TestUnitMesan:
             mock_get_data: mock _get_data method
         """
         client = Mesan()
-        client.parameters
+        data, _ = client.parameters
         mock_get_data.assert_called_once_with(BASE_URL + "parameter.json")
+        assert data == mock_get_data.return_value[2]["parameter"]
 
     @pytest.mark.parametrize("lat, lon", [(0, 0), (1, 1)])
     @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))

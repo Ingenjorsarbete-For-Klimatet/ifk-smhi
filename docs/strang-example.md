@@ -7,7 +7,7 @@ To get a point response from `Strang` do
 from smhi.strang import Strang
 
 client = Strang()
-status, headers, data = client.get_point(
+data, headers, status= client.get_point(
     58, 16, 118, "2020-01-01", "2020-02-01", "hourly"
 )
 ```
@@ -18,7 +18,7 @@ and for a multi point response
 from smhi.strang import Strang
 
 client = Strang()
-status, headers, data = client.get_multipoint(
+data, headers, status= client.get_multipoint(
     116, "2022-01-01", "monthly"
 )
 ```
@@ -31,5 +31,5 @@ To only fetch data, write
 from smhi.strang import Strang
 
 client = Strang()
-_, _, data = client.get_multipoint(116, "2022-01-01", "monthly")
+data, _, _ = client.get_multipoint(116, "2022-01-01", "monthly")
 ```

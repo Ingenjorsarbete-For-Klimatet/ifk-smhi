@@ -91,7 +91,7 @@ class TestIntegrationMetobs:
         client.get_parameters()
         client.get_stations(parameter)
         client.get_periods(station)
-        header, data = client.get_data(period)
+        data = client.get_data(period)
 
         assert client.parameters.data[0] == parameter_data_0
         assert client.stations.data[0] == station_data_0
@@ -99,19 +99,16 @@ class TestIntegrationMetobs:
         assert client.data.title == data_title
         if table:
             assert data.iloc[table_loc, 0] == table
-            assert header == header_0
+            assert client.data.data_header == header_0
 
     @pytest.mark.parametrize(
-        "parameter, station, period, init_key, init_title, parameter_data_0, "
+        "parameter, station, period, parameter_data_0, "
         + "station_data_0, period_data_0, data_title, table_loc, table, header_0",
         [
             (
                 1,
                 1,
                 "corrected-archive",
-                "metobs",
-                "Meteorologiska observationer från SMHI: Välj "
-                + "version (sedan parameter, station och tidsutsnitt)",
                 ("1", "Lufttemperatur"),
                 (1, "Akalla"),
                 "corrected-archive",
@@ -125,9 +122,6 @@ class TestIntegrationMetobs:
                 1,
                 192840,
                 "corrected-archive",
-                "metobs",
-                "Meteorologiska observationer från SMHI: Välj "
-                + "version (sedan parameter, station och tidsutsnitt)",
                 ("1", "Lufttemperatur"),
                 (1, "Akalla"),
                 "corrected-archive",
@@ -150,8 +144,6 @@ class TestIntegrationMetobs:
         parameter,
         station,
         period,
-        init_key,
-        init_title,
         parameter_data_0,
         station_data_0,
         period_data_0,

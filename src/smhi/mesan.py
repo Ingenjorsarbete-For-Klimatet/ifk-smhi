@@ -8,23 +8,38 @@ from typing import Any, Callable, Optional
 from requests.structures import CaseInsensitiveDict
 
 
-def get_data(func: Callable) -> Callable:
-    """Get data from url.
+def get_data(key: Optional[str] = None) -> Callable:
+    """Get data from url wrapper.
 
     Args:
-        function func
+        key: key to index returned dict
 
     Returns:
-        function inner
+        function get_data_inner
     """
 
-    @wraps(func)
-    def inner(self, *args) -> tuple[dict[str, str], dict[str, Any]]:
-        url = func(self, *args)
-        status, headers, data = self._get_data(url)
-        return headers, data
+    def get_data_inner(func: Callable) -> Callable:
+        """Get data from url inner.
 
-    return inner
+        Args:
+            function func
+
+        Returns:
+            function inner
+        """
+
+        @wraps(func)
+        def inner(self, *args: Any) -> tuple[Any, dict[str, str]]:
+            url = func(self, *args)
+            status, headers, data = self._get_data(url)
+            if key:
+                return data[key], headers
+            else:
+                return data, headers
+
+        return inner
+
+    return get_data_inner
 
 
 class Mesan:
@@ -46,7 +61,7 @@ class Mesan:
         self.url: Optional[str] = None
 
     @property
-    @get_data
+    @get_data("approvedTime")
     def approved_time(self) -> str:
         """Get approved time.
 
@@ -56,7 +71,7 @@ class Mesan:
         return self.base_url + "approvedtime.json"
 
     @property
-    @get_data
+    @get_data("validTime")
     def valid_time(self) -> str:
         """Get valid time.
 
@@ -66,7 +81,7 @@ class Mesan:
         return self.base_url + "validtime.json"
 
     @property
-    @get_data
+    @get_data("coordinates")
     def geo_polygon(self) -> str:
         """Get geographic area polygon.
 
@@ -75,7 +90,7 @@ class Mesan:
         """
         return self.base_url + "geotype/polygon.json"
 
-    @get_data
+    @get_data("coordinates")
     def get_geo_multipoint(self, downsample: int = 2) -> str:
         """Get geographic area multipoint.
 
@@ -97,7 +112,7 @@ class Mesan:
         return self.base_url + multipoint_url
 
     @property
-    @get_data
+    @get_data("parameter")
     def parameters(self) -> str:
         """Get parameters.
 
@@ -106,7 +121,7 @@ class Mesan:
         """
         return self.base_url + "parameter.json"
 
-    @get_data
+    @get_data()
     def get_point(
         self,
         latitude: float,
@@ -128,7 +143,7 @@ class Mesan:
             )
         )
 
-    @get_data
+    @get_data()
     def get_multipoint(
         self,
         validtime: str,
