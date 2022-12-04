@@ -474,7 +474,7 @@ class TestUnitStrang:
         client.url = "URL"
         mock_json_loads.return_value = date_time
         mock_requests_get.return_value.ok = ok
-        status, headers, data = client._get_and_load_data(client.url)
+        data, headers, status = client._get_and_load_data(client.url)
         mock_requests_get.assert_called_once_with(client.url)
 
         if ok is True:

@@ -124,7 +124,7 @@ class TestIntegrationStrang:
             expected_result: expected result
         """
         client = Strang()
-        status, _, data = client.get_point(
+        data, _, status = client.get_point(
             lat, lon, parameter, time_from, time_to, time_interval
         )
 
@@ -143,7 +143,7 @@ class TestIntegrationStrang:
         parameter = 116
         valid_time = "2020-01-01"
         time_interval = "monthly"
-        status, _, data = client.get_multipoint(parameter, valid_time, time_interval)
+        data, _, status = client.get_multipoint(parameter, valid_time, time_interval)
 
         lon_sorted_data = sorted(data, key=lambda x: x["lon"])[:10]
 
