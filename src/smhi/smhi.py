@@ -62,15 +62,16 @@ class SMHI:
         return self.client.stations.data
 
     def find_stations_from_gps(
-        self, parameter: int, dist: float, latitude: float, longitude: float
+        self, parameter: int, latitude: float, longitude: float, dist: float = 0
     ) -> None:
         """Find stations for parameter from gps location.
 
         Args:
             parameter: station parameter
-            dist: distance from gps location
             latitude: latitude
             longitude: longitude
+            dist: distance from gps location. If zero (default), chooses closest.
+
         """
         if self.client.stations is None:
             logging.info("No stations available.")
@@ -78,11 +79,21 @@ class SMHI:
 
         user_position = (latitude, longitude)
         self.get_stations(parameter)
-        self.d = []
+        self.nearby_stations = []
+        all_stations = self.client.stations.stations
+        if dist == 0:
+            stations = [
+                (s['id'], s['name'], distance.distance(
+                    user_position, (s["latitude"], s["longitude"])).km)
+                for s in all_stations
+            ]
+            self.nearby_stations = min(stations, key=lambda x: x[2])
 
-        all_stations = self.client.stations.data
-        self.d = [
-            s
-            for s in all_stations
-            if distance.distance(user_position, (s["latitude"], s["longitude"])) <= dist
-        ]
+        else:
+            self.nearby_stations = [
+                (s['id'], s['name'], distance.distance(
+                    user_position, (s["latitude"], s["longitude"])).km)
+                for s in all_stations
+                if distance.distance(user_position, (s["latitude"], s["longitude"])) <= dist
+            ]
+            self.nearby_stations = sorted(self.nearby_stations, key=lambda x: x[2])
