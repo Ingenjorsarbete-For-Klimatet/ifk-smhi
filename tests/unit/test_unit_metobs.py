@@ -14,10 +14,10 @@ from smhi.constants import METOBS_AVAILABLE_PERIODS
 
 
 with open("tests/fixtures/unit_metobs_data.txt") as f:
-    METOBS_DATA = f.readline().encode("latin1").decode("unicode-escape")
-    METOBS_NODATA = f.readline().encode("latin1").decode("unicode-escape")
-    METOBS_DATA_RESULT = f.readline().encode("latin1").decode("unicode-escape")[:-1]
-    METOBS_NODATA_RESULT = f.readline().encode("latin1").decode("unicode-escape")
+    METOBS_DATA = f.readline().encode("utf-8").decode("unicode-escape")
+    METOBS_NODATA = f.readline().encode("utf-8").decode("unicode-escape")
+    METOBS_DATA_RESULT = f.readline().encode("utf-8").decode("unicode-escape")[:-1]
+    METOBS_NODATA_RESULT = f.readline().encode("utf-8").decode("unicode-escape")
 
 
 class TestUnitMetobs:

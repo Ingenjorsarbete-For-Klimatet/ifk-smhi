@@ -1,6 +1,7 @@
 """SMHI unit tests."""
 from unittest.mock import patch
 from smhi.smhi import SMHI
+import pytest
 
 
 class TestUnitSMHI:
@@ -18,3 +19,32 @@ class TestUnitSMHI:
         assert client.type == "application/json"
         mock_requests_metobs.assert_called_once()
         mock_requests_metobs.return_value.get_parameters.assert_called_once()
+
+    @patch("smhi.smhi.Metobs")
+    def test_unit_smhi_parameters(self, mock_Metobs):
+        client = SMHI()
+        assert client.parameters == mock_Metobs.return_value.parameters.data
+
+    @pytest.mark.parametrize(
+        "parameter,Metobs_parameters",
+        [(None, None), (1, [(2, 0), (3, 0)]), (2, [(2, 0)])],
+    )
+    @patch("smhi.smhi.Metobs")
+    @patch("smhi.smhi.logging.info")
+    def test_unit_smhi_get_stations(
+        self, mock_logging_info, mock_Metobs, parameter, Metobs_parameters
+    ):
+        mock_Metobs.return_value.parameters.data = Metobs_parameters
+        client = SMHI()
+        if parameter is None:
+            client.get_stations(parameter)
+            mock_logging_info.assert_called_once()
+            return
+
+        if parameter == 1:
+            with pytest.raises(TypeError):
+                client.get_stations(parameter)
+
+        if parameter == 2:
+            stations = client.get_stations(parameter)
+            assert stations == mock_Metobs.return_value.stations.data

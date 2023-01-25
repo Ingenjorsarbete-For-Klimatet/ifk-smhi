@@ -546,3 +546,9 @@ class Data(BaseLevel):
             on_bad_lines="skip",
             usecols=[0, 1, 2],
         )
+        self.data.set_index(
+            pd.to_datetime(self.data["Datum"] + " " + self.data["Tid (UTC)"]),
+            inplace=True,
+        )
+        self.data.drop("Datum", axis=1, inplace=True)
+        self.data.drop("Tid (UTC)", axis=1, inplace=True)
