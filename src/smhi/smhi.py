@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 from geopy.geocoders import Nominatim
 from geopy import distance
-from typing import Optional
+from typing import Optional, Any, List, Tuple
 from smhi.metobs import Metobs
 from smhi.constants import TYPE_MAP
 
@@ -81,7 +81,7 @@ class SMHI:
 
         user_position = (latitude, longitude)
         self.get_stations(parameter)
-        self.nearby_stations = []
+        self.nearby_stations: List[Tuple[Any, Any, Any]]
         all_stations = self.client.stations.stations
         if dist == 0:
             stations = [
@@ -135,7 +135,7 @@ class SMHI:
         station: int,
         period: str = "corrected-archive",
         interpolate: int = 0,
-    ) -> None:
+    ) -> Tuple[Any, Any]:
         """Get data from station.
 
         Args:
@@ -154,7 +154,6 @@ class SMHI:
             latitude = stat["latitude"]
             longitude = stat["longitude"]
 
-            freq = data.index.to_series().diff().median()
             holes_to_fill = data[
                 data.index.to_series().diff() > data.index.to_series().diff().median()
             ]
@@ -166,7 +165,7 @@ class SMHI:
                 dist=interpolate,
             )
 
-            # Iterate over nearby stations, starting with the closest one and moving outwards.
+            # Iterate over nearby stations, starting with the closest
             for nearby_station in self.nearby_stations[1:]:
                 _, tmpdata = self.get_data(parameter, nearby_station[0])
                 for time, _ in holes_to_fill.iterrows():
