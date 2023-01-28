@@ -2,6 +2,7 @@
 from unittest.mock import patch
 from smhi.smhi import SMHI
 import pytest
+import pandas as pd
 
 
 class TestUnitSMHI:
@@ -56,3 +57,33 @@ class TestUnitSMHI:
 
         stations = client.get_stations(parameter)
         assert stations == mock_Metobs.return_value.stations.data
+
+    @pytest.mark.parametrize(
+        "title,Metobs_stations",
+        [
+            (None, None),
+            (
+                "Göteborg",
+                pd.DataFrame({"station": "Göteborg", "data": [(2, 0), (3, 0)]}),
+            ),
+        ],
+    )
+    @patch("smhi.smhi.Metobs")
+    @patch("smhi.smhi.logging.info")
+    def test_unit_smhi_get_stations_from_title(
+        self, mock_logging_info, mock_Metobs, title, Metobs_stations
+    ):
+        """Unit test for SMHI get_stations_from_title method.
+
+        Args:
+            title: title of station
+        """
+        mock_Metobs.return_value.stations = Metobs_stations
+        client = SMHI()
+        if Metobs_stations is None:
+            client.get_stations_from_title(title)
+            mock_logging_info.assert_called_once()
+            return
+
+        data = client.get_stations_from_title(title)
+        assert (data == mock_Metobs.return_value.stations.data).all()
