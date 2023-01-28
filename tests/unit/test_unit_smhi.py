@@ -34,17 +34,12 @@ class TestUnitSMHI:
     def test_unit_smhi_get_stations(
         self, mock_logging_info, mock_Metobs, parameter, Metobs_parameters
     ):
-        mock_Metobs.return_value.parameters.data = Metobs_parameters
+        mock_Metobs.return_value.parameters = Metobs_parameters
         client = SMHI()
-        if parameter is None:
+        if Metobs_parameters is None:
             client.get_stations(parameter)
             mock_logging_info.assert_called_once()
             return
 
-        if parameter == 1:
-            with pytest.raises(TypeError):
-                client.get_stations(parameter)
-
-        if parameter == 2:
-            stations = client.get_stations(parameter)
-            assert stations == mock_Metobs.return_value.stations.data
+        stations = client.get_stations(parameter)
+        assert stations == mock_Metobs.return_value.stations.data

@@ -157,7 +157,7 @@ class SMHI:
             holes_to_fill = data[
                 data.index.to_series().diff() > data.index.to_series().diff().median()
             ]
-            # Find stations within a given radius - set to 20km for now.
+            # Find stations within a given radius - set in "interpolate".
             self.find_stations_from_gps(
                 parameter=parameter,
                 latitude=latitude,
