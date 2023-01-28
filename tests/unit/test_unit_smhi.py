@@ -46,8 +46,7 @@ class TestUnitSMHI:
             mock_Metobs: mock Metobs object
             parameter: parameter (int)
             Metobs_parameters: Metobs return parameters
-        """    
-
+        """
         mock_Metobs.return_value.parameters = Metobs_parameters
         client = SMHI()
         if Metobs_parameters is None:
