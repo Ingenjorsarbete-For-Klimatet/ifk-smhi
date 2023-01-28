@@ -12,7 +12,7 @@ class TestUnitSMHI:
         """Unit test for SMHI init method.
 
         Args:
-            mock_requests_metobs: mock Metobs object
+            mock_requests_metobs: mock requests metobs object
         """
         client = SMHI()
 
@@ -22,6 +22,11 @@ class TestUnitSMHI:
 
     @patch("smhi.smhi.Metobs")
     def test_unit_smhi_parameters(self, mock_Metobs):
+        """Unit test for SMHI parameters method.
+
+        Args:
+            mock_Metobs: mock Metobs object
+        """
         client = SMHI()
         assert client.parameters == mock_Metobs.return_value.parameters.data
 
@@ -34,6 +39,15 @@ class TestUnitSMHI:
     def test_unit_smhi_get_stations(
         self, mock_logging_info, mock_Metobs, parameter, Metobs_parameters
     ):
+        """Unit test for SMHI get_stations method.
+
+        Args:
+            mock_logging_info: mock logging info object
+            mock_Metobs: mock Metobs object
+            parameter: parameter (int)
+            Metobs_parameters: Metobs return parameters
+        """    
+
         mock_Metobs.return_value.parameters = Metobs_parameters
         client = SMHI()
         if Metobs_parameters is None:
