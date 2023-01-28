@@ -87,3 +87,73 @@ class TestUnitSMHI:
 
         data = client.get_stations_from_title(title)
         assert (data == mock_Metobs.return_value.stations.data).all()
+
+    @pytest.mark.parametrize(
+        "parameter,latitude,longitude,dist,Metobs_stations",
+        [(None, None, None, None, None), (1, 15, 72, 0, None), (1, 15, 72, 20, None)],
+    )
+    @patch("smhi.smhi.distance")
+    @patch("smhi.smhi.Metobs")
+    @patch("smhi.smhi.logging.info")
+    def test_find_stations_from_gps(
+        self,
+        mock_logging_info,
+        mock_Metobs,
+        mock_distance,
+        parameter,
+        latitude,
+        longitude,
+        dist,
+        Metobs_stations,
+    ):
+        """Unit test for SMHI find_stations_from_gps method.
+
+        Args:
+            mock_logging_info: mock logging info object
+            mock_Metobs: mock Metobs object
+            mock_distance: mock distance object
+            parameter: parameter (int)
+            latitude: latitude (int)
+            longitude: longitude (int)
+            dist: Distance radius in which to look for stations
+            Metobs_stations: Metobs stations
+        """
+        mock_Metobs.return_value.stations = Metobs_stations
+        client = SMHI()
+        if Metobs_stations is None:
+            client.find_stations_from_gps(parameter, latitude, longitude, dist)
+            mock_logging_info.assert_called_once()
+            return
+
+        client.find_stations_from_gps(parameter, latitude, longitude, dist)
+        mock_distance.assert_called()
+
+    @pytest.mark.parametrize(
+        "parameter,city,dist,Metobs_stations",
+        [(None, None, None, None), (1, "Göteborg", 0, None), (1, "Göteborg", 20, None)],
+    )
+    @patch("smhi.smhi.Nominatim")
+    @patch("smhi.smhi.Metobs")
+    def test_find_stations_by_city(
+        self,
+        mock_Metobs,
+        mock_Nominatim,
+        parameter,
+        city,
+        dist,
+        Metobs_stations,
+    ):
+        """Unit test for SMHI find_stations_by_city method.
+
+        Args:
+            mock_Metobs: mock Metobs object
+            mock_Nominatim: mock Nominatim object
+            parameter: parameter (int)
+            city: city name
+            dist: Distance radius in which to look for stations
+            Metobs_stations: Metobs stations
+        """
+        mock_Metobs.return_value.stations = Metobs_stations
+        client = SMHI()
+        client.find_stations_by_city(parameter, city, dist)
+        mock_Nominatim.assert_called_once()
