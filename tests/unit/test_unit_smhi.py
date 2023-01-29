@@ -64,7 +64,7 @@ class TestUnitSMHI:
             (None, None),
             (
                 "Göteborg",
-                pd.DataFrame({"station": "Göteborg", "data": [(2, 0), (3, 0)]}),
+                pd.DataFrame({"stations": "Göteborg", "data": [(2, 0), (3, 0)]}),
             ),
         ],
     )
@@ -90,9 +90,32 @@ class TestUnitSMHI:
 
     @pytest.mark.parametrize(
         "parameter,latitude,longitude,dist,Metobs_stations",
-        [(None, None, None, None, None), (1, 15, 72, 0, None), (1, 15, 72, 20, None)],
+        [
+            (None, None, None, None, None),
+            (
+                1,
+                15,
+                72,
+                0,
+                pd.DataFrame(
+                    {
+                        "stations": [
+                            pd.DataFrame(
+                                {
+                                    "id": [1],
+                                    "name": ["Göteborg"],
+                                    "latitude": [57.708870],
+                                    "longitude": [11.974560],
+                                }
+                            )
+                        ],
+                        "data": [(2, 0)],
+                    }
+                ),
+            ),
+        ],
     )
-    @patch("smhi.smhi.distance")
+    @patch("smhi.smhi.distance.distance")
     @patch("smhi.smhi.Metobs")
     @patch("smhi.smhi.logging.info")
     def test_find_stations_from_gps(
@@ -120,24 +143,50 @@ class TestUnitSMHI:
         """
         mock_Metobs.return_value.stations = Metobs_stations
         client = SMHI()
-        if Metobs_stations is None:
-            client.find_stations_from_gps(parameter, latitude, longitude, dist)
+
+        if parameter is None:
+            client.find_stations_from_gps(parameter, latitude, longitude)
             mock_logging_info.assert_called_once()
             return
-
-        client.find_stations_from_gps(parameter, latitude, longitude, dist)
-        mock_distance.assert_called()
+        else:
+            client.find_stations_from_gps(parameter, latitude, longitude, dist)
+            mock_distance.assert_called()
+            assert len(client.nearby_stations[0]) > 0
 
     @pytest.mark.parametrize(
         "parameter,city,dist,Metobs_stations",
-        [(None, None, None, None), (1, "Göteborg", 0, None), (1, "Göteborg", 20, None)],
+        [
+            (None, None, None, None),
+            (
+                1,
+                "Göteborg",
+                0,
+                pd.DataFrame(
+                    {
+                        "stations": [
+                            pd.DataFrame(
+                                {
+                                    "id": [1],
+                                    "name": ["Göteborg"],
+                                    "latitude": [57.708870],
+                                    "longitude": [11.974560],
+                                }
+                            )
+                        ],
+                        "data": [(2, 0)],
+                    }
+                ),
+            ),
+        ],
     )
+    @patch("smhi.smhi.distance.distance")
     @patch("smhi.smhi.Nominatim")
     @patch("smhi.smhi.Metobs")
     def test_find_stations_by_city(
         self,
         mock_Metobs,
         mock_Nominatim,
+        mock_distance,
         parameter,
         city,
         dist,
@@ -148,6 +197,7 @@ class TestUnitSMHI:
         Args:
             mock_Metobs: mock Metobs object
             mock_Nominatim: mock Nominatim object
+            mock_distance: mock distance object
             parameter: parameter (int)
             city: city name
             dist: Distance radius in which to look for stations

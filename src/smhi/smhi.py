@@ -75,8 +75,8 @@ class SMHI:
             dist: distance from gps location. If zero (default), chooses closest.
 
         """
-        if self.client.stations is None:
-            logging.info("No stations available.")
+        if parameter is None:
+            logging.info("Parameter needed.")
             return None
 
         user_position = (latitude, longitude)
