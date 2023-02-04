@@ -537,6 +537,9 @@ class Data(BaseLevel):
 
         Args:
             utf-8 decoded response
+
+        Raises:
+            NotImplementedError
         """
         data_starting_point = table_raw.find("Datum")
         self.data_header = table_raw[:data_starting_point]
@@ -546,3 +549,12 @@ class Data(BaseLevel):
             on_bad_lines="skip",
             usecols=[0, 1, 2],
         )
+
+        try:
+            self.data.set_index(
+                pd.to_datetime(self.data["Datum"] + " " + self.data["Tid (UTC)"]),
+                inplace=True,
+            )
+            self.data.drop(["Datum", "Tid (UTC)"], axis=1, inplace=True)
+        except TypeError:
+            raise TypeError("Can't parse date of empty data.")
