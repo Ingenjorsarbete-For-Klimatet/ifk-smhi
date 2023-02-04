@@ -791,4 +791,4 @@ class TestUnitData:
             return
 
         data_object._parse_data(data)
-        assert pd.testing.assert_frame_equal(data_object.data, result)
+        pd.testing.assert_frame_equal(data_object.data, result)
