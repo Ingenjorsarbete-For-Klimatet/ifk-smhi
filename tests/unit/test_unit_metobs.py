@@ -1,5 +1,6 @@
 """SMHI Metobs v1 unit tests."""
 import pytest
+from codecs import encode, decode
 import pandas as pd
 from unittest.mock import patch, MagicMock
 from smhi.metobs import (
@@ -15,8 +16,12 @@ from smhi.constants import METOBS_AVAILABLE_PERIODS
 
 
 with open("tests/fixtures/unit_metobs_data.txt") as f:
-    METOBS_DATA = f.readline().encode("utf8").decode("unicode-escape")
-    METOBS_NODATA = f.readline().encode("utf8").decode("unicode-escape")
+    METOBS_DATA = decode(
+        encode(f.readline(), "latin-1", "backslashreplace"), "unicode-escape"
+    )
+    METOBS_NODATA = decode(
+        encode(f.readline(), "latin-1", "backslashreplace"), "unicode-escape"
+    )
 
 METOBS_DATA_RESULT = pd.read_csv(
     "tests/fixtures/metobs_data.csv", parse_dates=[0], index_col=0
