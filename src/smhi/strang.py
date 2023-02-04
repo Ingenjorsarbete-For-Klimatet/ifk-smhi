@@ -115,12 +115,16 @@ class Strang:
         url = self.point_raw_url
         url = self._build_base_point_url(url)
         url = self._build_time_point_url(url)
-        data, headers, _ = self._get_and_load_data(url)
+        data, _, _ = self._get_and_load_data(url)
         self.point_url = url
         data = pd.DataFrame(data)
-        data.set_index("date_time", inplace=True)
+        if data is not None:
+            data.set_index("date_time", inplace=True)
+            data.rename(
+                columns={"value": STRANG_PARAMETERS[parameter][1]}, inplace=True
+            )
 
-        return headers, data
+        return data
 
     def get_multipoint(
         self, parameter: int, valid_time: str, time_interval: Optional[str] = None
@@ -162,12 +166,15 @@ class Strang:
         url = self.multipoint_raw_url
         url = self._build_base_multipoint_url(url)
         url = self._build_time_multipoint_url(url)
-        data, headers, _ = self._get_and_load_data(url)
+        data, _, _ = self._get_and_load_data(url)
         self.multipoint_url = url
         data = pd.DataFrame(data)
-        data.set_index("date_time", inplace=True)
-
-        return headers, data
+        if data is not None:
+            data.set_index("date_time", inplace=True)
+            data.rename(
+                columns={"value": STRANG_PARAMETERS[parameter][1]}, inplace=True
+            )
+        return data
 
     def _build_base_point_url(self, url: partial[str]) -> str:
         """Build base point url.
