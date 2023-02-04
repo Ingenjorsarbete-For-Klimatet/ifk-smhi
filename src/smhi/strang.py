@@ -6,10 +6,10 @@ import json
 import arrow
 import requests
 import logging
-from datetime import datetime
+import pandas as pd
 from functools import partial
 from collections import defaultdict
-from typing import Optional, Union, Any
+from typing import Optional, Any
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import (
     STRANG,
@@ -75,7 +75,7 @@ class Strang:
         time_from: Optional[str] = None,
         time_to: Optional[str] = None,
         time_interval: Optional[str] = None,
-    ) -> tuple[list[dict[str, Union[datetime, float]]], CaseInsensitiveDict[str], bool]:
+    ) -> Any:
         """Get data for given lon, lat and parameter.
 
         Args:
@@ -88,9 +88,8 @@ class Strang:
                            [valid values: hourly, daily, monthly] (optional)
 
         Returns:
-            data: data
             headers: GET headers
-            status: status code
+            data: data
 
         Raises:
             TypeError: wrong type of latitude and/or longitude
@@ -116,10 +115,12 @@ class Strang:
         url = self.point_raw_url
         url = self._build_base_point_url(url)
         url = self._build_time_point_url(url)
-        data, headers, status = self._get_and_load_data(url)
+        data, headers, _ = self._get_and_load_data(url)
         self.point_url = url
+        data = pd.DataFrame(data)
+        data.set_index("date_time", inplace=True)
 
-        return data, headers, status
+        return headers, data
 
     def get_multipoint(
         self, parameter: int, valid_time: str, time_interval: Optional[str] = None
@@ -161,10 +162,12 @@ class Strang:
         url = self.multipoint_raw_url
         url = self._build_base_multipoint_url(url)
         url = self._build_time_multipoint_url(url)
-        data, headers, status = self._get_and_load_data(url)
+        data, headers, _ = self._get_and_load_data(url)
         self.multipoint_url = url
+        data = pd.DataFrame(data)
+        data.set_index("date_time", inplace=True)
 
-        return data, headers, status
+        return headers, data
 
     def _build_base_point_url(self, url: partial[str]) -> str:
         """Build base point url.
