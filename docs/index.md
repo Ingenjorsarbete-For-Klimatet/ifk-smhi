@@ -5,7 +5,8 @@ See [https://opendata.smhi.se/apidocs/](https://opendata.smhi.se/apidocs/)
 for a complete list of available APIs.
 SMHI stands for [Swedish Meteorological and Hydrological Institute](https://www.smhi.se/)
 (or in Swedish: Sveriges meteorologiska och hydrologiska institut),
-which is a Swedish agency under its parent department: Ministry of the Environment.
+which is a Swedish agency under its parent department:  Ministry of Climate and
+Enterprise.
 
 Initially only these four APIs are supported:
 
