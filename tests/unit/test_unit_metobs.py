@@ -1,5 +1,6 @@
 """SMHI Metobs v1 unit tests."""
 import pytest
+import pandas as pd
 from unittest.mock import patch, MagicMock
 from smhi.metobs import (
     Metobs,
@@ -16,8 +17,9 @@ from smhi.constants import METOBS_AVAILABLE_PERIODS
 with open("tests/fixtures/unit_metobs_data.txt") as f:
     METOBS_DATA = f.readline().encode("utf-8").decode("unicode-escape")
     METOBS_NODATA = f.readline().encode("utf-8").decode("unicode-escape")
-    METOBS_DATA_RESULT = f.readline().encode("utf-8").decode("unicode-escape")[:-1]
-    METOBS_NODATA_RESULT = f.readline().encode("utf-8").decode("unicode-escape")
+
+METOBS_DATA_RESULT = pd.read_csv("tests/fixtures/metobs_data.csv", parse_dates=[0], index_col=0)
+METOBS_NODATA_RESULT: None = None
 
 
 class TestUnitMetobs:
@@ -782,6 +784,11 @@ class TestUnitData:
             result: expected result
         """
         data_object = Data(MagicMock(), "corrected-archive", "json")
-        data_object._parse_data(data)
 
-        assert data_object.data.to_string() == result
+        if result is None:
+            with pytest.raises(TypeError):
+                data_object._parse_data(data)
+            return
+
+        data_object._parse_data(data)
+        assert pd.testing.assert_frame_equal(data_object.data, result)
