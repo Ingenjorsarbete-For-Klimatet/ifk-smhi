@@ -18,7 +18,11 @@ with open("tests/fixtures/unit_metobs_data.txt") as f:
     METOBS_DATA = f.readline().encode("utf-8").decode("unicode-escape")
     METOBS_NODATA = f.readline().encode("utf-8").decode("unicode-escape")
 
-METOBS_DATA_RESULT = pd.read_csv("tests/fixtures/metobs_data.csv", parse_dates=[0], index_col=0)
+METOBS_DATA_RESULT = pd.read_csv(
+    "tests/fixtures/metobs_data.csv",
+    parse_dates=[0],
+    index_col=0
+)
 METOBS_NODATA_RESULT: None = None
 
 
