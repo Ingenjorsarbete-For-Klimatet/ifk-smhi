@@ -119,7 +119,6 @@ class SMHI:
             dist: distance from city
             city: name of city
         """
-
         geolocator = Nominatim(user_agent="ifk-smhi")
         loc = geolocator.geocode(city)
         self.find_stations_from_gps(

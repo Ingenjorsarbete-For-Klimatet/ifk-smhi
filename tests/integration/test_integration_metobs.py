@@ -39,8 +39,8 @@ class TestIntegrationMetobs:
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
                 + "historiska data (utom de senaste 3 mån): Ladda ner data",
-                16,
-                "2008-11-01",
+                0,
+                -15.2,
                 "\ufeffStationsnamn;Stationsnummer;Stationsnät;Mäthöjd (meter "
                 + "över marken)\nKaresuando A;192840;SMHIs stationsnät;2.0\n\n"
                 + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
@@ -133,8 +133,8 @@ class TestIntegrationMetobs:
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
                 + "historiska data (utom de senaste 3 mån): Ladda ner data",
-                16,
-                "2008-11-01",
+                0,
+                -15.2,
                 "\ufeffStationsnamn;Stationsnummer;Stationsnät;Mäthöjd (meter "
                 + "över marken)\nKaresuando A;192840;SMHIs stationsnät;2.0\n\n"
                 + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
