@@ -178,7 +178,11 @@ class TestUnitStrang:
                 )
 
             return None
-
+        mock_get_and_load_data.return_value = (
+            {"date_time": ["2020-01-01 12:00CET"], "value": 2},
+            False,
+            False,
+        )
         client.get_point(
             lat,
             lon,
@@ -275,7 +279,11 @@ class TestUnitStrang:
                 )
 
             return None
-
+        mock_get_and_load_data.return_value = (
+            {"lat": [71], "lon": [-9], "value": [2]},
+            False,
+            False,
+        )
         client.get_multipoint(
             parameter.parameter,
             valid_time,

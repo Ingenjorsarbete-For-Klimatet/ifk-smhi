@@ -169,11 +169,7 @@ class Strang:
         data, _, _ = self._get_and_load_data(url)
         self.multipoint_url = url
         data = pd.DataFrame(data)
-        if data is not None:
-            data.set_index("date_time", inplace=True)
-            data.rename(
-                columns={"value": STRANG_PARAMETERS[parameter][1]}, inplace=True
-            )
+
         return data
 
     def _build_base_point_url(self, url: partial[str]) -> str:

@@ -3,6 +3,8 @@ import pytest
 import datetime
 from dateutil.tz import tzutc
 from smhi.strang import Strang
+from smhi.constants import STRANG_PARAMETERS
+import pandas as pd
 
 
 RESULT_HOURLY_2020_01_01_2020_01_02 = [
@@ -117,6 +119,7 @@ class TestIntegrationStrang:
         Args:
             lat: longitude
             lon: latitude
+
             parameter: parameter
             time_from: from
             time_to: to
@@ -124,15 +127,17 @@ class TestIntegrationStrang:
             expected_result: expected result
         """
         client = Strang()
-        data, _, status = client.get_point(
-            lat, lon, parameter, time_from, time_to, time_interval
-        )
+        data = client.get_point(lat, lon, parameter, time_from, time_to, time_interval)
 
         if time_from is not None:
-            assert status is True
-            assert expected_result == data
+            expected_result = pd.DataFrame(expected_result)
+            expected_result.set_index("date_time", inplace=True)
+            expected_result.rename(
+                columns={"value": STRANG_PARAMETERS[parameter][1]}, inplace=True
+            )
+            pd.testing.assert_frame_equal(expected_result, data)
         else:
-            assert expected_result in data[0]
+            assert expected_result == data.index.name
 
     def test_integration_strang_multipoint(self):
         """Strang MultiPoint integration tests.
@@ -143,9 +148,9 @@ class TestIntegrationStrang:
         parameter = 116
         valid_time = "2020-01-01"
         time_interval = "monthly"
-        data, _, status = client.get_multipoint(parameter, valid_time, time_interval)
-
-        lon_sorted_data = sorted(data, key=lambda x: x["lon"])[:10]
-
-        assert status is True
-        assert RESULT_MULTIPOINT_2020_01_01_MONTHLY_10 == lon_sorted_data
+        data = client.get_multipoint(parameter, valid_time, time_interval)
+        lon_sorted_data = data.sort_values("lon")[0:10]
+        lon_sorted_data.set_index(pd.RangeIndex(start=0, stop=10, step=1), inplace=True)
+        pd.testing.assert_frame_equal(
+            pd.DataFrame(RESULT_MULTIPOINT_2020_01_01_MONTHLY_10), lon_sorted_data
+        )
