@@ -128,7 +128,7 @@ class Strang:
 
     def get_multipoint(
         self, parameter: int, valid_time: str, time_interval: Optional[str] = None
-    ) -> tuple[list[dict[str, float]], CaseInsensitiveDict[str], bool]:
+    ) -> Any:
         """Get full spatial data for given parameter and time.
 
         Args:
