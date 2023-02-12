@@ -744,10 +744,12 @@ class TestUnitData:
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
     @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.Data._parse_header")
     @patch("smhi.metobs.Data._parse_data")
     def test_unit_data_get_data(
         self,
         mock_parse_data,
+        mock_parse_header,
         mock_get_url,
         mock_get_and_parse_request,
         mock_request_get,
@@ -761,6 +763,7 @@ class TestUnitData:
 
         Args:
             mock_parse_data: mock of _parse_data
+            mock_parse_header: mock of _parse_header
             mock_get_url: mock of _get_url
             mock_get_and_parse_request: mock of _get_and_parse_request
             mock_request_get: mock of requests get method
@@ -778,27 +781,56 @@ class TestUnitData:
             return
 
         mock_request_get.assert_called_once()
-        mock_parse_data.assert_called_once_with(
-            mock_request_get.return_value.content.decode("utf-8")
-        )
+        mock_parse_data.assert_called_once_with(data_object.raw_data)
+        mock_parse_header.assert_called_once_with(data_object.raw_data_header)
 
     @pytest.mark.parametrize(
-        "data, result, result_header",
+        "content, header, data",
         [
-            (METOBS_DATA, METOBS_DATA_RESULT, METOBS_UNIT_1),
-            (METOBS_NODATA, METOBS_NODATA_RESULT, METOBS_UNIT_2),
+            ("Test, Datum, Test2", "Test, ", "Datum, Test"),
         ],
     )
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
     @patch("smhi.metobs.BaseLevel._get_url")
     @patch("smhi.metobs.Data._get_data")
-    def test_unit_data_parse_data(
+    def test_unit_data_separate_header_data(
+        self,
+        _get_data,
+        mock_get_url,
+        mock_get_and_parse_request,
+        content,
+        header,
+        data,
+    ):
+        """Unit test for Data separate header data.
+
+        Args:
+            _get_data: mock of _get_data
+            mock_get_url: mock of _get_url
+            mock_get_and_parse_request: mock of _get_and_parse_request
+            content: content string
+            header: header
+            data: data
+        """
+        data_object = Data(MagicMock(), "corrected-archive", "json")
+
+        data_object._separate_header_data(content)
+        assert data_object.raw_data_header == header
+        assert data_object.raw_data == data
+
+    @pytest.mark.parametrize(
+        "data, result_header",
+        [(METOBS_DATA, METOBS_UNIT_1)],
+    )
+    @patch("smhi.metobs.BaseLevel._get_and_parse_request")
+    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.Data._get_data")
+    def test_unit_data_parse_header(
         self,
         _get_data,
         mock_get_url,
         mock_get_and_parse_request,
         data,
-        result,
         result_header,
     ):
         """Unit test for Data get method.
@@ -813,11 +845,45 @@ class TestUnitData:
         """
         data_object = Data(MagicMock(), "corrected-archive", "json")
 
+        data_object._separate_header_data(data)
+        data_object._parse_header(data_object.raw_data_header)
+        assert data_object.data_header == result_header
+
+    @pytest.mark.parametrize(
+        "data, result",
+        [
+            (METOBS_DATA, METOBS_DATA_RESULT),
+            (METOBS_NODATA, METOBS_NODATA_RESULT),
+        ],
+    )
+    @patch("smhi.metobs.BaseLevel._get_and_parse_request")
+    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.Data._get_data")
+    def test_unit_data_parse_data(
+        self,
+        _get_data,
+        mock_get_url,
+        mock_get_and_parse_request,
+        data,
+        result,
+    ):
+        """Unit test for Data get method.
+
+        Args:
+            _get_data: mock of _get_data
+            mock_get_url: mock of _get_url
+            mock_get_and_parse_request: mock of _get_and_parse_request
+            data: data
+            result: expected result
+        """
+        data_object = Data(MagicMock(), "corrected-archive", "json")
+
         if result is None:
             with pytest.raises(TypeError):
-                data_object._parse_data(data)
+                data_object._separate_header_data(data)
+                data_object._parse_data(data_object.raw_data)
             return
 
-        data_object._parse_data(data)
+        data_object._separate_header_data(data)
+        data_object._parse_data(data_object.raw_data)
         pd.testing.assert_frame_equal(data_object.data, result)
-        assert data_object.data_header == result_header

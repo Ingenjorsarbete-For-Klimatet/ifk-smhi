@@ -231,6 +231,7 @@ class BaseLevel:
         self.data_type: Optional[str] = None
         self.raw_data_header: Optional[str] = None
         self.data_header: Any = None
+        self.raw_data: Any = None
         self.data: Any = None
 
     @property
@@ -530,23 +531,29 @@ class Data(BaseLevel):
                     continue
 
                 content = requests.get(link["href"]).content.decode("utf-8")
-                self._parse_data(content)
+                self._separate_header_data(content)
+                self._parse_header(self.raw_data_header)
+                self._parse_data(self.raw_data)
                 return
 
-    def _parse_data(self, table_raw: str) -> None:
-        """Parse string data.
+    def _separate_header_data(self, content: str) -> None:
+        """Separate header and data into two strings.
 
         Args:
-            utf-8 decoded response
-
-        Raises:
-            NotImplementedError
+            content: raw data string
         """
-        data_starting_point = table_raw.find("Datum")
-        self.raw_data_header = table_raw[:data_starting_point]
+        data_starting_point = content.find("Datum")
+        self.raw_data_header = content[:data_starting_point]
+        self.raw_data = content[data_starting_point:-1]
 
+    def _parse_header(self, raw_data_header: str) -> None:
+        """Parse header string.
+
+        Args:
+            raw_data_header: raw data header as a string
+        """
         data_headers = []
-        for header in self.raw_data_header.split("\n\n"):
+        for header in raw_data_header.split("\n\n"):
             try:
                 data_headers.append(
                     pd.read_csv(
@@ -560,8 +567,17 @@ class Data(BaseLevel):
 
         self.data_header = {k: v for d in data_headers for k, v in d.items()}
 
+    def _parse_data(self, raw_data: str) -> None:
+        """Parse string data.
+
+        Args:
+            raw_data: utf-8 decoded response
+
+        Raises:
+            NotImplementedError
+        """
         self.data = pd.read_csv(
-            io.StringIO(table_raw[data_starting_point:-1]),
+            io.StringIO(raw_data),
             sep=";",
             on_bad_lines="skip",
             usecols=[0, 1, 2],
