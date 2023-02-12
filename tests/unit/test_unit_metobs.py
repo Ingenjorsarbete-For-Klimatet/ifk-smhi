@@ -814,9 +814,9 @@ class TestUnitData:
         """
         data_object = Data(MagicMock(), "corrected-archive", "json")
 
-        data_object._separate_header_data(content)
-        assert data_object.raw_data_header == header
-        assert data_object.raw_data == data
+        raw_data_header, raw_data = data_object._separate_header_data(content)
+        assert raw_data_header == header
+        assert raw_data == data
 
     @pytest.mark.parametrize(
         "data, result_header",
@@ -845,8 +845,8 @@ class TestUnitData:
         """
         data_object = Data(MagicMock(), "corrected-archive", "json")
 
-        data_object._separate_header_data(data)
-        data_object._parse_header(data_object.raw_data_header)
+        raw_data_header, _ = data_object._separate_header_data(data)
+        data_object._parse_header(raw_data_header)
         assert data_object.data_header == result_header
 
     @pytest.mark.parametrize(
@@ -884,6 +884,6 @@ class TestUnitData:
                 data_object._parse_data(data_object.raw_data)
             return
 
-        data_object._separate_header_data(data)
-        data_object._parse_data(data_object.raw_data)
+        _, raw_data = data_object._separate_header_data(data)
+        data_object._parse_data(raw_data)
         pd.testing.assert_frame_equal(data_object.data, result)

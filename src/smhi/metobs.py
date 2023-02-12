@@ -531,12 +531,12 @@ class Data(BaseLevel):
                     continue
 
                 content = requests.get(link["href"]).content.decode("utf-8")
-                self._separate_header_data(content)
-                self._parse_header(self.raw_data_header)
-                self._parse_data(self.raw_data)
+                raw_data_header, raw_data = self._separate_header_data(content)
+                self._parse_header(raw_data_header)
+                self._parse_data(raw_data)
                 return
 
-    def _separate_header_data(self, content: str) -> None:
+    def _separate_header_data(self, content: str) -> tuple:
         """Separate header and data into two strings.
 
         Args:
@@ -545,6 +545,8 @@ class Data(BaseLevel):
         data_starting_point = content.find("Datum")
         self.raw_data_header = content[:data_starting_point]
         self.raw_data = content[data_starting_point:-1]
+
+        return self.raw_data_header, self.raw_data
 
     def _parse_header(self, raw_data_header: str) -> None:
         """Parse header string.
