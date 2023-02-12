@@ -1,6 +1,5 @@
 """SMHI Metobs client."""
 import io
-import json
 import logging
 import requests
 import pandas as pd
@@ -560,9 +559,6 @@ class Data(BaseLevel):
 
         self.data_header = {k: v for d in data_headers for k, v in d.items()}
         import json
-
-        with open("result.json", "w") as fp:
-            json.dump(self.data_header, fp)
 
         self.data = pd.read_csv(
             io.StringIO(table_raw[data_starting_point:-1]),
