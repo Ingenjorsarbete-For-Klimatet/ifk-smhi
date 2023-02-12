@@ -1,7 +1,8 @@
 """SMHI Metobs v1 unit tests."""
+import json
 import pytest
-from codecs import encode, decode
 import pandas as pd
+from codecs import encode, decode
 from unittest.mock import patch, MagicMock
 from smhi.metobs import (
     Metobs,
@@ -27,6 +28,13 @@ METOBS_DATA_RESULT = pd.read_csv(
     "tests/fixtures/metobs_data.csv", parse_dates=[0], index_col=0
 )
 METOBS_NODATA_RESULT: None = None
+
+
+with open("tests/fixtures/metobs_unit_1.json") as f:
+    METOBS_UNIT_1 = json.load(f)
+
+with open("tests/fixtures/metobs_unit_2.json") as f:
+    METOBS_UNIT_2 = json.load(f)
 
 
 class TestUnitMetobs:
@@ -288,6 +296,9 @@ class TestUnitBaseLevel:
         assert level.summary is None
         assert level.link is None
         assert level.data_type is None
+        assert level.raw_data_header is None
+        assert level.data_header is None
+        assert level.data is None
 
     def test_baselevel_unit_show(self):
         """Unit test for BaseLevel show property."""
@@ -772,14 +783,23 @@ class TestUnitData:
         )
 
     @pytest.mark.parametrize(
-        "data, result",
-        [(METOBS_DATA, METOBS_DATA_RESULT), (METOBS_NODATA, METOBS_NODATA_RESULT)],
+        "data, result, result_header",
+        [
+            (METOBS_DATA, METOBS_DATA_RESULT, METOBS_UNIT_1),
+            (METOBS_NODATA, METOBS_NODATA_RESULT, METOBS_UNIT_2),
+        ],
     )
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
     @patch("smhi.metobs.BaseLevel._get_url")
     @patch("smhi.metobs.Data._get_data")
     def test_unit_data_parse_data(
-        self, _get_data, mock_get_url, mock_get_and_parse_request, data, result
+        self,
+        _get_data,
+        mock_get_url,
+        mock_get_and_parse_request,
+        data,
+        result,
+        result_header,
     ):
         """Unit test for Data get method.
 
@@ -789,6 +809,7 @@ class TestUnitData:
             mock_get_and_parse_request: mock of _get_and_parse_request
             data: data
             result: expected result
+            result_header: expected parsed header
         """
         data_object = Data(MagicMock(), "corrected-archive", "json")
 
@@ -799,3 +820,4 @@ class TestUnitData:
 
         data_object._parse_data(data)
         pd.testing.assert_frame_equal(data_object.data, result)
+        assert data_object.data_header == result_header
