@@ -229,7 +229,8 @@ class BaseLevel:
         self.summary: Optional[str] = None
         self.link: Optional[str] = None
         self.data_type: Optional[str] = None
-        self.data_header: Optional[str] = None
+        self.raw_data_header: Optional[str] = None
+        self.data_header: Any = None
         self.data: Any = None
 
     @property
@@ -542,7 +543,27 @@ class Data(BaseLevel):
             NotImplementedError
         """
         data_starting_point = table_raw.find("Datum")
-        self.data_header = table_raw[:data_starting_point]
+        self.raw_data_header = table_raw[:data_starting_point]
+
+        data_headers = []
+        for header in self.raw_data_header.split("\n\n"):
+            try:
+                data_headers.append(
+                    pd.read_csv(
+                        io.StringIO(header),
+                        sep=";",
+                        on_bad_lines="skip",
+                    ).to_dict("records")[0]
+                )
+            except pd.errors.EmptyDataError:
+                logging.warning("No columns to parse from file.")
+
+        self.data_header = {k: v for d in data_headers for k, v in d.items()}
+        import json
+
+        with open("result.json", "w") as fp:
+            json.dump(self.data_header, fp)
+
         self.data = pd.read_csv(
             io.StringIO(table_raw[data_starting_point:-1]),
             sep=";",
