@@ -18,7 +18,7 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ("1", "Lufttemperatur"),
+                ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
                 (1, "Akalla"),
                 "corrected-archive",
                 "Lufttemperatur - Akalla - Kvalitetskontrollerade historiska "
@@ -34,7 +34,7 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ("1", "Lufttemperatur"),
+                ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
                 (1, "Akalla"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
@@ -112,7 +112,7 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ("1", "Lufttemperatur"),
+                ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
                 (1, "Akalla"),
                 "corrected-archive",
                 "Lufttemperatur - Akalla - Kvalitetskontrollerade historiska "
@@ -128,7 +128,7 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ("1", "Lufttemperatur"),
+                ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
                 (1, "Akalla"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
