@@ -354,7 +354,7 @@ class Parameters(BaseLevel):
         url = self._get_url(versions_object.data, "key", version, data_type)
         content = self._get_and_parse_request(url)
         self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
-        self.data = tuple((x["key"], x["title"]) for x in self.resource)
+        self.data = tuple((x["key"], x["title"], x["summary"]) for x in self.resource)
 
 
 class Stations(BaseLevel):
