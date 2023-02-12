@@ -1,7 +1,15 @@
 """SMHI Metobs v1 integration tests."""
+import json
 import pytest
 import datetime
 from smhi.metobs import Metobs, Parameters, Stations, Periods, Data
+
+
+with open("tests/fixtures/metobs_integration_1.json") as f:
+    metobs_integration_1 = json.load(f)
+
+with open("tests/fixtures/metobs_integration_2.json") as f:
+    metobs_integration_2 = json.load(f)
 
 
 class TestIntegrationMetobs:
@@ -9,7 +17,8 @@ class TestIntegrationMetobs:
 
     @pytest.mark.parametrize(
         "parameter, station, period, init_key, init_title, parameter_data_0, "
-        + "station_data_0, period_data_0, data_title, table_loc, table, header_0",
+        + "station_data_0, period_data_0, data_title, table_loc, table, "
+        + "raw_header_0, header_0",
         [
             (
                 1,
@@ -26,6 +35,7 @@ class TestIntegrationMetobs:
                 None,
                 False,
                 None,
+                {},
             ),
             (
                 1,
@@ -48,6 +58,7 @@ class TestIntegrationMetobs:
                 + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
                 + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 08:00:00;329.68;"
                 + "68.4418;22.4435\n\n",
+                metobs_integration_1,
             ),
         ],
     )
@@ -64,6 +75,7 @@ class TestIntegrationMetobs:
         data_title,
         table_loc,
         table,
+        raw_header_0,
         header_0,
     ):
         """Integration test of Metobs.
@@ -80,10 +92,11 @@ class TestIntegrationMetobs:
             data_title
             table_loc
             table
+            raw_header_0
             header_0
         """
-        if header_0:
-            header_0 = header_0.replace(
+        if raw_header_0:
+            raw_header_0 = raw_header_0.replace(
                 "{{ date }}", datetime.date.today().strftime("%Y-%m") + "-01"
             )
 
@@ -103,7 +116,8 @@ class TestIntegrationMetobs:
 
     @pytest.mark.parametrize(
         "parameter, station, period, init_key, init_title, parameter_data_0, "
-        + "station_data_0, period_data_0, data_title, table_loc, table, header_0",
+        + "station_data_0, period_data_0, data_title, table_loc, table, "
+        + "raw_header_0, header_0",
         [
             (
                 1,
@@ -120,6 +134,7 @@ class TestIntegrationMetobs:
                 None,
                 False,
                 None,
+                {},
             ),
             (
                 1,
@@ -142,6 +157,7 @@ class TestIntegrationMetobs:
                 + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
                 + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 08:00:00;329.68;"
                 + "68.4418;22.4435\n\n",
+                metobs_integration_2,
             ),
         ],
     )
@@ -158,6 +174,7 @@ class TestIntegrationMetobs:
         data_title,
         table_loc,
         table,
+        raw_header_0,
         header_0,
     ):
         """Integration test of Metobs.
@@ -174,10 +191,11 @@ class TestIntegrationMetobs:
             data_title
             table_loc
             table
+            raw_header_0
             header_0
         """
-        if header_0:
-            header_0 = header_0.replace(
+        if raw_header_0:
+            raw_header_0 = raw_header_0.replace(
                 "{{ date }}", datetime.date.today().strftime("%Y-%m") + "-01"
             )
 
@@ -192,4 +210,5 @@ class TestIntegrationMetobs:
         assert data.title == data_title
         if table:
             assert data.data.iloc[table_loc, 0] == table
+            assert data.raw_data_header == raw_header_0
             assert data.data_header == header_0
