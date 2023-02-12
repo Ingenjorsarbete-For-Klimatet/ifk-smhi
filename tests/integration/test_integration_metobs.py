@@ -4,6 +4,7 @@ import pytest
 import datetime
 from smhi.metobs import Metobs, Parameters, Stations, Periods, Data
 
+
 with open("tests/fixtures/metobs_integration_1.json") as f:
     metobs_integration_1 = json.load(f)
 
