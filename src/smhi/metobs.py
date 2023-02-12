@@ -559,7 +559,6 @@ class Data(BaseLevel):
                 logging.warning("No columns to parse from file.")
 
         self.data_header = {k: v for d in data_headers for k, v in d.items()}
-        import json
 
         self.data = pd.read_csv(
             io.StringIO(table_raw[data_starting_point:-1]),
