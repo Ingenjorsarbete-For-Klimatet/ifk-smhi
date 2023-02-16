@@ -10,7 +10,7 @@ from typing import NamedTuple, Optional, Callable
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def get_now():
+def get_now() -> datetime:
     """
     Get current datetime.
 
