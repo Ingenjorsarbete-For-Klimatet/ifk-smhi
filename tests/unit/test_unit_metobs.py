@@ -219,7 +219,7 @@ class TestUnitMetobs:
         client.periods = client_periods
 
         if client_periods is None:
-            assert client.get_data() is None
+            assert client.get_data() == (None, None)
             return
 
         data, data_header = client.get_data()
