@@ -226,7 +226,9 @@ class BaseLevel:
         self.summary: Optional[str] = None
         self.link: Optional[str] = None
         self.data_type: Optional[str] = None
-        self.data_header: Optional[str] = None
+        self.raw_data_header: Optional[str] = None
+        self.data_header: Any = None
+        self.raw_data: Any = None
         self.data: Any = None
 
     @property
@@ -349,7 +351,7 @@ class Parameters(BaseLevel):
         url = self._get_url(versions_object.data, "key", version, data_type)
         content = self._get_and_parse_request(url)
         self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
-        self.data = tuple((x["key"], x["title"]) for x in self.resource)
+        self.data = tuple((x["key"], x["title"], x["summary"]) for x in self.resource)
 
 
 class Stations(BaseLevel):
@@ -526,20 +528,65 @@ class Data(BaseLevel):
                     continue
 
                 content = requests.get(link["href"]).content.decode("utf-8")
-                self._parse_data(content)
+                raw_data_header, raw_data = self._separate_header_data(content)
+                self._parse_header(raw_data_header)
+                self._parse_data(raw_data)
                 return
 
-    def _parse_data(self, table_raw: str) -> None:
+    def _separate_header_data(self, content: str) -> tuple:
+        """Separate header and data into two strings.
+
+        Args:
+            content: raw data string
+        """
+        data_starting_point = content.find("Datum")
+        self.raw_data_header = content[:data_starting_point]
+        self.raw_data = content[data_starting_point:-1]
+
+        return self.raw_data_header, self.raw_data
+
+    def _parse_header(self, raw_data_header: str) -> None:
+        """Parse header string.
+
+        Args:
+            raw_data_header: raw data header as a string
+        """
+        data_headers = []
+        for header in raw_data_header.split("\n\n"):
+            try:
+                data_headers.append(
+                    pd.read_csv(
+                        io.StringIO(header),
+                        sep=";",
+                        on_bad_lines="skip",
+                    ).to_dict("records")[0]
+                )
+            except pd.errors.EmptyDataError:
+                logging.warning("No columns to parse from file.")
+
+        self.data_header = {k: v for d in data_headers for k, v in d.items()}
+
+    def _parse_data(self, raw_data: str) -> None:
         """Parse string data.
 
         Args:
-            utf-8 decoded response
+            raw_data: utf-8 decoded response
+
+        Raises:
+            NotImplementedError
         """
-        data_starting_point = table_raw.find("Datum")
-        self.data_header = table_raw[:data_starting_point]
         self.data = pd.read_csv(
-            io.StringIO(table_raw[data_starting_point:-1]),
+            io.StringIO(raw_data),
             sep=";",
             on_bad_lines="skip",
             usecols=[0, 1, 2],
         )
+
+        try:
+            self.data.set_index(
+                pd.to_datetime(self.data["Datum"] + " " + self.data["Tid (UTC)"]),
+                inplace=True,
+            )
+            self.data.drop(["Datum", "Tid (UTC)"], axis=1, inplace=True)
+        except TypeError:
+            raise TypeError("Can't parse date of empty data.")

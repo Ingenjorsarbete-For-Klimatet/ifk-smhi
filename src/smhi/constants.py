@@ -1,6 +1,7 @@
 """Constans."""
 import arrow
 import logging
+from datetime import datetime
 from collections import defaultdict
 from posixpath import join as urljoin
 from typing import NamedTuple, Optional, Callable
@@ -9,7 +10,7 @@ from typing import NamedTuple, Optional, Callable
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def get_now():
+def get_now() -> datetime:
     """
     Get current datetime.
 
@@ -57,7 +58,7 @@ STRANG = NamedTuple(
     [
         ("parameter", Optional[int]),
         ("meaning", Optional[str]),
-        ("time_from", Optional[arrow.Arrow]),
+        ("time_from", Optional[datetime]),
         ("time_to", Callable),
     ],
 )
@@ -66,37 +67,37 @@ STRANG_PARAMETERS: defaultdict[int, STRANG] = defaultdict(lambda: STRANG_EMPTY)
 STRANG_PARAMETERS[116] = STRANG(
     116,
     "CIE UV irradiance [mW/m²]",
-    arrow.get("1999-01-01"),
+    arrow.get("1999-01-01").datetime,
     get_now,
 )
 
 STRANG_PARAMETERS[117] = STRANG(
     117,
     "Global irradiance [W/m²]",
-    arrow.get("1999-01-01"),
+    arrow.get("1999-01-01").datetime,
     get_now,
 )
 STRANG_PARAMETERS[118] = STRANG(
     118,
     "Direct normal irradiance [W/m²]",
-    arrow.get("1999-01-01"),
+    arrow.get("1999-01-01").datetime,
     get_now,
 )
 STRANG_PARAMETERS[120] = STRANG(
     120,
     "PAR [W/m²]",
-    arrow.get("1999-01-01"),
+    arrow.get("1999-01-01").datetime,
     get_now,
 )
 STRANG_PARAMETERS[121] = STRANG(
     121,
     "Direct horizontal irradiance [W/m²]",
-    arrow.get("2017-04-18"),
+    arrow.get("2017-04-18").datetime,
     get_now,
 )
 STRANG_PARAMETERS[122] = STRANG(
     122,
     "Diffuse irradiance [W/m²]",
-    arrow.get("2017-04-18"),
+    arrow.get("2017-04-18").datetime,
     get_now,
 )
