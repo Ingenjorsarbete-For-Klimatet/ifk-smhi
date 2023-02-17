@@ -1,8 +1,7 @@
 """Strang integration tests."""
 import pytest
-from smhi.strang import Strang
-from smhi.constants import STRANG_PARAMETERS
 import pandas as pd
+from smhi.strang import Strang
 
 
 RESULT_HOURLY_2020_01_01_2020_01_02 = pd.read_csv(
