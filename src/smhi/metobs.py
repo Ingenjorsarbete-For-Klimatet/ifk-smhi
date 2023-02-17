@@ -94,7 +94,7 @@ class Metobs:
 
     def get_data(
         self, period: str = "corrected-archive"
-    ) -> Optional[tuple[pd.DataFrame, dict]]:
+    ) -> tuple[Optional[pd.DataFrame], Optional[tuple[dict]]]:
         """Get SMHI Metobs API (version 1) data from given period.
 
         Args:
@@ -106,7 +106,7 @@ class Metobs:
         """
         if self.periods is None:
             logging.info("No periods found, call get_periods first.")
-            return None
+            return None, None
 
         self.data = Data(self.periods, period)
 
@@ -117,7 +117,7 @@ class Metobs:
         parameter: int,
         station: int,
         period: str,
-    ) -> Optional[tuple[pd.DataFrame, dict]]:
+    ) -> tuple[Optional[pd.DataFrame], Optional[tuple[dict]]]:
         """Get data from explicit parameters.
 
         Get data from explicit parameter, station and period,
@@ -143,7 +143,7 @@ class Metobs:
         parameter: int,
         stationset: str,
         period: str,
-    ) -> Optional[tuple[pd.DataFrame, dict]]:
+    ) -> tuple[Optional[pd.DataFrame], Optional[tuple[dict]]]:
         """Get data from stationset.
 
         Get data from explicit parameters, stations set and period,
