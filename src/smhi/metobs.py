@@ -92,7 +92,9 @@ class Metobs:
         else:
             self.periods = Periods(self.stations, stationset=stationset)
 
-    def get_data(self, period: str = "corrected-archive") -> Optional[pd.DataFrame]:
+    def get_data(
+        self, period: str = "corrected-archive"
+    ) -> Optional[tuple[pd.DataFrame, dict]]:
         """Get SMHI Metobs API (version 1) data from given period.
 
         Args:
@@ -100,6 +102,7 @@ class Metobs:
 
         Returns:
             data table
+            data header dict
         """
         if self.periods is None:
             logging.info("No periods found, call get_periods first.")
@@ -107,14 +110,14 @@ class Metobs:
 
         self.data = Data(self.periods, period)
 
-        return self.data.data
+        return self.data.data, self.data.data_header
 
     def get_data_from_selection(
         self,
         parameter: int,
         station: int,
         period: str,
-    ) -> Optional[pd.DataFrame]:
+    ) -> Optional[tuple[pd.DataFrame, dict]]:
         """Get data from explicit parameters.
 
         Get data from explicit parameter, station and period,
@@ -127,19 +130,20 @@ class Metobs:
 
         Returns:
             data table
+            data header dict
         """
         self.get_parameters()
         self.get_stations(parameter)
         self.get_periods(station)
-        table = self.get_data(period)
-        return table
+        data, data_header = self.get_data(period)
+        return data, data_header
 
     def get_data_stationset(
         self,
         parameter: int,
         stationset: str,
         period: str,
-    ) -> Optional[pd.DataFrame]:
+    ) -> Optional[tuple[pd.DataFrame, dict]]:
         """Get data from stationset.
 
         Get data from explicit parameters, stations set and period,
@@ -156,8 +160,8 @@ class Metobs:
         self.get_parameters()
         self.get_stations(parameter)
         self.get_periods(None, stationset)
-        table = self.get_data(period)
-        return table
+        data, data_header = self.get_data(period)
+        return data, data_header
 
     def inspect(self, num_print: int = 10) -> None:
         """Inspect object state.

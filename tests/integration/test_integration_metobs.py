@@ -104,7 +104,7 @@ class TestIntegrationMetobs:
         client.get_parameters()
         client.get_stations(parameter)
         client.get_periods(station)
-        data = client.get_data(period)
+        data, data_header = client.get_data(period)
 
         assert client.parameters.data[0] == parameter_data_0
         assert client.stations.data[0] == station_data_0
@@ -112,7 +112,7 @@ class TestIntegrationMetobs:
         assert client.data.title == data_title
         if table:
             assert data.iloc[table_loc, 0] == table
-            assert client.data.data_header == header_0
+            assert data_header == header_0
 
     @pytest.mark.parametrize(
         "parameter, station, period, init_key, init_title, parameter_data_0, "

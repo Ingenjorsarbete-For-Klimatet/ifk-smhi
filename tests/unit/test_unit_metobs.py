@@ -222,15 +222,16 @@ class TestUnitMetobs:
             assert client.get_data() is None
             return
 
-        data = client.get_data()
+        data, data_header = client.get_data()
 
         assert data == mock_data.return_value.data
+        assert data_header == mock_data.return_value.data_header
         mock_data.assert_called_once()
 
     @patch("smhi.metobs.Metobs.get_parameters")
     @patch("smhi.metobs.Metobs.get_stations")
     @patch("smhi.metobs.Metobs.get_periods")
-    @patch("smhi.metobs.Metobs.get_data", return_value=("test1"))
+    @patch("smhi.metobs.Metobs.get_data", return_value=("test1", "header1"))
     def test_unit_metobs_get_data_from_selection(
         self,
         mock_get_data,
@@ -247,19 +248,20 @@ class TestUnitMetobs:
             mock_get_data
         """
         client = Metobs()
-        data = client.get_data_from_selection(1, 1, "1")
+        data, data_header = client.get_data_from_selection(1, 1, "1")
 
         mock_get_parameters.assert_called_once()
         mock_get_stations.assert_called_once()
         mock_get_periods.assert_called_once()
         mock_get_data.assert_called_once()
 
-        assert data == mock_get_data.return_value
+        assert data == mock_get_data.return_value[0]
+        assert data_header == mock_get_data.return_value[1]
 
     @patch("smhi.metobs.Metobs.get_parameters")
     @patch("smhi.metobs.Metobs.get_stations")
     @patch("smhi.metobs.Metobs.get_periods")
-    @patch("smhi.metobs.Metobs.get_data", return_value=("test1"))
+    @patch("smhi.metobs.Metobs.get_data", return_value=("test1", "header1"))
     def test_unit_metobs_get_data_stationset(
         self,
         mock_get_data,
@@ -276,14 +278,15 @@ class TestUnitMetobs:
             mock_get_data
         """
         client = Metobs()
-        data = client.get_data_stationset(1, 1, "corrected-data")
+        data, data_header = client.get_data_stationset(1, 1, "corrected-data")
 
         mock_get_parameters.assert_called_once()
         mock_get_stations.assert_called_once()
         mock_get_periods.assert_called_once()
         mock_get_data.assert_called_once()
 
-        assert data == mock_get_data.return_value
+        assert data == mock_get_data.return_value[0]
+        assert data_header == mock_get_data.return_value[1]
 
 
 class TestUnitBaseLevel:
