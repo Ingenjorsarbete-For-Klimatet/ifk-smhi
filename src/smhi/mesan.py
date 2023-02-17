@@ -2,6 +2,7 @@
 import json
 import arrow
 import requests
+import pandas as pd
 from functools import wraps
 from smhi.constants import MESAN_URL
 from typing import Any, Callable, Optional
@@ -29,13 +30,13 @@ def get_data(key: Optional[str] = None) -> Callable:
         """
 
         @wraps(func)
-        def inner(self, *args: Any) -> tuple[Any, dict[str, str]]:
+        def inner(self, *args: Any) -> pd.DataFrame:
             url = func(self, *args)
-            status, headers, data = self._get_data(url)
+            data, header, status = self._get_data(url)
             if key:
-                return data[key], headers
+                return data[key]
             else:
-                return data, headers
+                return data
 
         return inner
 
@@ -181,22 +182,22 @@ class Mesan:
 
     def _get_data(
         self, url
-    ) -> tuple[bool, CaseInsensitiveDict[str], Optional[dict[str, Any]]]:
+    ) -> tuple[Optional[dict[str, Any]], CaseInsensitiveDict[str], bool]:
         """Get requested data.
 
         Args:
             url: url to get from
 
         Returns:
-            status of response
-            headers of response
             data of response
+            header of response
+            status of response
         """
         response = requests.get(url)
         status = response.ok
-        headers = response.headers
+        header = response.headers
 
         if status:
-            return status, headers, json.loads(response.content)
+            return json.loads(response.content), header, status
         else:
-            return status, headers, None
+            return None, header, status

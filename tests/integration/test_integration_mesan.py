@@ -41,17 +41,17 @@ class TestIntegrationMesan:
     def test_integration_mesan_approved_time(self):
         """Integration test for approved time property."""
         client = Mesan()
-        assert client.approved_time[0] == APPROVED_TIME_NOW["approvedTime"]
+        assert client.approved_time == APPROVED_TIME_NOW["approvedTime"]
 
     def test_integration_mesan_valid_time(self):
         """Integration test for approved time property."""
         client = Mesan()
-        assert client.valid_time[0] == VALID_TIME_NOW["validTime"]
+        assert client.valid_time == VALID_TIME_NOW["validTime"]
 
     def test_integration_mesan_geo_polygon(self):
         """Integration test for geo_polygon property."""
         client = Mesan()
-        assert client.geo_polygon[0] == GEO_POLYGON_NOW["coordinates"]
+        assert client.geo_polygon == GEO_POLYGON_NOW["coordinates"]
 
     @pytest.mark.parametrize(
         "downsample, result",
@@ -71,12 +71,12 @@ class TestIntegrationMesan:
             result: expected result
         """
         client = Mesan()
-        assert client.get_geo_multipoint(downsample)[0] == result["coordinates"]
+        assert client.get_geo_multipoint(downsample) == result["coordinates"]
 
     def test_integration_mesan_parameters(self):
         """Integration test for parameters property."""
         client = Mesan()
-        assert client.parameters[0] == PARAMETERS_NOW["parameter"]
+        assert client.parameters == PARAMETERS_NOW["parameter"]
 
     @pytest.mark.parametrize("lat, lon", [(58, 16)])
     def test_integration_mesan_get_point(self, lat, lon):
@@ -96,7 +96,7 @@ class TestIntegrationMesan:
         result = json.loads(requests.get(url).content)
 
         client = Mesan()
-        assert client.get_point(lat, lon)[0] == result
+        assert client.get_point(lat, lon) == result
 
     @pytest.mark.parametrize(
         "validtime, parameter, level_type, level, downsample",
@@ -131,8 +131,6 @@ class TestIntegrationMesan:
 
         client = Mesan()
         assert (
-            client.get_multipoint(validtime, parameter, level_type, level, downsample)[
-                0
-            ]
+            client.get_multipoint(validtime, parameter, level_type, level, downsample)
             == result
         )
