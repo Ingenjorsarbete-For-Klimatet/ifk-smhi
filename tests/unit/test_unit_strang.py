@@ -1,6 +1,9 @@
 """SMHI Strang unit tests."""
 import arrow
 import pytest
+import datetime
+import pandas as pd
+from dateutil.tz import tzutc
 from functools import partial
 from unittest.mock import patch
 from smhi.strang import Strang
@@ -10,6 +13,32 @@ from smhi.constants import (
     STRANG_POINT_URL,
     STRANG_PARAMETERS,
     STRANG_MULTIPOINT_URL,
+)
+
+
+INPUT_DAILY_2020_01_01_2020_01_02 = [
+    {"date_time": datetime.datetime(2020, 1, 1, 0, 0, tzinfo=tzutc()), "value": 608.0},
+    {"date_time": datetime.datetime(2020, 1, 2, 0, 0, tzinfo=tzutc()), "value": 12.1},
+]
+INPUT_MULTIPOINT_2020_01_01_MONTHLY_10 = [
+    {"lat": 71.139084, "lon": -9.659227, "value": 4.3},
+    {"lat": 71.1481, "lon": -9.589094, "value": 4.3},
+    {"lat": 71.157104, "lon": -9.5189, "value": 4.3},
+    {"lat": 71.16608, "lon": -9.448643, "value": 4.4},
+    {"lat": 71.175026, "lon": -9.378324, "value": 4.4},
+    {"lat": 71.18395, "lon": -9.307943, "value": 4.4},
+    {"lat": 71.19285, "lon": -9.237501, "value": 4.4},
+    {"lat": 71.20173, "lon": -9.166997, "value": 4.4},
+    {"lat": 71.21058, "lon": -9.096432, "value": 4.3},
+    {"lat": 71.219406, "lon": -9.025805, "value": 4.3},
+]
+RESULT_DAILY_2020_01_01_2020_01_02 = pd.read_csv(
+    "tests/fixtures/STRANG_RESULT_DAILY_2020_01_01_2020_01_02.csv",
+    parse_dates=[0],
+    index_col=0,
+)
+RESULT_MULTIPOINT_2020_01_01_MONTHLY_10 = pd.read_csv(
+    "tests/fixtures/STRANG_RESULT_MULTIPOINT_2020_01_01_MONTHLY_10.csv", index_col=0
 )
 
 
@@ -448,12 +477,15 @@ class TestUnitStrang:
             assert expected_url == client._build_time_multipoint_url(client.url)
 
     @pytest.mark.parametrize(
-        "ok, date_time",
+        "ok, data",
         [
             (True, [{"date_time": "2020-01-01T00:00:00Z"}]),
+            (True, [{"lat": 0, "lon": 0, "value": 0}]),
             (False, [{"date_time": "2020-01-01T00:00:00Z"}]),
         ],
     )
+    @patch("smhi.strang.Strang._parse_multipoint_data")
+    @patch("smhi.strang.Strang._parse_point_data")
     @patch("smhi.strang.logging.info")
     @patch(
         "smhi.strang.requests.get",
@@ -467,7 +499,14 @@ class TestUnitStrang:
         "smhi.strang.json.loads", return_value=[{"date_time": "2020-01-01T00:00:00Z"}]
     )
     def test_unit_strang_get_and_load_data(
-        self, mock_json_loads, mock_requests_get, mock_logging, ok, date_time
+        self,
+        mock_json_loads,
+        mock_requests_get,
+        mock_logging,
+        mock_parse_point_data,
+        mock_parse_multipoint_data,
+        ok,
+        data,
     ):
         """Unit test for Strang Point get_and_load_strang_data method.
 
@@ -475,12 +514,14 @@ class TestUnitStrang:
             mock_requests_get: mock requests get method
             mock_json_loads: mock json loads method
             mock_logging: mock of logging warning method
+            mock_parse_point_data: mock of _parse_point_data
+            mock_parse_multipoint_data: mock of _parse_multipoint_data
             ok: request status
-            date_time: date
+            data: date
         """
         client = Strang()
         client.url = "URL"
-        mock_json_loads.return_value = date_time
+        mock_json_loads.return_value = data
         mock_requests_get.return_value.ok = ok
         data, headers, status = client._get_and_load_data(client.url)
         mock_requests_get.assert_called_once_with(client.url)
@@ -491,13 +532,18 @@ class TestUnitStrang:
             )
             assert status is ok
             assert headers == "header"
-            assert data[0]["date_time"] == arrow.get("2020-01-01T00:00:00Z").datetime
+
+            if "date_time" in data[0]:
+                mock_parse_point_data.assert_called_once()
+            else:
+                mock_parse_point_data.mock_parse_multipoint_data()
+
             mock_logging.assert_not_called()
 
         else:
             assert status is ok
             assert headers == "header"
-            assert data == []
+            pd.testing.assert_frame_equal(data, pd.DataFrame())
             mock_logging.assert_called_once()
 
     @pytest.mark.parametrize(
@@ -525,3 +571,65 @@ class TestUnitStrang:
                 client._parse_datetime(date_time)
         else:
             assert client._parse_datetime(date_time) == expected
+
+    @pytest.mark.parametrize(
+        "parameter, valid_time, time_interval, input, output",
+        [
+            (
+                118,
+                None,
+                None,
+                INPUT_DAILY_2020_01_01_2020_01_02,
+                RESULT_DAILY_2020_01_01_2020_01_02,
+            ),
+        ],
+    )
+    def test_unit_strang_parse_point_data(
+        self, parameter, valid_time, time_interval, input, output
+    ):
+        """Unit test for Strang _parse_point_data.
+
+        Args:
+            parameter: data parameter
+            valid_time: valid_time for multipoint
+            time_interval: time_interval for multipoint
+            input: input data
+            output: output data
+        """
+        client = Strang()
+        client.parameter = STRANG_PARAMETERS[parameter]
+        data = client._parse_point_data(input)
+
+        pd.testing.assert_frame_equal(data, output)
+
+    @pytest.mark.parametrize(
+        "parameter, valid_time, time_interval, input, output",
+        [
+            (
+                116,
+                "2020-01-01",
+                "monthly",
+                INPUT_MULTIPOINT_2020_01_01_MONTHLY_10,
+                RESULT_MULTIPOINT_2020_01_01_MONTHLY_10,
+            ),
+        ],
+    )
+    def test_unit_strang_parse_multipoint_data(
+        self, parameter, valid_time, time_interval, input, output
+    ):
+        """Unit test for Strang _parse_multipoint_data.
+
+        Args:
+            parameter: data parameter
+            valid_time: valid_time for multipoint
+            time_interval: time_interval for multipoint
+            input: input data
+            output: output data
+        """
+        client = Strang()
+        client.parameter = STRANG_PARAMETERS[parameter]
+        client.valid_time = arrow.get(valid_time).isoformat()
+        client.time_interval = time_interval
+        data = client._parse_multipoint_data(input)
+
+        pd.testing.assert_frame_equal(data, output)

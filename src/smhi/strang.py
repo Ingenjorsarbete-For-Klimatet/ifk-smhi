@@ -88,7 +88,6 @@ class Strang:
                            [valid values: hourly, daily, monthly] (optional)
 
         Returns:
-            headers: GET headers
             data: data
 
         Raises:
@@ -115,14 +114,8 @@ class Strang:
         url = self.point_raw_url
         url = self._build_base_point_url(url)
         url = self._build_time_point_url(url)
-        data, _, _ = self._get_and_load_data(url)
+        data, header, _ = self._get_and_load_data(url)
         self.point_url = url
-        data = pd.DataFrame(data)
-        if data is not None:
-            data.set_index("date_time", inplace=True)
-            data.rename(
-                columns={"value": STRANG_PARAMETERS[parameter][1]}, inplace=True
-            )
 
         return data
 
@@ -140,8 +133,6 @@ class Strang:
 
         Returns:
             data: data
-            headers: GET headers
-            status: status code
 
         Raises:
             TypeError: wrong type of valid time
@@ -166,9 +157,8 @@ class Strang:
         url = self.multipoint_raw_url
         url = self._build_base_multipoint_url(url)
         url = self._build_time_multipoint_url(url)
-        data, _, _ = self._get_and_load_data(url)
+        data, header, _ = self._get_and_load_data(url)
         self.multipoint_url = url
-        data = pd.DataFrame(data)
 
         return data
 
@@ -265,27 +255,34 @@ class Strang:
 
     def _get_and_load_data(
         self, url: str
-    ) -> tuple[list[dict[str, Any]], CaseInsensitiveDict[str], bool]:
+    ) -> tuple[pd.DataFrame, CaseInsensitiveDict[str], bool]:
         """Fetch requested point data and parse it with datetime.
 
         Args:
             url: url to fetch from
+
+        Returns:
+            data
+            header
+            status
         """
         response = requests.get(url)
         status = response.ok
-        headers = response.headers
-        data = []
+        header = response.headers
 
         if status is True:
             data = json.loads(response.content)
 
             if "date_time" in data[0]:
-                for entry in data:
-                    entry["date_time"] = arrow.get(entry["date_time"]).datetime
+                data = self._parse_point_data(data)
+            else:
+                data = self._parse_multipoint_data(data)
+
+            return data, header, status
         else:
             logging.info("No data returned.")
 
-        return data, headers, status
+            return pd.DataFrame(), header, status
 
     def _parse_datetime(self, date_time: Optional[str]) -> Optional[str]:
         """Parse date into a datetime format given as string and check bounds.
@@ -315,3 +312,41 @@ class Strang:
                     time_from=self.parameter.time_from, time_to=self.parameter.time_to()
                 )
             )
+
+    def _parse_point_data(self, data: list) -> pd.DataFrame:
+        """Parse point data into a pandas DataFrame.
+
+        Args:
+            data: data as a list
+
+        Returns
+            data_pd: pandas dataframe
+        """
+        for entry in data:
+            entry["date_time"] = arrow.get(entry["date_time"]).datetime
+
+        data_pd = pd.DataFrame(data)
+        data_pd.set_index("date_time", inplace=True)
+        data_pd.rename(columns={"value": self.parameter[1]}, inplace=True)
+
+        return data_pd
+
+    def _parse_multipoint_data(self, data: list) -> pd.DataFrame:
+        """Parse multipoint data into a pandas DataFrame.
+
+        Args:
+            data: data as a list
+
+        Returns
+            data_pd: pandas dataframe
+        """
+        data_pd = pd.DataFrame(data)
+        data_pd.rename(
+            columns={
+                "value": str(self.parameter[1])
+                + " {0} {1}".format(self.valid_time, self.time_interval)
+            },
+            inplace=True,
+        )
+
+        return data_pd
