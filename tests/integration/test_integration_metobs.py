@@ -166,6 +166,8 @@ class TestIntegrationMetobs:
         parameter,
         station,
         period,
+        init_key,
+        init_title,
         parameter_data_0,
         station_data_0,
         period_data_0,
