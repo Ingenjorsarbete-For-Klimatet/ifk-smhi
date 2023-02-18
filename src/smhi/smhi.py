@@ -142,7 +142,7 @@ class SMHI:
             station: station id
             period: period to get
         """
-        header, data = self.client.get_data_from_selection(
+        data, header = self.client.get_data_from_selection(
             parameter=parameter, station=station, period=period
         )
         if interpolate > 0:
@@ -186,4 +186,4 @@ class SMHI:
                     > data.index.to_series().diff().median()
                 ]
         data = data.sort_index()
-        return header, data
+        return data, header
