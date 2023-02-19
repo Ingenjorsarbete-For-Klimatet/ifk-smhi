@@ -38,7 +38,6 @@ class Strang:
         self.time_interval: Optional[str] = None
         self.status: Optional[bool] = None
         self.header: Optional[CaseInsensitiveDict[str]] = None
-        self.data: Optional[list[dict[str, Any]]] = None
         self.available_parameters: defaultdict[int, STRANG] = STRANG_PARAMETERS
         self.point_raw_url: partial[str] = partial(
             STRANG_POINT_URL.format, category=self._category, version=self._version
@@ -114,7 +113,9 @@ class Strang:
         url = self.point_raw_url
         url = self._build_base_point_url(url)
         url = self._build_time_point_url(url)
-        data, header, _ = self._get_and_load_data(url)
+        data, header, status = self._get_and_load_data(url)
+        self.header = header
+        self.status = status
         self.point_url = url
 
         return data
@@ -157,7 +158,9 @@ class Strang:
         url = self.multipoint_raw_url
         url = self._build_base_multipoint_url(url)
         url = self._build_time_multipoint_url(url)
-        data, header, _ = self._get_and_load_data(url)
+        data, header, status = self._get_and_load_data(url)
+        self.header = header
+        self.status = status
         self.multipoint_url = url
 
         return data

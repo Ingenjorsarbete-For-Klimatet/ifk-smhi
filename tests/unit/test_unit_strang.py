@@ -61,7 +61,6 @@ class TestUnitStrang:
         assert client.parameter is STRANG_EMPTY
         assert client.status is None
         assert client.header is None
-        assert client.data is None
         assert client.available_parameters == STRANG_PARAMETERS
 
         raw_url_dict = {"category": CATEGORY, "version": VERSION}
@@ -226,6 +225,8 @@ class TestUnitStrang:
         assert client.parameter == parameter
         assert client.time_interval == time_interval
         assert client.point_url == mock_build_time_point_url.return_value
+        assert client.status is False
+        assert client.header is False
 
         mock_build_time_point_url.assert_called_once()
         mock_get_and_load_data.assert_called_once()
@@ -323,6 +324,8 @@ class TestUnitStrang:
         assert client.valid_time == arrow.get(valid_time).isoformat()
         assert client.time_interval == time_interval
         assert client.multipoint_url == mock_build_time_multipoint_url.return_value
+        assert client.status is False
+        assert client.header is False
 
         mock_build_time_multipoint_url.assert_called_once()
         mock_get_and_load_data.assert_called_once()
