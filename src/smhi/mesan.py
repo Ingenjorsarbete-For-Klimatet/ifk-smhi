@@ -7,7 +7,6 @@ from functools import wraps
 from smhi.constants import MESAN_URL
 from typing import Any, Callable, Optional
 from requests.structures import CaseInsensitiveDict
-import datetime as dt
 
 
 def get_data(key: Optional[str] = None) -> Callable:
@@ -260,37 +259,46 @@ class Mesan:
             data: pandas DataFrame
         """
         if "geometry" in data:
-            # data_temporary = pd.DataFrame(data["timeSeries"]).explode("parameters")
-            # data = data_temporary.join(
-            #    data_temporary["parameters"].apply(pd.Series).explode("values"),
-            #    how="left",
-            # ).drop("parameters", axis=1)
-            df = pd.DataFrame.from_records(data["timeSeries"])
-            for a in range(len(df)):
-                df["validTime"][a] = dt.datetime.strptime(
-                    df["validTime"][a], "%Y-%m-%dT%H:%M:%SZ"
-                )
+            # df = pd.DataFrame.from_records(data["timeSeries"])
+            # for a in range(len(df)):
+            #     df["validTime"][a] = dt.datetime.strptime(
+            #         df["validTime"][a], "%Y-%m-%dT%H:%M:%SZ"
+            #     )
 
-            for s in range(len(df["parameters"][6])):
-                tmplist = []
-                parname = df["parameters"][6][s]["name"]
-                name = parname + " [" + df["parameters"][6][s]["unit"] + "]"
-                for t in range(len(df)):
-                    names = [
-                        df["parameters"][t][u]["name"]
-                        for u in range(len(df["parameters"][t]))
-                    ]
-                    if parname in names:
-                        pos = names.index(parname)
-                        tmplist.append(df["parameters"][t][pos]["values"][0])
-                    else:
-                        tmplist.append("NaN")
+            # for s in range(len(df["parameters"][6])):
+            #     tmplist = []
+            #     parname = df["parameters"][6][s]["name"]
+            #     name = parname + " [" + df["parameters"][6][s]["unit"] + "]"
+            #     for t in range(len(df)):
+            #         names = [
+            #             df["parameters"][t][u]["name"]
+            #             for u in range(len(df["parameters"][t]))
+            #         ]
+            #         if parname in names:
+            #             pos = names.index(parname)
+            #             tmplist.append(df["parameters"][t][pos]["values"][0])
+            #         else:
+            #             tmplist.append("NaN")
 
-                df[name] = tmplist
+            #     df[name] = tmplist
 
-            df.drop("parameters", axis=1, inplace=True)
-            df.set_index("validTime", inplace=True)
-
-            return df
+            # df.drop("parameters", axis=1, inplace=True)
+            # df.set_index("validTime", inplace=True)
+            data_temporary = pd.DataFrame(data["timeSeries"]).explode("parameters")
+            data = pd.concat(
+                [
+                    data_temporary.drop("parameters", axis=1),
+                    data_temporary["parameters"].apply(pd.Series).explode("values"),
+                ],
+                axis=1,
+            )
+            data["validTime"] = data["validTime"].apply(lambda x: arrow.get(x).datetime)
+            data = data.pivot_table(
+                index="validTime",
+                columns=["name", "unit"],
+                values=["values"],
+                aggfunc="first",
+            )
+            return data
         else:
             return data
