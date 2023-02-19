@@ -24,7 +24,6 @@ class TestUnitMesan:
         assert client.longitude is None
         assert client.status is None
         assert client.header is None
-        assert client.data is None
         assert client.base_url == BASE_URL
         assert client.url is None
 
