@@ -33,10 +33,17 @@ def get_data(key: Optional[str] = None) -> Callable:
         def inner(self, *args: Any) -> pd.DataFrame:
             url = func(self, *args)
             data, header, status = self._get_data(url)
-            if key:
-                return data[key]
+            self.status = status
+            self.header = header
+
+            if key == "approvedTime" or key == "validTime":
+                return self._format_time(key, data)
+            elif key == "coordinates":
+                return self._format_coordinate(key, data)
+            elif key == "parameter":
+                return self._format_parameters(key, data)
             else:
-                return data
+                return self._format_data(key, data)
 
         return inner
 
@@ -54,8 +61,7 @@ class Mesan:
         self.latitude: Optional[float] = None
         self.longitude: Optional[float] = None
         self.status: Optional[bool] = None
-        self.header: Optional[dict[str, str]] = None
-        self.data: Optional[dict[str, Any]] = None
+        self.header: Optional[CaseInsensitiveDict[str]] = None
         self.base_url: str = MESAN_URL.format(
             category=self._category, version=self._version
         )
@@ -201,3 +207,63 @@ class Mesan:
             return json.loads(response.content), header, status
         else:
             return None, header, status
+
+    def _format_time(self, key: str, data: dict) -> list:
+        """Format valid and approved time.
+
+        Args:
+            key: key in dictionary holding data
+            data: data in dictionary
+
+        Returns:
+            data list
+        """
+        return data[key]
+
+    def _format_coordinate(self, key, data):
+        """Format polygon and multipoint.
+
+        Args:
+            key: key in dictionary holding data
+            data: data in dictionary
+
+        Returns:
+            data list
+        """
+        if data["type"] == "Polygon":
+            return data[key]
+
+        if data["type"] == "MultiPoint":
+            return data[key]
+
+    def _format_parameters(self, key, data):
+        """Format parameters.
+
+        Args:
+            key: key in dictionary holding data
+            data: data in dictionary
+
+        Returns:
+            data list
+        """
+        return data[key]
+
+    def _format_data(self, key, data) -> pd.DataFrame:
+        """Format data.
+
+        Args:
+            key: key in dictionary holding data
+            data: data in dictionary
+
+        Returns:
+            data: pandas DataFrame
+        """
+        if "geometry" in data:
+            data_temporary = pd.DataFrame(data["timeSeries"]).explode("parameters")
+            data = data_temporary.join(
+                data_temporary["parameters"].apply(pd.Series).explode("values"),
+                how="left",
+            ).drop("parameters", axis=1)
+            return data
+        else:
+            return data
