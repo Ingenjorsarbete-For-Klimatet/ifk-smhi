@@ -7,7 +7,7 @@ To get a point response from `Strang` do
 from smhi.strang import Strang
 
 client = Strang()
-data, headers, status= client.get_point(
+data = client.get_point(
     58, 16, 118, "2020-01-01", "2020-02-01", "hourly"
 )
 ```
@@ -18,18 +18,19 @@ and for a multi point response
 from smhi.strang import Strang
 
 client = Strang()
-data, headers, status= client.get_multipoint(
+data = client.get_multipoint(
     116, "2022-01-01", "monthly"
 )
 ```
 
-Status, headers and data are never stored inside the `client` object.
-Instead, they are explicitly returned.
-To only fetch data, write
+Data is not stored inside the class, but get status and headers are.
+They can be accessed as
 
 ```python
 from smhi.strang import Strang
 
 client = Strang()
-data, _, _ = client.get_multipoint(116, "2022-01-01", "monthly")
+data = client.get_multipoint(116, "2022-01-01", "monthly")
+client.status
+client.header
 ```
