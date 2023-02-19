@@ -38,8 +38,8 @@ See above to acquire a valid time and parameter.
 from smhi.mesan import Mesan
 
 client = Mesan()
-data, headers = client.get_point(58, 16)
-data, headers = client.get_multipoint(
+data = client.get_point(58, 16)
+data = client.get_multipoint(
     "2022-11-12T23:00:00Z", "t", "hl", 2, 2
 )
 ```
