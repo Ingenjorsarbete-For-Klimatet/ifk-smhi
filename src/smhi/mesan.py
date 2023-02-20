@@ -259,46 +259,39 @@ class Mesan:
             data: pandas DataFrame
         """
         if "geometry" in data:
-            # df = pd.DataFrame.from_records(data["timeSeries"])
-            # for a in range(len(df)):
-            #     df["validTime"][a] = dt.datetime.strptime(
-            #         df["validTime"][a], "%Y-%m-%dT%H:%M:%SZ"
-            #     )
 
-            # for s in range(len(df["parameters"][6])):
-            #     tmplist = []
-            #     parname = df["parameters"][6][s]["name"]
-            #     name = parname + " [" + df["parameters"][6][s]["unit"] + "]"
-            #     for t in range(len(df)):
-            #         names = [
-            #             df["parameters"][t][u]["name"]
-            #             for u in range(len(df["parameters"][t]))
-            #         ]
-            #         if parname in names:
-            #             pos = names.index(parname)
-            #             tmplist.append(df["parameters"][t][pos]["values"][0])
-            #         else:
-            #             tmplist.append("NaN")
-
-            #     df[name] = tmplist
-
-            # df.drop("parameters", axis=1, inplace=True)
-            # df.set_index("validTime", inplace=True)
-            data_temporary = pd.DataFrame(data["timeSeries"]).explode("parameters")
-            data = pd.concat(
+            data0 = pd.DataFrame(data["timeSeries"]).explode("parameters")
+            data0 = pd.concat(
                 [
-                    data_temporary.drop("parameters", axis=1),
-                    data_temporary["parameters"].apply(pd.Series).explode("values"),
+                    data0.drop("parameters", axis=1),
+                    data0["parameters"].apply(pd.Series).explode("values"),
                 ],
                 axis=1,
             )
-            data["validTime"] = data["validTime"].apply(lambda x: arrow.get(x).datetime)
-            data = data.pivot_table(
+            data0["validTime"] = data0["validTime"].apply(
+                lambda x: arrow.get(x).datetime
+            )
+
+            data2 = data0.pivot_table(
                 index="validTime",
-                columns=["name", "unit"],
-                values=["values"],
+                columns=["levelType"],
+                values="level",
                 aggfunc="first",
             )
-            return data
+            data2.columns = pd.MultiIndex.from_arrays(
+                [data2.columns, ["m"] * len(data2.columns)]
+            )
+            data2.columns.names = ["levelType", "unit"]
+
+            data1 = data0.pivot_table(
+                index="validTime",
+                columns=["name", "unit"],
+                values="values",
+                aggfunc="first",
+            )
+
+            data_table = data1.join(data2)
+
+            return data_table
         else:
             return data
