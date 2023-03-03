@@ -37,15 +37,15 @@ def get_data(key: Optional[str] = None) -> Callable:
             self.header = header
 
             if key == "approvedTime" or key == "validTime":
-                return self._format_time(key, data)
+                return data[key]
             elif key == "coordinates":
-                return self._format_coordinate(key, data)
+                return data[key]
             elif key == "parameter":
-                return self._format_parameters(key, data)
+                return data[key]
             elif key == "point":
-                return self._format_data_point(key, data)
+                return self._format_data_point(data)
             else:
-                return self._format_data_multipoint(key, data)
+                return self._format_data_multipoint(data)
 
         return inner
 
@@ -210,47 +210,7 @@ class Mesan:
         else:
             return None, header, status
 
-    def _format_time(self, key: str, data: dict) -> list:
-        """Format valid and approved time.
-
-        Args:
-            key: key in dictionary holding data
-            data: data in dictionary
-
-        Returns:
-            data list
-        """
-        return data[key]
-
-    def _format_coordinate(self, key: str, data: dict) -> list:
-        """Format polygon and multipoint.
-
-        Args:
-            key: key in dictionary holding data
-            data: data in dictionary
-
-        Returns:
-            data list
-        """
-        if data["type"] == "Polygon":
-            return data[key]
-
-        if data["type"] == "MultiPoint":
-            return data[key]
-
-    def _format_parameters(self, key: str, data: dict) -> list:
-        """Format parameters.
-
-        Args:
-            key: key in dictionary holding data
-            data: data in dictionary
-
-        Returns:
-            data list
-        """
-        return data[key]
-
-    def _format_data_point(self, key: str, data: dict) -> Optional[pd.DataFrame]:
+    def _format_data_point(self, data: dict) -> Optional[pd.DataFrame]:
         """Format data for point request.
 
         Args:
@@ -297,7 +257,7 @@ class Mesan:
 
         return data_table
 
-    def _format_data_multipoint(self, key: str, data: dict) -> Optional[pd.DataFrame]:
+    def _format_data_multipoint(self, data: dict) -> Optional[pd.DataFrame]:
         """Format data for multipoint request.
 
         Args:
