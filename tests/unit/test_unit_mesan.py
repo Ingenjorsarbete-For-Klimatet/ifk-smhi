@@ -110,8 +110,8 @@ class TestUnitMesan:
         mock_get_data.assert_called_once_with(BASE_URL + "parameter.json")
         assert data == mock_get_data.return_value[0]["parameter"]
 
-    @pytest.mark.parametrize("lat, lon, key", [(0, 0, None), (1, 1, None)])
-    @patch("smhi.mesan.Mesan._format_data", return_valuer="datatable")
+    @pytest.mark.parametrize("lat, lon, key", [(0, 0, "point"), (1, 1, "point")])
+    @patch("smhi.mesan.Mesan._format_data_point", return_value="datatable")
     @patch("smhi.mesan.Mesan._get_data", return_value=({"geometry": None}, None, None))
     def test_unit_mesan_get_point(self, mock_get_data, mock_format_data, lat, lon, key):
         """Unit test for Mesan get_point method.
@@ -137,25 +137,38 @@ class TestUnitMesan:
     @pytest.mark.parametrize(
         "validtime, parameter, leveltype, level, downsample", [(0, 0, 0, 0, 0)]
     )
+    @patch("smhi.mesan.Mesan._format_data_multipoint", return_value="data")
     @patch(
         "smhi.mesan.Mesan._get_data",
-        return_value=({}, None, None),
+        return_value=({"approvedTime": "this_time"}, None, None),
     )
+    @patch("smhi.mesan.Mesan.approved_time", return_value="this_time")
     def test_unit_mesan_get_multipoint(
-        self, mock_get_data, validtime, parameter, leveltype, level, downsample
+        self,
+        mock_validtime,
+        mock_get_data,
+        mock_format_data_multipoint,
+        validtime,
+        parameter,
+        leveltype,
+        level,
+        downsample,
     ):
         """Unit test for Mesan get_multipoint method.
 
         Args:
+            mock_validtime: mock _validtime method
             mock_get_data: mock _get_data method
+            mock_format_data_multipoint: mock _format_data_multipoint method
             validtime: valid time,
             parameter: parameter,
             leveltype: level type,
             level: level,
             downsample: downsample,
         """
+        key = "multipoint"
         client = Mesan()
-        client.get_multipoint(validtime, parameter, leveltype, level, downsample)
+        data = client.get_multipoint(validtime, parameter, leveltype, level, downsample)
         validtime = arrow.get(validtime).format("YYYYMMDDThhmmss") + "Z"
         mock_get_data.assert_called_once_with(
             BASE_URL
@@ -170,6 +183,10 @@ class TestUnitMesan:
                 downsample=downsample,
             )
         )
+        mock_format_data_multipoint.assert_called_once_with(
+            key, mock_get_data.return_value[0]
+        )
+        assert mock_format_data_multipoint.return_value == data
 
     @pytest.mark.parametrize(
         "response",

@@ -4,9 +4,9 @@ import arrow
 import requests
 import pandas as pd
 from functools import wraps
-from smhi.constants import MESAN_URL
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Union, Optional
 from requests.structures import CaseInsensitiveDict
+from smhi.constants import MESAN_URL, MESAN_LEVELS_UNIT
 
 
 def get_data(key: Optional[str] = None) -> Callable:
@@ -30,7 +30,7 @@ def get_data(key: Optional[str] = None) -> Callable:
         """
 
         @wraps(func)
-        def inner(self, *args: Any) -> pd.DataFrame:
+        def inner(self, *args: Any) -> Optional[Union[list, pd.DataFrame]]:
             url = func(self, *args)
             data, header, status = self._get_data(url)
             self.status = status
@@ -42,8 +42,10 @@ def get_data(key: Optional[str] = None) -> Callable:
                 return self._format_coordinate(key, data)
             elif key == "parameter":
                 return self._format_parameters(key, data)
+            elif key == "point":
+                return self._format_data_point(key, data)
             else:
-                return self._format_data(key, data)
+                return self._format_data_multipoint(key, data)
 
         return inner
 
@@ -128,7 +130,7 @@ class Mesan:
         """
         return self.base_url + "parameter.json"
 
-    @get_data()
+    @get_data("point")
     def get_point(
         self,
         latitude: float,
@@ -150,7 +152,7 @@ class Mesan:
             )
         )
 
-    @get_data()
+    @get_data("multipoint")
     def get_multipoint(
         self,
         validtime: str,
@@ -248,16 +250,18 @@ class Mesan:
         """
         return data[key]
 
-    def _format_data(self, key: str, data: dict) -> pd.DataFrame:
-        """Format data.
+    def _format_data_point(self, key: str, data: dict) -> Optional[pd.DataFrame]:
+        """Format data for point request.
 
         Args:
             key: key in dictionary holding data
             data: data in dictionary
 
         Returns:
-            data: pandas DataFrame
+            data_table: pandas DataFrame
         """
+        data_table = None
+
         if "geometry" in data:
             data0 = pd.DataFrame(data["timeSeries"]).explode("parameters")
             data0 = pd.concat(
@@ -278,7 +282,7 @@ class Mesan:
                 aggfunc="first",
             )
             data2.columns = pd.MultiIndex.from_arrays(
-                [data2.columns, ["m"] * len(data2.columns)]
+                [data2.columns, [MESAN_LEVELS_UNIT] * len(data2.columns)]
             )
             data2.columns.names = ["levelType", "unit"]
 
@@ -291,6 +295,33 @@ class Mesan:
 
             data_table = data1.join(data2)
 
-            return data_table
-        else:
-            return data
+        return data_table
+
+    def _format_data_multipoint(self, key: str, data: dict) -> Optional[pd.DataFrame]:
+        """Format data for multipoint request.
+
+        Args:
+            key: key in dictionary holding data
+            data: data in dictionary
+
+        Returns:
+            data_table: pandas DataFrame
+        """
+        data_table = None
+
+        if "approvedTime" in data and data["approvedTime"] == self.approved_time:
+            data0 = pd.DataFrame(data["timeSeries"]).explode("parameters")
+            data0["approvedTime"] = data["approvedTime"]
+            data0["referenceTime"] = data["referenceTime"]
+            for date in ["validTime", "approvedTime", "referenceTime"]:
+                data0[date] = data0[date].apply(lambda x: arrow.get(x).datetime)
+            data0 = pd.concat(
+                [
+                    data0.drop("parameters", axis=1),
+                    data0["parameters"].apply(pd.Series).explode("values"),
+                ],
+                axis=1,
+            )
+            data_table = data0.reset_index(drop=True)
+
+        return data_table
