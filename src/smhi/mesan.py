@@ -269,7 +269,7 @@ class Mesan:
         """
         data_table = None
 
-        if "approvedTime" in data and data["approvedTime"] == self.approved_time:
+        if "approvedTime" in data:
             data0 = pd.DataFrame(data["timeSeries"]).explode("parameters")
             data0["approvedTime"] = data["approvedTime"]
             data0["referenceTime"] = data["referenceTime"]
@@ -282,6 +282,7 @@ class Mesan:
                 ],
                 axis=1,
             )
+            data0["values"] = data0["values"].apply(pd.to_numeric)
             data_table = data0.reset_index(drop=True)
 
         return data_table
