@@ -2,6 +2,7 @@
 import json
 import arrow
 import pytest
+import pandas as pd
 from smhi.mesan import Mesan
 from unittest.mock import patch
 
@@ -141,10 +142,8 @@ class TestUnitMesan:
         "smhi.mesan.Mesan._get_data",
         return_value=({"approvedTime": "this_time"}, None, None),
     )
-    @patch("smhi.mesan.Mesan.approved_time", return_value="this_time")
     def test_unit_mesan_get_multipoint(
         self,
-        mock_validtime,
         mock_get_data,
         mock_format_data_multipoint,
         validtime,
@@ -156,7 +155,6 @@ class TestUnitMesan:
         """Unit test for Mesan get_multipoint method.
 
         Args:
-            mock_validtime: mock _validtime method
             mock_get_data: mock _get_data method
             mock_format_data_multipoint: mock _format_data_multipoint method
             validtime: valid time,
@@ -226,3 +224,34 @@ class TestUnitMesan:
             assert data == json.loads(response.content)
         else:
             assert data is None
+
+    def test_unit_mesan_format_data_point(self):
+        """Unit test for Mesan _format_data_point."""
+        with open("tests/fixtures/unit_mesan_point_format.json") as f:
+            input_data = json.load(f)
+
+        result = pd.read_csv(
+            "tests/fixtures/unit_mesan_point_format_result.csv",
+            parse_dates=[0],
+            index_col=0,
+            header=[0, 1],
+        )
+
+        client = Mesan()
+        data = client._format_data_point(input_data)
+        pd.testing.assert_frame_equal(result, data)
+
+    def test_unit_mesan_format_data_multipoint(self):
+        """Unit test for Mesan _format_data_multipoint."""
+        with open("tests/fixtures/unit_mesan_multipoint_format.json") as f:
+            input_data = json.load(f)
+
+        result = pd.read_csv(
+            "tests/fixtures/unit_mesan_multipoint_format_result.csv",
+            parse_dates=[1, 2, 3],
+            index_col=0,
+        )
+
+        client = Mesan()
+        data = client._format_data_multipoint(input_data)
+        pd.testing.assert_frame_equal(result, data)
