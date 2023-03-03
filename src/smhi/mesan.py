@@ -220,7 +220,7 @@ class Mesan:
         """
         return data[key]
 
-    def _format_coordinate(self, key, data):
+    def _format_coordinate(self, key: str, data: dict) -> list:
         """Format polygon and multipoint.
 
         Args:
@@ -236,7 +236,7 @@ class Mesan:
         if data["type"] == "MultiPoint":
             return data[key]
 
-    def _format_parameters(self, key, data):
+    def _format_parameters(self, key: str, data: dict) -> list:
         """Format parameters.
 
         Args:
@@ -248,7 +248,7 @@ class Mesan:
         """
         return data[key]
 
-    def _format_data(self, key, data) -> pd.DataFrame:
+    def _format_data(self, key: str, data: dict) -> pd.DataFrame:
         """Format data.
 
         Args:
@@ -259,7 +259,6 @@ class Mesan:
             data: pandas DataFrame
         """
         if "geometry" in data:
-
             data0 = pd.DataFrame(data["timeSeries"]).explode("parameters")
             data0 = pd.concat(
                 [

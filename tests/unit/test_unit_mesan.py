@@ -54,7 +54,8 @@ class TestUnitMesan:
         assert data == mock_get_data.return_value[0]["validTime"]
 
     @patch(
-        "smhi.mesan.Mesan._get_data", return_value=({"coordinates": None}, None, None)
+        "smhi.mesan.Mesan._get_data",
+        return_value=({"type": "Polygon", "coordinates": None}, None, None),
     )
     def test_unit_mesan_geo_polygon(self, mock_get_data):
         """Unit test for Mesan geo_polygon property.
@@ -69,7 +70,8 @@ class TestUnitMesan:
 
     @pytest.mark.parametrize("downsample", [(0), (2), (20), (21)])
     @patch(
-        "smhi.mesan.Mesan._get_data", return_value=({"coordinates": None}, None, None)
+        "smhi.mesan.Mesan._get_data",
+        return_value=({"type": "MultiPoint", "coordinates": None}, None, None),
     )
     def test_unit_mesan_get_geo_multipoint(self, mock_get_data, downsample):
         """Unit test for Mesan get_geo_multipoint method.
@@ -108,29 +110,37 @@ class TestUnitMesan:
         mock_get_data.assert_called_once_with(BASE_URL + "parameter.json")
         assert data == mock_get_data.return_value[0]["parameter"]
 
-    @pytest.mark.parametrize("lat, lon", [(0, 0), (1, 1)])
-    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
-    def test_unit_mesan_get_point(self, mock_get_data, lat, lon):
+    @pytest.mark.parametrize("lat, lon, key", [(0, 0, None), (1, 1, None)])
+    @patch("smhi.mesan.Mesan._format_data", return_valuer="datatable")
+    @patch("smhi.mesan.Mesan._get_data", return_value=({"geometry": None}, None, None))
+    def test_unit_mesan_get_point(self, mock_get_data, mock_format_data, lat, lon, key):
         """Unit test for Mesan get_point method.
 
         Args:
             mock_get_data: mock _get_data method
+            mock_format_data: mock of _format_data
             lat: latitude
             lon: longitude
+            key: None here
         """
         client = Mesan()
-        client.get_point(lat, lon)
+        data = client.get_point(lat, lon)
         mock_get_data.assert_called_once_with(
             BASE_URL
             + "geotype/point/lon/{longitude}/lat/{latitude}/data.json".format(
                 longitude=lon, latitude=lat
             )
         )
+        mock_format_data.assert_called_once_with(key, mock_get_data.return_value[0])
+        assert mock_format_data.return_value == data
 
     @pytest.mark.parametrize(
         "validtime, parameter, leveltype, level, downsample", [(0, 0, 0, 0, 0)]
     )
-    @patch("smhi.mesan.Mesan._get_data", return_value=(None, None, None))
+    @patch(
+        "smhi.mesan.Mesan._get_data",
+        return_value=({}, None, None),
+    )
     def test_unit_mesan_get_multipoint(
         self, mock_get_data, validtime, parameter, leveltype, level, downsample
     ):
