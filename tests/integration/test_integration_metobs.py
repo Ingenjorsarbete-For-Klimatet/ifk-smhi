@@ -7,9 +7,15 @@ from smhi.metobs import Metobs, Parameters, Stations, Periods, Data
 
 with open("tests/fixtures/metobs_integration_1.json") as f:
     metobs_integration_1 = json.load(f)
+    metobs_integration_1["Tidsperiod (t.o.m)"] = (
+        datetime.date.today().strftime("%Y-%m") + "-01 08:00:00"
+    )
 
 with open("tests/fixtures/metobs_integration_2.json") as f:
     metobs_integration_2 = json.load(f)
+    metobs_integration_2["Tidsperiod (t.o.m)"] = (
+        datetime.date.today().strftime("%Y-%m") + "-01 08:00:00"
+    )
 
 
 class TestIntegrationMetobs:
