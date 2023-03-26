@@ -144,23 +144,20 @@ class TestIntegrationMesan:
             level: level
             downsample: downsample
         """
-        url = (
-            BASE_URL
-            + "/api/category/mesan1g/version/2/geotype/"
-            + "multipoint/validtime/{YYMMDDThhmmssZ}/".format(
-                YYMMDDThhmmssZ=arrow.get(validtime).format("YYYYMMDDThhmmss") + "Z"
-            )
-            + "parameter/{p}/leveltype/{lt}/level/{l}/".format(
-                p=parameter, lt=level_type, l=level
-            )
-            + "data.json?with-geo=false&downsample={downsample}".format(
-                downsample=downsample
-            )
-        )
-        result = json.loads(requests.get(url).content)
-
         client = Mesan()
-        assert (
-            client.get_multipoint(validtime, parameter, level_type, level, downsample)
-            == result
+        data = client.get_multipoint(
+            validtime, parameter, level_type, level, downsample
         )
+        columns = [
+            "validTime",
+            "approvedTime",
+            "referenceTime",
+            "name",
+            "levelType",
+            "level",
+            "unit",
+            "values",
+        ]
+        assert dt.datetime.now(dt.timezone.utc) - data.validTime[0] < dt.timedelta(1)
+        for n, col in enumerate(columns):
+            assert data.columns[n] == col
