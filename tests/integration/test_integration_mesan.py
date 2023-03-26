@@ -4,6 +4,7 @@ import arrow
 import pytest
 import requests
 from smhi.mesan import Mesan
+import datetime as dt
 
 BASE_URL = "https://opendata-download-metanalys.smhi.se"
 APPROVED_TIME = BASE_URL + "/api/category/mesan1g/version/2/approvedtime.json"
@@ -86,17 +87,46 @@ class TestIntegrationMesan:
             lat: latitude parameter
             lon: longitude parameter
         """
-        url = (
-            BASE_URL
-            + "/api/category/mesan1g/version/2/geotype/"
-            + "point/lon/{longitude}/lat/{latitude}/data.json".format(
-                longitude=lon, latitude=lat
-            )
-        )
-        result = json.loads(requests.get(url).content)
-
         client = Mesan()
-        assert client.get_point(lat, lon) == result
+        data = client.get_point(lat, lon)
+
+        columns = [
+            ("Tiw", "Cel"),
+            ("Wsymb2", "category"),
+            ("c_sigfr", "percent"),
+            ("cb_sig", "m"),
+            ("ct_sig", "m"),
+            ("frsn12h", "cm"),
+            ("frsn1h", "cm"),
+            ("frsn24h", "cm"),
+            ("frsn3h", "cm"),
+            ("gust", "m/s"),
+            ("hcc", "octas"),
+            ("lcc", "octas"),
+            ("mcc", "octas"),
+            ("msl", "hPa"),
+            ("prec12h", "mm"),
+            ("prec1h", "mm"),
+            ("prec24h", "mm"),
+            ("prec3h", "mm"),
+            ("prsort", "code"),
+            ("prtype", "code"),
+            ("r", "percent"),
+            ("spp", "percent"),
+            ("t", "Cel"),
+            ("tcc", "octas"),
+            ("tmax", "Cel"),
+            ("tmin", "Cel"),
+            ("vis", "km"),
+            ("wd", "degree"),
+            ("ws", "m/s"),
+            ("hl", "m"),
+            ("hmsl", "m"),
+        ]
+        assert data.columns.names == ["name", "unit"]
+        assert dt.datetime.now(dt.timezone.utc) - data.index[-1] < dt.timedelta(1)
+        for n, col in enumerate(columns):
+            assert data.columns[n] == col
 
     @pytest.mark.parametrize(
         "validtime, parameter, level_type, level, downsample",
