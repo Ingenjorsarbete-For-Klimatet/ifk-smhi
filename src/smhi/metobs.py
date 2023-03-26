@@ -249,7 +249,7 @@ class BaseLevel:
         Returns:
             jsonified content
         """
-        response = requests.get(url)
+        response = requests.get(url, timeout=200)
         content = json.loads(response.content)
 
         self.headers = response.headers

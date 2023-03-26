@@ -1,6 +1,5 @@
 """Mesan integration tests."""
 import json
-import arrow
 import pytest
 import requests
 from smhi.mesan import Mesan
