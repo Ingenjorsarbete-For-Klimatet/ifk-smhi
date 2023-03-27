@@ -20,7 +20,7 @@
 
 <p align="center">
     <a href="https://www.python.org">
-        <img src="https://img.shields.io/badge/Python-3.9%20|%203.10-blue" alt="Python: 3.9 | 3.10 | 3.11" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11-blue" alt="Python: 3.9 | 3.10 | 3.11" style="max-width: 100%;">
     </a>
     <a href="https://pytest.org">
         <img src="https://img.shields.io/badge/Testing_framework-pytest-a04000" alt="Testing framework: pytest" style="max-width: 100%;">
@@ -51,8 +51,8 @@ Currently supports these APIs
 
 ## Installation
 
-The package isn't registered and needs to be installed from GitHub
+ifk-smhi can be installed as
 
 ```bash
-pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi.git@main
+pip install ifk-smhi
 ```
