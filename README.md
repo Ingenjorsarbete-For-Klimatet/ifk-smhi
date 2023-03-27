@@ -51,8 +51,8 @@ Currently supports these APIs
 
 ## Installation
 
-The package isn't registered and needs to be installed from GitHub
+ifk-smhi can be installed as
 
 ```bash
-pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi.git@main
+pip install ifk-smhi
 ```
