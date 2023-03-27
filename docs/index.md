@@ -8,7 +8,7 @@ SMHI stands for [Swedish Meteorological and Hydrological Institute](https://www.
 which is a Swedish agency under its parent department:  Ministry of Climate and
 Enterprise.
 
-Initially only these four APIs are supported:
+Initially only these four APIs are supported
 
 - Metobs - Meteorological Observations
 - Metfcts - Meteorological Forecasts
@@ -17,7 +17,13 @@ Initially only these four APIs are supported:
 
 ## Install
 
-This package is not yet registered with pypi. For now, install from github
+ifk-smhi can be installed as
+
+```bash
+pip install ifk-smhi
+```
+
+For the latest build, install from GitHub
 
 ```bash
 pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi.git@main
@@ -25,8 +31,9 @@ pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi.git@mai
 
 ## SMHI client
 
-The SMHI client can be used as a single object coordinating sub-clients,
-e.g. Metobs or Strang.
+The SMHI client is in an experimental state.
+As of now, it only controls the Metobs sub-client.
+It will be expanded in future versions.
 
 ## Metobs client
 
