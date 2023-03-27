@@ -101,3 +101,5 @@ STRANG_PARAMETERS[122] = STRANG(
     arrow.get("2017-04-18").datetime,
     get_now,
 )
+
+MESAN_LEVELS_UNIT = "m"

@@ -2,29 +2,54 @@
 import json
 import arrow
 import requests
+import pandas as pd
 from functools import wraps
-from smhi.constants import MESAN_URL
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Union, Optional
 from requests.structures import CaseInsensitiveDict
+from smhi.constants import MESAN_URL, MESAN_LEVELS_UNIT
 
 
-def get_data(func: Callable) -> Callable:
-    """Get data from url.
+def get_data(key: Optional[str] = None) -> Callable:
+    """Get data from url wrapper.
 
     Args:
-        function func
+        key: key to index returned dict
 
     Returns:
-        function inner
+        function get_data_inner
     """
 
-    @wraps(func)
-    def inner(self, *args) -> tuple[dict[str, str], dict[str, Any]]:
-        url = func(self, *args)
-        status, headers, data = self._get_data(url)
-        return headers, data
+    def get_data_inner(func: Callable) -> Callable:
+        """Get data from url inner.
 
-    return inner
+        Args:
+            function func
+
+        Returns:
+            function inner
+        """
+
+        @wraps(func)
+        def inner(self, *args: Any) -> Optional[Union[list, pd.DataFrame]]:
+            url = func(self, *args)
+            data, header, status = self._get_data(url)
+            self.status = status
+            self.header = header
+
+            if key == "approvedTime" or key == "validTime":
+                return data[key]
+            elif key == "coordinates":
+                return data[key]
+            elif key == "parameter":
+                return data[key]
+            elif key == "point":
+                return self._format_data_point(data)
+            else:
+                return self._format_data_multipoint(data)
+
+        return inner
+
+    return get_data_inner
 
 
 class Mesan:
@@ -38,15 +63,14 @@ class Mesan:
         self.latitude: Optional[float] = None
         self.longitude: Optional[float] = None
         self.status: Optional[bool] = None
-        self.header: Optional[dict[str, str]] = None
-        self.data: Optional[dict[str, Any]] = None
+        self.header: Optional[CaseInsensitiveDict[str]] = None
         self.base_url: str = MESAN_URL.format(
             category=self._category, version=self._version
         )
         self.url: Optional[str] = None
 
     @property
-    @get_data
+    @get_data("approvedTime")
     def approved_time(self) -> str:
         """Get approved time.
 
@@ -56,7 +80,7 @@ class Mesan:
         return self.base_url + "approvedtime.json"
 
     @property
-    @get_data
+    @get_data("validTime")
     def valid_time(self) -> str:
         """Get valid time.
 
@@ -66,7 +90,7 @@ class Mesan:
         return self.base_url + "validtime.json"
 
     @property
-    @get_data
+    @get_data("coordinates")
     def geo_polygon(self) -> str:
         """Get geographic area polygon.
 
@@ -75,7 +99,7 @@ class Mesan:
         """
         return self.base_url + "geotype/polygon.json"
 
-    @get_data
+    @get_data("coordinates")
     def get_geo_multipoint(self, downsample: int = 2) -> str:
         """Get geographic area multipoint.
 
@@ -97,7 +121,7 @@ class Mesan:
         return self.base_url + multipoint_url
 
     @property
-    @get_data
+    @get_data("parameter")
     def parameters(self) -> str:
         """Get parameters.
 
@@ -106,7 +130,7 @@ class Mesan:
         """
         return self.base_url + "parameter.json"
 
-    @get_data
+    @get_data("point")
     def get_point(
         self,
         latitude: float,
@@ -128,7 +152,7 @@ class Mesan:
             )
         )
 
-    @get_data
+    @get_data("multipoint")
     def get_multipoint(
         self,
         validtime: str,
@@ -166,22 +190,99 @@ class Mesan:
 
     def _get_data(
         self, url
-    ) -> tuple[bool, CaseInsensitiveDict[str], Optional[dict[str, Any]]]:
+    ) -> tuple[Optional[dict[str, Any]], CaseInsensitiveDict[str], bool]:
         """Get requested data.
 
         Args:
             url: url to get from
 
         Returns:
-            status of response
-            headers of response
             data of response
+            header of response
+            status of response
         """
         response = requests.get(url)
         status = response.ok
-        headers = response.headers
+        header = response.headers
 
         if status:
-            return status, headers, json.loads(response.content)
+            return json.loads(response.content), header, status
         else:
-            return status, headers, None
+            return None, header, status
+
+    def _format_data_point(self, data: dict) -> Optional[pd.DataFrame]:
+        """Format data for point request.
+
+        Args:
+            key: key in dictionary holding data
+            data: data in dictionary
+
+        Returns:
+            data_table: pandas DataFrame
+        """
+        data_table = None
+
+        if "geometry" in data:
+            data0 = pd.DataFrame(data["timeSeries"]).explode("parameters")
+            data0 = pd.concat(
+                [
+                    data0.drop("parameters", axis=1),
+                    data0["parameters"].apply(pd.Series).explode("values"),
+                ],
+                axis=1,
+            )
+            data0["validTime"] = data0["validTime"].apply(
+                lambda x: arrow.get(x).datetime
+            )
+
+            data2 = data0.pivot_table(
+                index="validTime",
+                columns=["levelType"],
+                values="level",
+                aggfunc="first",
+            )
+            data2.columns = pd.MultiIndex.from_arrays(
+                [data2.columns, [MESAN_LEVELS_UNIT] * len(data2.columns)]
+            )
+            data2.columns.names = ["levelType", "unit"]
+
+            data1 = data0.pivot_table(
+                index="validTime",
+                columns=["name", "unit"],
+                values="values",
+                aggfunc="first",
+            )
+
+            data_table = data1.join(data2)
+
+        return data_table
+
+    def _format_data_multipoint(self, data: dict) -> Optional[pd.DataFrame]:
+        """Format data for multipoint request.
+
+        Args:
+            key: key in dictionary holding data
+            data: data in dictionary
+
+        Returns:
+            data_table: pandas DataFrame
+        """
+        data_table = None
+
+        if "approvedTime" in data:
+            data0 = pd.DataFrame(data["timeSeries"]).explode("parameters")
+            data0["approvedTime"] = data["approvedTime"]
+            data0["referenceTime"] = data["referenceTime"]
+            for date in ["validTime", "approvedTime", "referenceTime"]:
+                data0[date] = data0[date].apply(lambda x: arrow.get(x).datetime)
+            data0 = pd.concat(
+                [
+                    data0.drop("parameters", axis=1),
+                    data0["parameters"].apply(pd.Series).explode("values"),
+                ],
+                axis=1,
+            )
+            data0["values"] = data0["values"].apply(pd.to_numeric)
+            data_table = data0.reset_index(drop=True)
+
+        return data_table

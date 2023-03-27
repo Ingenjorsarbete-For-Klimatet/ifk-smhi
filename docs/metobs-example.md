@@ -11,20 +11,9 @@ To get data from a known station (found e.g. through exploration of
 from smhi.metobs import Metobs
 
 client = Metobs()
-header, data = client.get_data_stationset(
+data = client.get_data_stationset(
     1, 192840, "corrected-archive"
 )
-```
-
-Headers and data are stored inside the `client` object and also
-explicitly returned.
-To only fetch data, write
-
-```python
-from smhi.metobs import Metobs
-
-client = Metobs()
-_, data = client.get_data_stationset(1, 192840, "corrected-archive")
 ```
 
 ## Get data by inspecting the API
@@ -57,7 +46,7 @@ client.periods.data
 client.inspect()
 
 # get data from parameter 1, station 1 and period corrected-archive
-header, data = client.get_data()
+data = client.get_data()
 ```
 
 ## Alternative way of using the client

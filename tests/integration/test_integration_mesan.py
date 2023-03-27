@@ -1,9 +1,9 @@
 """Mesan integration tests."""
 import json
-import arrow
 import pytest
 import requests
 from smhi.mesan import Mesan
+import datetime as dt
 
 BASE_URL = "https://opendata-download-metanalys.smhi.se"
 APPROVED_TIME = BASE_URL + "/api/category/mesan1g/version/2/approvedtime.json"
@@ -41,17 +41,17 @@ class TestIntegrationMesan:
     def test_integration_mesan_approved_time(self):
         """Integration test for approved time property."""
         client = Mesan()
-        assert client.approved_time[1] == APPROVED_TIME_NOW
+        assert client.approved_time == APPROVED_TIME_NOW["approvedTime"]
 
     def test_integration_mesan_valid_time(self):
         """Integration test for approved time property."""
         client = Mesan()
-        assert client.valid_time[1] == VALID_TIME_NOW
+        assert client.valid_time == VALID_TIME_NOW["validTime"]
 
     def test_integration_mesan_geo_polygon(self):
         """Integration test for geo_polygon property."""
         client = Mesan()
-        assert client.geo_polygon[1] == GEO_POLYGON_NOW
+        assert client.geo_polygon == GEO_POLYGON_NOW["coordinates"]
 
     @pytest.mark.parametrize(
         "downsample, result",
@@ -71,12 +71,12 @@ class TestIntegrationMesan:
             result: expected result
         """
         client = Mesan()
-        assert client.get_geo_multipoint(downsample)[1] == result
+        assert client.get_geo_multipoint(downsample) == result["coordinates"]
 
     def test_integration_mesan_parameters(self):
         """Integration test for parameters property."""
         client = Mesan()
-        assert client.parameters[1] == PARAMETERS_NOW
+        assert client.parameters == PARAMETERS_NOW["parameter"]
 
     @pytest.mark.parametrize("lat, lon", [(58, 16)])
     def test_integration_mesan_get_point(self, lat, lon):
@@ -86,17 +86,46 @@ class TestIntegrationMesan:
             lat: latitude parameter
             lon: longitude parameter
         """
-        url = (
-            BASE_URL
-            + "/api/category/mesan1g/version/2/geotype/"
-            + "point/lon/{longitude}/lat/{latitude}/data.json".format(
-                longitude=lon, latitude=lat
-            )
-        )
-        result = json.loads(requests.get(url).content)
-
         client = Mesan()
-        assert client.get_point(lat, lon)[1] == result
+        data = client.get_point(lat, lon)
+
+        columns = [
+            ("Tiw", "Cel"),
+            ("Wsymb2", "category"),
+            ("c_sigfr", "percent"),
+            ("cb_sig", "m"),
+            ("ct_sig", "m"),
+            ("frsn12h", "cm"),
+            ("frsn1h", "cm"),
+            ("frsn24h", "cm"),
+            ("frsn3h", "cm"),
+            ("gust", "m/s"),
+            ("hcc", "octas"),
+            ("lcc", "octas"),
+            ("mcc", "octas"),
+            ("msl", "hPa"),
+            ("prec12h", "mm"),
+            ("prec1h", "mm"),
+            ("prec24h", "mm"),
+            ("prec3h", "mm"),
+            ("prsort", "code"),
+            ("prtype", "code"),
+            ("r", "percent"),
+            ("spp", "percent"),
+            ("t", "Cel"),
+            ("tcc", "octas"),
+            ("tmax", "Cel"),
+            ("tmin", "Cel"),
+            ("vis", "km"),
+            ("wd", "degree"),
+            ("ws", "m/s"),
+            ("hl", "m"),
+            ("hmsl", "m"),
+        ]
+        assert data.columns.names == ["name", "unit"]
+        assert dt.datetime.now(dt.timezone.utc) - data.index[-1] < dt.timedelta(1)
+        for n, col in enumerate(columns):
+            assert data.columns[n] == col
 
     @pytest.mark.parametrize(
         "validtime, parameter, level_type, level, downsample",
@@ -114,25 +143,20 @@ class TestIntegrationMesan:
             level: level
             downsample: downsample
         """
-        url = (
-            BASE_URL
-            + "/api/category/mesan1g/version/2/geotype/"
-            + "multipoint/validtime/{YYMMDDThhmmssZ}/".format(
-                YYMMDDThhmmssZ=arrow.get(validtime).format("YYYYMMDDThhmmss") + "Z"
-            )
-            + "parameter/{p}/leveltype/{lt}/level/{l}/".format(
-                p=parameter, lt=level_type, l=level
-            )
-            + "data.json?with-geo=false&downsample={downsample}".format(
-                downsample=downsample
-            )
-        )
-        result = json.loads(requests.get(url).content)
-
         client = Mesan()
-        assert (
-            client.get_multipoint(validtime, parameter, level_type, level, downsample)[
-                1
-            ]
-            == result
+        data = client.get_multipoint(
+            validtime, parameter, level_type, level, downsample
         )
+        columns = [
+            "validTime",
+            "approvedTime",
+            "referenceTime",
+            "name",
+            "levelType",
+            "level",
+            "unit",
+            "values",
+        ]
+        assert dt.datetime.now(dt.timezone.utc) - data.validTime[0] < dt.timedelta(1)
+        for n, col in enumerate(columns):
+            assert data.columns[n] == col

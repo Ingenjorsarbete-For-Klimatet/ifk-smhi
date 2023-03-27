@@ -7,9 +7,15 @@ from smhi.metobs import Metobs, Parameters, Stations, Periods, Data
 
 with open("tests/fixtures/metobs_integration_1.json") as f:
     metobs_integration_1 = json.load(f)
+    metobs_integration_1["Tidsperiod (t.o.m)"] = (
+        datetime.date.today().strftime("%Y-%m") + "-01 08:00:00"
+    )
 
 with open("tests/fixtures/metobs_integration_2.json") as f:
     metobs_integration_2 = json.load(f)
+    metobs_integration_2["Tidsperiod (t.o.m)"] = (
+        datetime.date.today().strftime("%Y-%m") + "-01 08:00:00"
+    )
 
 
 class TestIntegrationMetobs:
@@ -104,7 +110,7 @@ class TestIntegrationMetobs:
         client.get_parameters()
         client.get_stations(parameter)
         client.get_periods(station)
-        header, data = client.get_data(period)
+        data, data_header = client.get_data(period)
 
         assert client.parameters.data[0] == parameter_data_0
         assert client.stations.data[0] == station_data_0
@@ -112,7 +118,7 @@ class TestIntegrationMetobs:
         assert client.data.title == data_title
         if table:
             assert data.iloc[table_loc, 0] == table
-            assert header == header_0
+            assert data_header == header_0
 
     @pytest.mark.parametrize(
         "parameter, station, period, init_key, init_title, parameter_data_0, "

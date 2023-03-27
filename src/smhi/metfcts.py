@@ -1,7 +1,8 @@
 """SMHI Metfcts API module."""
+from typing import Optional
 from smhi.mesan import Mesan
-from typing import Any, Optional
 from smhi.constants import METFCTS_URL
+from requests.structures import CaseInsensitiveDict
 
 
 class Metfcts(Mesan):
@@ -15,8 +16,7 @@ class Metfcts(Mesan):
         self.latitude: Optional[float] = None
         self.longitude: Optional[float] = None
         self.status: Optional[bool] = None
-        self.header: Optional[dict[str, str]] = None
-        self.data: Optional[dict[str, Any]] = None
+        self.header: Optional[CaseInsensitiveDict[str]] = None
         self.base_url: str = METFCTS_URL.format(
             category=self._category, version=self._version
         )
