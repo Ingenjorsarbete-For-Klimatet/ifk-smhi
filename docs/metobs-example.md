@@ -1,6 +1,6 @@
 # Example of Metobs direct use
 
-Direct usage of `Metobs`, without using the `SMHI` client is possible.
+Direct usage of `Metobs`.
 
 ## Get data from known parameters
 
@@ -18,6 +18,7 @@ data = client.get_data_stationset(
 
 ## Get data by inspecting the API
 
+*This will be deprecated in 0.2.0.*
 To inspect the API, the following methods are provided
 The following example is a common pattern of usage
 

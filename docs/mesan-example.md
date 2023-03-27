@@ -1,7 +1,6 @@
 # Example of Mesan direct use
 
-Direct usage of `Mesan`, without using the `SMHI` client is possible.
-To list approved and valid times to
+Direct usage of `Mesan`. To list approved and valid times to
 
 ```python
 from smhi.mesan import Mesan
@@ -11,8 +10,8 @@ client.approved_time
 client.valid_time
 ```
 
-Notice that approved time is the time when the MESAN analysis was updated.
-On the other hand, valid time are valid time stamps to fetch data for,
+Notice that `approved_time` is the time when the MESAN analysis was updated.
+On the other hand, `valid_time` are valid time stamps to fetch data for,
 see below.
 
 To list available parameters, geographic area as polygon and points do

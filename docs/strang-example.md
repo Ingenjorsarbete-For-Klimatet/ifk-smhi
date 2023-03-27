@@ -1,7 +1,6 @@
 # Example of Strang direct use
 
-Direct usage of `Strang`, without using the `SMHI` client is possible.
-To get a point response from `Strang` do
+Direct usage of `Strang`. To get a point response from `Strang` do
 
 ```python
 from smhi.strang import Strang

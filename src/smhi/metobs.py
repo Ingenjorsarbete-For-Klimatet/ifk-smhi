@@ -556,7 +556,7 @@ class Data(BaseLevel):
             raw_data_header: raw data header as a string
         """
         data_headers = []
-        for header in raw_data_header.split("\n\n"):
+        for header in raw_data_header.split("\n\n")[:-1]:
             try:
                 data_headers.append(
                     pd.read_csv(
@@ -566,7 +566,7 @@ class Data(BaseLevel):
                     ).to_dict("records")[0]
                 )
             except pd.errors.EmptyDataError:
-                logging.warning("No columns to parse from file.")
+                logging.warning("No columns to parse.")
 
         self.data_header = {k: v for d in data_headers for k, v in d.items()}
 
