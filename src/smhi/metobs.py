@@ -236,9 +236,13 @@ class BaseLevel:
         self.data: Any = None
 
     @property
-    def show(self) -> Any:
+    def show(self) -> None:
         """Show property."""
-        return self.data
+        if self.data is None:
+            return None
+
+        for item in self.data:
+            logging.info(item)
 
     def _get_and_parse_request(self, url: str) -> Dict[Any, Any]:
         """Get and parse API request. Only JSON supported.
@@ -459,7 +463,7 @@ class Periods(BaseLevel):
         if station_name:
             self.selected_station = station_name
             url = self._get_url(
-                stations_in_parameter.stations, "title", station_name, data_type
+                stations_in_parameter.stations, "name", station_name, data_type
             )
         if stationset:
             self.selected_station = stationset
