@@ -307,10 +307,24 @@ class TestUnitBaseLevel:
         assert level.data_header is None
         assert level.data is None
 
-    def test_baselevel_unit_show(self):
-        """Unit test for BaseLevel show property."""
+    @pytest.mark.parametrize("input, expected", [(None, None), ([1, 2], 2)])
+    @patch("smhi.metobs.logging.info")
+    def test_baselevel_unit_show(self, mock_logging_info, input, expected):
+        """Unit test for BaseLevel show property.
+
+        Args:
+            mock_logging_info: mock of logging_info
+            input: input data
+            expected: expected result
+        """
         level = BaseLevel()
-        assert level.show is None
+
+        if input is not None:
+            level.data = input
+            assert level.show is None
+            assert mock_logging_info.call_count == expected
+        else:
+            assert level.show is None
 
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.json.loads")
