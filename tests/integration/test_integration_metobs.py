@@ -51,7 +51,7 @@ class TestIntegrationMetobs:
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
                 ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
-                (1, "Akalla"),
+                (192840, "Karesuando A"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
                 + "historiska data (utom de senaste 3 mån): Ladda ner data",
@@ -64,7 +64,7 @@ class TestIntegrationMetobs:
                 + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
                 + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 08:00:00;329.68;"
                 + "68.4418;22.4435\n\n",
-                metobs_integration_1,
+                metobs_integration_2,
             ),
         ],
     )
@@ -112,8 +112,12 @@ class TestIntegrationMetobs:
         client.get_periods(station)
         data, data_header = client.get_data(period)
 
+        station_index = [
+            i for i, x in enumerate(client.stations.data) if x[0] == station
+        ][0]
+
         assert client.parameters.data[0] == parameter_data_0
-        assert client.stations.data[0] == station_data_0
+        assert client.stations.data[station_index] == station_data_0
         assert client.periods.data[0] == period_data_0
         assert client.data.title == data_title
         if table:
@@ -150,7 +154,7 @@ class TestIntegrationMetobs:
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
                 ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
-                (1, "Akalla"),
+                (192840, "Karesuando A"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
                 + "historiska data (utom de senaste 3 mån): Ladda ner data",
@@ -208,11 +212,15 @@ class TestIntegrationMetobs:
         parameters = Parameters()
         stations = Stations(parameters, parameter)
         periods = Periods(stations, station)
+        periods_from_name = Periods(stations, station_name=station_data_0[1])
         data = Data(periods, period)
 
+        station_index = [i for i, x in enumerate(stations.data) if x[0] == station][0]
+
         assert parameters.data[0] == parameter_data_0
-        assert stations.data[0] == station_data_0
+        assert stations.data[station_index] == station_data_0
         assert periods.data[0] == period_data_0
+        assert periods_from_name.data[0] == period_data_0
         assert data.title == data_title
         if table:
             assert data.data.iloc[table_loc, 0] == table

@@ -459,7 +459,7 @@ class Periods(BaseLevel):
         if station_name:
             self.selected_station = station_name
             url = self._get_url(
-                stations_in_parameter.stations, "title", station_name, data_type
+                stations_in_parameter.stations, "name", station_name, data_type
             )
         if stationset:
             self.selected_station = stationset
