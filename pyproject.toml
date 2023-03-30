@@ -20,6 +20,11 @@ dependencies = [
     "arrow ~= 1.2",
 ]
 
+[project.urls]
+homepage = "https://ingenjorsarbeteforklimatet.se/ifk-smhi/"
+documentation = "https://ingenjorsarbeteforklimatet.se/ifk-smhi/"
+repository = "https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi"
+
 [project.optional-dependencies]
 lint = [
     "flake8 ~= 5.0",
