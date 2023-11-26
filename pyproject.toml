@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ifk-smhi"
-version = "0.1.1"
+version = "0.1.2"
 description = "Inspect and get SMHI data."
 license = { text = "MIT" }
 readme = "README.md"
@@ -19,6 +19,11 @@ dependencies = [
     "geopy ~= 2.2",
     "arrow ~= 1.2",
 ]
+
+[project.urls]
+homepage = "https://ingenjorsarbeteforklimatet.se/ifk-smhi/"
+documentation = "https://ingenjorsarbeteforklimatet.se/ifk-smhi/"
+repository = "https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi"
 
 [project.optional-dependencies]
 lint = [
