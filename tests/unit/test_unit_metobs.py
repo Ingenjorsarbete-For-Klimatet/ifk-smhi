@@ -394,7 +394,7 @@ class TestUnitBaseLevel:
         """
         level = BaseLevel()
 
-        if type(expected_result) != str:
+        if isinstance(expected_result, str):
             with pytest.raises(expected_result):
                 level._get_url(data, key, parameters, data_type)
             return None
