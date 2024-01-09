@@ -394,7 +394,7 @@ class TestUnitBaseLevel:
         """
         level = BaseLevel()
 
-        if isinstance(expected_result, str):
+        if type(expected_result) != str:  # noqa: E721
             with pytest.raises(expected_result):
                 level._get_url(data, key, parameters, data_type)
             return None
