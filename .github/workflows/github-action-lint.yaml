@@ -17,6 +17,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[lint]"
-      - name: Lint with flake8
+      - name: Lint with ruff
         run: |
-          flake8 src tests --show-source --statistics
+          ruff check --output-format=github src tests
+      - name: Format with ruff
+        run: |
+          ruff format --check src tests
