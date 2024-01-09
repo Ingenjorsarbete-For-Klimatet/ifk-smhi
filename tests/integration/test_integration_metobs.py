@@ -8,13 +8,13 @@ from smhi.metobs import Metobs, Parameters, Stations, Periods, Data
 with open("tests/fixtures/metobs_integration_1.json") as f:
     metobs_integration_1 = json.load(f)
     metobs_integration_1["Tidsperiod (t.o.m)"] = (
-        datetime.date.today().strftime("%Y-%m") + "-01 08:00:00"
+        datetime.date.today().strftime("%Y-%m") + "-01 07:20:09"
     )
 
 with open("tests/fixtures/metobs_integration_2.json") as f:
     metobs_integration_2 = json.load(f)
     metobs_integration_2["Tidsperiod (t.o.m)"] = (
-        datetime.date.today().strftime("%Y-%m") + "-01 08:00:00"
+        datetime.date.today().strftime("%Y-%m") + "-01 07:20:09"
     )
 
 
@@ -60,9 +60,9 @@ class TestIntegrationMetobs:
                 "\ufeffStationsnamn;Stationsnummer;Stationsnät;Mäthöjd (meter "
                 + "över marken)\nKaresuando A;192840;SMHIs stationsnät;2.0\n\n"
                 + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
-                + "1 gång/tim;degree celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
+                + "1 gång/tim;celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
                 + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
-                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 08:00:00;329.68;"
+                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 07:20:09;329.68;"
                 + "68.4418;22.4435\n\n",
                 metobs_integration_2,
             ),
@@ -163,9 +163,9 @@ class TestIntegrationMetobs:
                 "\ufeffStationsnamn;Stationsnummer;Stationsnät;Mäthöjd (meter "
                 + "över marken)\nKaresuando A;192840;SMHIs stationsnät;2.0\n\n"
                 + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
-                + "1 gång/tim;degree celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
+                + "1 gång/tim;celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
                 + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
-                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 08:00:00;329.68;"
+                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 07:20:09;329.68;"
                 + "68.4418;22.4435\n\n",
                 metobs_integration_2,
             ),
