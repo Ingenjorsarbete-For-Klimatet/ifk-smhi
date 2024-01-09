@@ -26,13 +26,8 @@ documentation = "https://ingenjorsarbeteforklimatet.se/ifk-smhi/"
 repository = "https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi"
 
 [project.optional-dependencies]
-lint = [
-    "flake8 ~= 5.0",
-    "flake8-bandit ~= 4.1",
-    "flake8-docstrings ~= 1.6",
-    "flake8-black ~= 0.3",
-]
-type = ["mypy ~= 0.990", "types-requests ~= 2.28", "pandas-stubs ~= 1.5"]
+lint = ["ruff ~= 0.1"]
+type = ["mypy ~= 1.7", "types-requests ~= 2.28", "pandas-stubs ~= 1.5"]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
 doc = [
     "mkdocs ~= 1.4",
@@ -44,7 +39,6 @@ dev = [
     "ifk-smhi[type]",
     "ifk-smhi[test]",
     "ifk-smhi[doc]",
-    "black ~= 22.8",
     "pre-commit ~= 2.20",
 ]
 
