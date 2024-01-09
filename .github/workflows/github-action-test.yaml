@@ -1,11 +1,12 @@
-name: Build
+name: Test
 on: [push]
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v2
@@ -19,13 +20,15 @@ jobs:
           pip install -e ".[test]"
       - name: Test with pytest
         run: |
-          pytest --cov-report term-missing --cov=src/smhi tests
+          python -m pytest --cov-report term-missing --cov=src tests
           coverage json
       - name: Export summary stats
+        if: runner.os != 'Windows' && matrix.python-version == '3.11'
         run: |
           export TOTAL=$(python -c "import json;print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
           echo "total=$TOTAL" >> $GITHUB_ENV
       - name: Coverage badge
+        if: runner.os != 'Windows' && matrix.python-version == '3.11'
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.BADGE_SECRET }}
