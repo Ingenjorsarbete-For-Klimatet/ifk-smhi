@@ -1,0 +1,10 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 0.1.2
+_src_path: https://github.com/Ingenjorsarbete-For-Klimatet/ifk-python-template.git
+author: Mladen Gibanica
+badge_gistid: 2d8de651f24d184f5ebe101ffc3c9527
+email: 11275336+mgcth@users.noreply.github.com
+module_name: smhi
+package_name: smhi
+project_description: Inspect and get SMHI data.
+project_name: ifk-smhi
