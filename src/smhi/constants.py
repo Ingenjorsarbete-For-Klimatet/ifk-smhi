@@ -38,6 +38,25 @@ METOBS_AVAILABLE_PERIODS = [
     "latest-months",
     "corrected-archive",
 ]
+METOBS_PARAMETERS = {
+    "gång/tim": (["Datum", "Tid (UTC)"], lambda x: x["Datum"] + " " + x["Tid (UTC)"]),
+    "gånger/tim": (["Datum", "Tid (UTC)"], lambda x: x["Datum"] + " " + x["Tid (UTC)"]),
+    "gånger/dygn": (
+        ["Datum", "Tid (UTC)"],
+        lambda x: x["Datum"] + " " + x["Tid (UTC)"],
+    ),
+    "varje timme": (
+        ["Datum", "Tid (UTC)"],
+        lambda x: x["Datum"] + " " + x["Tid (UTC)"],
+    ),
+    "2 gånger per dygn": (
+        ["Datum", "Tid (UTC)"],
+        lambda x: x["Datum"] + " " + x["Tid (UTC)"],
+    ),
+    "gång/dygn": (["Representativt dygn"], lambda x: x["Representativt dygn"]),
+    "1 gång per dygn": (["Representativt dygn"], lambda x: x["Representativt dygn"]),
+    "1 gång per månad": (["Representativ månad"], lambda x: x["Representativ månad"]),
+}
 
 STRANG_BASE_URL = "https://opendata-download-metanalys.smhi.se"
 STRANG_POINT_URL = urljoin(
