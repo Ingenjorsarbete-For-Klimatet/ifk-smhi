@@ -166,7 +166,7 @@ class SMHI:
 
             # Iterate over nearby stations, starting with the closest
             for nearby_station in self.nearby_stations[1:]:
-                _, tmpdata = self.get_data(parameter, nearby_station[0])
+                tmpdata, _ = self.get_data(parameter, nearby_station[0])
                 for time, _ in holes_to_fill.iterrows():
                     earliertime = data[data.index < time].index.max()
 
