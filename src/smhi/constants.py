@@ -38,24 +38,18 @@ METOBS_AVAILABLE_PERIODS = [
     "latest-months",
     "corrected-archive",
 ]
+METOBS_PARAMETER_TIM = ["Datum", "Tid (UTC)"]
+METOBS_PARAMETER_DYGN = ["Representativt dygn"]
+METOBS_PARAMETER_MANAD = ["Representativ månad"]
 METOBS_PARAMETERS = {
-    "gång/tim": (["Datum", "Tid (UTC)"], lambda x: x["Datum"] + " " + x["Tid (UTC)"]),
-    "gånger/tim": (["Datum", "Tid (UTC)"], lambda x: x["Datum"] + " " + x["Tid (UTC)"]),
-    "gånger/dygn": (
-        ["Datum", "Tid (UTC)"],
-        lambda x: x["Datum"] + " " + x["Tid (UTC)"],
-    ),
-    "varje timme": (
-        ["Datum", "Tid (UTC)"],
-        lambda x: x["Datum"] + " " + x["Tid (UTC)"],
-    ),
-    "2 gånger per dygn": (
-        ["Datum", "Tid (UTC)"],
-        lambda x: x["Datum"] + " " + x["Tid (UTC)"],
-    ),
-    "gång/dygn": (["Representativt dygn"], lambda x: x["Representativt dygn"]),
-    "1 gång per dygn": (["Representativt dygn"], lambda x: x["Representativt dygn"]),
-    "1 gång per månad": (["Representativ månad"], lambda x: x["Representativ månad"]),
+    "gång/tim": METOBS_PARAMETER_TIM,
+    "gånger/tim": METOBS_PARAMETER_TIM,
+    "gånger/dygn": METOBS_PARAMETER_TIM,
+    "varje timme": METOBS_PARAMETER_TIM,
+    "2 gånger per dygn": METOBS_PARAMETER_TIM,
+    "gång/dygn": METOBS_PARAMETER_DYGN,
+    "1 gång per dygn": METOBS_PARAMETER_DYGN,
+    "1 gång per månad": METOBS_PARAMETER_MANAD,
 }
 
 STRANG_BASE_URL = "https://opendata-download-metanalys.smhi.se"

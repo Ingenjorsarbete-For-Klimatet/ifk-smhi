@@ -276,7 +276,7 @@ class BaseLevel:
         key: str,
         parameter: Union[str, int],
         data_type: str = "json",
-    ) -> str:
+    ) -> tuple[str, str]:
         """Get the url to get data from. Defaults to type json.
 
         Args:
@@ -287,15 +287,19 @@ class BaseLevel:
 
         Returns:
             url
+            summary
 
         Raises:
             IndexError
         """
         self.data_type = TYPE_MAP[data_type]
         try:
-            requested_data = [x for x in data if x[key] == str(parameter)][0]["link"]
-            url = [x["href"] for x in requested_data if x["type"] == self.data_type][0]
-            return url
+            requested_data = [x for x in data if x[key] == str(parameter)][0]
+            url = [
+                x["href"] for x in requested_data["link"] if x["type"] == self.data_type
+            ][0]
+            summary = requested_data["summary"]
+            return url, summary
         except IndexError:
             raise IndexError("Can't find data for parameters: {p}".format(p=parameter))
         except KeyError:
@@ -361,7 +365,7 @@ class Parameters(BaseLevel):
 
         self.versions_object = versions_object
         self.selected_version = "1.0" if version == 1 else version
-        url = self._get_url(versions_object.data, "key", version, data_type)
+        url, _ = self._get_url(versions_object.data, "key", version, data_type)
         content = self._get_and_parse_request(url)
         self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
         self.data = tuple((x["key"], x["title"], x["summary"]) for x in self.resource)
@@ -404,14 +408,16 @@ class Stations(BaseLevel):
         self.parameters_in_version = parameters_in_version
         if parameter:
             self.selected_parameter = parameter
-            url = self._get_url(
+            url, parameter_summary = self._get_url(
                 parameters_in_version.resource, "key", parameter, data_type
             )
         if parameter_title:
             self.selected_parameter = parameter_title
-            url = self._get_url(
+            url, parameter_summary = self._get_url(
                 parameters_in_version.resource, "title", parameter_title, data_type
             )
+
+        self.parameter_summary = parameter_summary
 
         content = self._get_and_parse_request(url)
         self.valuetype = content["valueType"]
@@ -449,6 +455,7 @@ class Periods(BaseLevel):
         """
         super().__init__()
         self.selected_station: Optional[Union[int, str]] = None
+        self.parameter_summary = stations_in_parameter.parameter_summary
 
         if data_type != "json":
             raise TypeError("Only json supported.")
@@ -462,17 +469,17 @@ class Periods(BaseLevel):
         self.stations_in_parameter = stations_in_parameter
         if station:
             self.selected_station = station
-            url = self._get_url(
+            url, _ = self._get_url(
                 stations_in_parameter.stations, "key", station, data_type
             )
         if station_name:
             self.selected_station = station_name
-            url = self._get_url(
+            url, _ = self._get_url(
                 stations_in_parameter.stations, "name", station_name, data_type
             )
         if stationset:
             self.selected_station = stationset
-            url = self._get_url(
+            url, _ = self._get_url(
                 stations_in_parameter.stations, "key", stationset, data_type
             )
 
@@ -511,12 +518,7 @@ class Data(BaseLevel):
         """
         super().__init__()
 
-        self.parameter = [
-            x
-            for x in periods_in_station.stations_in_parameter.parameters_in_version.data
-            if int(x[0]) == periods_in_station.stations_in_parameter.selected_parameter
-        ][0]
-        print(self.parameter)
+        self.parameter_summary = periods_in_station.parameter_summary
 
         if data_type != "json":
             raise TypeError("Only json supported.")
@@ -529,7 +531,7 @@ class Data(BaseLevel):
 
         self.periods_in_station = periods_in_station
         self.selected_period = period
-        url = self._get_url(periods_in_station.periods, "key", period, data_type)
+        url, _ = self._get_url(periods_in_station.periods, "key", period, data_type)
         content = self._get_and_parse_request(url)
         self.time_from = content["from"]
         self.time_to = content["to"]
@@ -603,11 +605,11 @@ class Data(BaseLevel):
         )
 
         try:
-            datetime_columns, datetime_function = [
-                v for k, v in METOBS_PARAMETERS.items() if k in self.parameter[2]
+            datetime_columns = [
+                v for k, v in METOBS_PARAMETERS.items() if k in self.parameter_summary
             ][0]
             self.data.set_index(
-                pd.to_datetime(datetime_function(self.data)),
+                pd.to_datetime(self.data[datetime_columns].agg(" ".join, axis=1)),
                 inplace=True,
             )
             self.data.drop(datetime_columns, axis=1, inplace=True)
