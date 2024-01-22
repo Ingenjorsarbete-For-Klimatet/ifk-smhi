@@ -6,7 +6,12 @@ import requests
 import pandas as pd
 from typing import Union, Optional, Any, Dict
 from requests.structures import CaseInsensitiveDict
-from smhi.constants import METOBS_URL, TYPE_MAP, METOBS_AVAILABLE_PERIODS
+from smhi.constants import (
+    METOBS_URL,
+    TYPE_MAP,
+    METOBS_AVAILABLE_PERIODS,
+    METOBS_PARAMETERS,
+)
 
 
 class Metobs:
@@ -506,6 +511,13 @@ class Data(BaseLevel):
         """
         super().__init__()
 
+        self.parameter = [
+            x
+            for x in periods_in_station.stations_in_parameter.parameters_in_version.data
+            if int(x[0]) == periods_in_station.stations_in_parameter.selected_parameter
+        ][0]
+        print(self.parameter)
+
         if data_type != "json":
             raise TypeError("Only json supported.")
 
@@ -591,10 +603,13 @@ class Data(BaseLevel):
         )
 
         try:
+            datetime_columns, datetime_function = [
+                v for k, v in METOBS_PARAMETERS.items() if k in self.parameter[2]
+            ][0]
             self.data.set_index(
-                pd.to_datetime(self.data["Datum"] + " " + self.data["Tid (UTC)"]),
+                pd.to_datetime(datetime_function(self.data)),
                 inplace=True,
             )
-            self.data.drop(["Datum", "Tid (UTC)"], axis=1, inplace=True)
+            self.data.drop(datetime_columns, axis=1, inplace=True)
         except TypeError:
             raise TypeError("Can't parse date of empty data.")
