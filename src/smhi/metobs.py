@@ -601,7 +601,7 @@ class Data(BaseLevel):
             io.StringIO(raw_data),
             sep=";",
             on_bad_lines="skip",
-            usecols=[0, 1, 2],
+            usecols=[0, 1, 2, 3],
         )
 
         try:

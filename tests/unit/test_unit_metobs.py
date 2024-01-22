@@ -353,19 +353,27 @@ class TestUnitBaseLevel:
         assert content == mock_json_loads.return_value
 
     @pytest.mark.parametrize(
-        "data, key, parameters, data_type, expected_result",
+        "data, key, parameters, data_type, expected_url, expected_summary",
         [
             (
-                [{"key": "p1", "link": [{"href": "URL", "type": "application/json"}]}],
+                [
+                    {
+                        "key": "p1",
+                        "summary": "sum",
+                        "link": [{"href": "URL", "type": "application/json"}],
+                    }
+                ],
                 "key",
                 "p1",
                 "application/json",
                 "URL",
+                "sum",
             ),
             (
                 [
                     {
                         "title": "p2",
+                        "summary": "sum",
                         "link": [{"href": "URL", "type": "application/json"}],
                     }
                 ],
@@ -373,15 +381,44 @@ class TestUnitBaseLevel:
                 "p2",
                 "application/json",
                 "URL",
+                "sum",
             ),
-            ([{"key": "p1", "link": []}], "key", "p1", None, IndexError),
-            ([{"link": []}], "key", "p1", None, KeyError),
-            ([{"link": []}], "key", None, None, KeyError),
-            ([{"link": []}], None, None, None, KeyError),
+            (
+                [{"key": "p1", "link": []}],
+                "key",
+                "p1",
+                None,
+                IndexError,
+                None,
+            ),
+            (
+                [{"link": []}],
+                "key",
+                "p1",
+                None,
+                KeyError,
+                None,
+            ),
+            (
+                [{"link": []}],
+                "key",
+                None,
+                None,
+                KeyError,
+                None,
+            ),
+            (
+                [{"link": []}],
+                None,
+                None,
+                None,
+                KeyError,
+                None,
+            ),
         ],
     )
     def test_unit_baselevel_get_url(
-        self, data, key, parameters, data_type, expected_result
+        self, data, key, parameters, data_type, expected_url, expected_summary
     ):
         """Unit test for BaseLevel _get_url method.
 
@@ -390,19 +427,21 @@ class TestUnitBaseLevel:
             key: key
             parameters: parameters
             data_type: format of api data
-            expected_result: expected result
+            expected_url: expected result
+            expected_summary: expected summary
         """
         level = BaseLevel()
 
-        if type(expected_result) != str:  # noqa: E721
-            with pytest.raises(expected_result):
+        if type(expected_url) != str:  # noqa: E721
+            with pytest.raises(expected_url):
                 level._get_url(data, key, parameters, data_type)
             return None
 
-        url = level._get_url(data, key, parameters, data_type)
+        url, summary = level._get_url(data, key, parameters, data_type)
 
         assert level.data_type == data_type
-        assert url == expected_result
+        assert url == expected_url
+        assert summary == expected_summary
 
 
 class TestUnitVersions:
@@ -456,7 +495,7 @@ class TestUnitParameter:
     @patch("smhi.metobs.tuple")
     @patch("smhi.metobs.sorted")
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
-    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.BaseLevel._get_url", return_value=(1, 2))
     @patch("smhi.metobs.Versions")
     def test_unit_parameters_init(
         self,
@@ -522,7 +561,7 @@ class TestUnitStation:
     @patch("smhi.metobs.tuple")
     @patch("smhi.metobs.sorted")
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
-    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.BaseLevel._get_url", return_value=(1, 2))
     def test_unit_stations_init(
         self,
         mock_get_url,
@@ -569,6 +608,7 @@ class TestUnitStation:
         if parameter_title:
             assert stations.selected_parameter == parameter_title
 
+        assert stations.parameter_summary == 2
         assert (
             stations.valuetype == mock_get_and_parse_request.return_value["valueType"]
         )
@@ -602,7 +642,7 @@ class TestUnitPeriod:
     )
     @patch("smhi.metobs.sorted")
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
-    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.BaseLevel._get_url", return_value=(1, 2))
     def test_unit_periods_init(
         self,
         mock_get_url,
@@ -642,6 +682,8 @@ class TestUnitPeriod:
             return None
 
         periods = Periods(stations, station, station_name, stationset, data_type)
+
+        assert periods.parameter_summary == stations.parameter_summary
 
         if station:
             assert periods.selected_station == station
@@ -688,7 +730,7 @@ class TestUnitData:
         ],
     )
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
-    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.BaseLevel._get_url", return_value=(1, 2))
     @patch("smhi.metobs.Data._get_data")
     def test_unit_data_init(
         self,
@@ -721,6 +763,7 @@ class TestUnitData:
 
         data = Data(periods, period, data_type)
 
+        assert data.parameter_summary == periods.parameter_summary
         assert data.selected_period == period
         assert data.time_from == mock_get_and_parse_request.return_value["from"]
         assert data.time_to == mock_get_and_parse_request.return_value["to"]
@@ -764,7 +807,7 @@ class TestUnitData:
     )
     @patch("smhi.metobs.requests.get")
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
-    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.BaseLevel._get_url", return_value=(1, 2))
     @patch("smhi.metobs.Data._parse_header")
     @patch("smhi.metobs.Data._parse_data")
     def test_unit_data_get_data(
@@ -812,7 +855,7 @@ class TestUnitData:
         ],
     )
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
-    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.BaseLevel._get_url", return_value=(1, 2))
     @patch("smhi.metobs.Data._get_data")
     def test_unit_data_separate_header_data(
         self,
@@ -844,7 +887,7 @@ class TestUnitData:
         [(METOBS_DATA, METOBS_UNIT_1)],
     )
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
-    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.BaseLevel._get_url", return_value=(1, 2))
     @patch("smhi.metobs.Data._get_data")
     def test_unit_data_parse_header(
         self,
@@ -878,7 +921,7 @@ class TestUnitData:
         ],
     )
     @patch("smhi.metobs.BaseLevel._get_and_parse_request")
-    @patch("smhi.metobs.BaseLevel._get_url")
+    @patch("smhi.metobs.BaseLevel._get_url", return_value=(1, 2))
     @patch("smhi.metobs.Data._get_data")
     def test_unit_data_parse_data(
         self,
@@ -898,6 +941,7 @@ class TestUnitData:
             result: expected result
         """
         data_object = Data(MagicMock(), "corrected-archive", "json")
+        data_object.parameter_summary = "momentanvärde, 1 gång/tim"
 
         if result is None:
             with pytest.raises(TypeError):
