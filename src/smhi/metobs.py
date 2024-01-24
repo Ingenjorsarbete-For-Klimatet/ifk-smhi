@@ -10,7 +10,9 @@ from smhi.constants import (
     METOBS_URL,
     TYPE_MAP,
     METOBS_AVAILABLE_PERIODS,
-    METOBS_PARAMETERS,
+    METOBS_PARAMETER_TIM,
+    METOBS_PARAMETER_DYGN,
+    METOBS_PARAMETER_MANAD,
 )
 
 
@@ -603,11 +605,18 @@ class Data(BaseLevel):
             on_bad_lines="skip",
             usecols=[0, 1, 2, 3],
         )
+        columns = self.data.columns
+
+        if any([c for c in METOBS_PARAMETER_TIM if c in columns]):
+            datetime_columns = METOBS_PARAMETER_TIM
+        elif any([c for c in METOBS_PARAMETER_DYGN if c in columns]):
+            datetime_columns = METOBS_PARAMETER_DYGN
+        elif any([c for c in METOBS_PARAMETER_MANAD if c in columns]):
+            datetime_columns = METOBS_PARAMETER_MANAD
+        else:
+            raise TypeError("Can't parse type.")
 
         try:
-            datetime_columns = [
-                v for k, v in METOBS_PARAMETERS.items() if k in self.parameter_summary
-            ][0]
             self.data.set_index(
                 pd.to_datetime(self.data[datetime_columns].agg(" ".join, axis=1)),
                 inplace=True,

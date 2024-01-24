@@ -41,16 +41,6 @@ METOBS_AVAILABLE_PERIODS = [
 METOBS_PARAMETER_TIM = ["Datum", "Tid (UTC)"]
 METOBS_PARAMETER_DYGN = ["Representativt dygn"]
 METOBS_PARAMETER_MANAD = ["Representativ månad"]
-METOBS_PARAMETERS = {
-    "gång/tim": METOBS_PARAMETER_TIM,
-    "gånger/tim": METOBS_PARAMETER_TIM,
-    "gånger/dygn": METOBS_PARAMETER_TIM,
-    "varje timme": METOBS_PARAMETER_TIM,
-    "2 gånger per dygn": METOBS_PARAMETER_TIM,
-    "gång/dygn": METOBS_PARAMETER_DYGN,
-    "1 gång per dygn": METOBS_PARAMETER_DYGN,
-    "1 gång per månad": METOBS_PARAMETER_MANAD,
-}
 
 STRANG_BASE_URL = "https://opendata-download-metanalys.smhi.se"
 STRANG_POINT_URL = urljoin(
