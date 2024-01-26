@@ -294,25 +294,29 @@ class TestIntegrationMetobs:
 
         time.sleep(1)
 
-    def test_integration_metobs_passing(self):
+    @pytest.mark.parametrize(
+        "parameter", [parameter for parameter, _, _ in Parameters().data]
+    )
+    def test_integration_metobs_passing(self, parameter):
         """Test that all parameters available return data without error.
 
         This does not check that the returned data is correct, only that the client
         does fetch data without error.
+
+        Args:
+            parameter: parameter to test
         """
 
         parameters = Parameters()
+        stations = Stations(parameters, parameter)
+        periods = Periods(stations, stations.data[1][0])
 
-        for parameter, _, _ in parameters.data:
-            stations = Stations(parameters, parameter)
-            periods = Periods(stations, stations.data[1][0])
+        try:
+            _ = Data(periods)
+            assert True
+        except TypeError:
+            assert True
+        except BaseException:
+            assert False
 
-            try:
-                _ = Data(periods)
-                assert True
-            except TypeError:
-                assert True
-            except BaseException:
-                assert False
-
-            time.sleep(1)
+        time.sleep(1)
