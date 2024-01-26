@@ -38,6 +38,9 @@ METOBS_AVAILABLE_PERIODS = [
     "latest-months",
     "corrected-archive",
 ]
+METOBS_PARAMETER_TIM = ["Datum", "Tid (UTC)"]
+METOBS_PARAMETER_DYGN = ["Representativt dygn"]
+METOBS_PARAMETER_MANAD = ["Representativ månad"]
 
 STRANG_BASE_URL = "https://opendata-download-metanalys.smhi.se"
 STRANG_POINT_URL = urljoin(
