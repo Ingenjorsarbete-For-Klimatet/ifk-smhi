@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 
 BASE_URL = (
-    "https://opendata-download-metanalys.smhi.se/" + "api/category/mesan1g/version/2/"
+    "https://opendata-download-metanalys.smhi.se/" + "api/category/mesan2g/version/1/"
 )
 
 
@@ -19,8 +19,8 @@ class TestUnitMesan:
         """Unit test for Mesan init method."""
         client = Mesan()
 
-        assert client._category == "mesan1g"
-        assert client._version == 2
+        assert client._category == "mesan2g"
+        assert client._version == 1
         assert client.latitude is None
         assert client.longitude is None
         assert client.status is None
