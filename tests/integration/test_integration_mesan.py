@@ -6,23 +6,23 @@ from smhi.mesan import Mesan
 import datetime as dt
 
 BASE_URL = "https://opendata-download-metanalys.smhi.se"
-APPROVED_TIME = BASE_URL + "/api/category/mesan1g/version/2/approvedtime.json"
-VALID_TIME = BASE_URL + "/api/category/mesan1g/version/2/validtime.json"
-GEO_POLYGON = BASE_URL + "/api/category/mesan1g/version/2/geotype/polygon.json"
-MULTIPOINT_D0 = BASE_URL + "/api/category/mesan1g/version/2/geotype/multipoint.json"
+APPROVED_TIME = BASE_URL + "/api/category/mesan2g/version/1/approvedtime.json"
+VALID_TIME = BASE_URL + "/api/category/mesan2g/version/1/validtime.json"
+GEO_POLYGON = BASE_URL + "/api/category/mesan2g/version/1/geotype/polygon.json"
+MULTIPOINT_D0 = BASE_URL + "/api/category/mesan2g/version/1/geotype/multipoint.json"
 MULTIPOINT_D1 = (
-    BASE_URL + "/api/category/mesan1g/version/2/geotype/multipoint.json?downsample=1"
+    BASE_URL + "/api/category/mesan2g/version/1/geotype/multipoint.json?downsample=1"
 )
 MULTIPOINT_D2 = (
-    BASE_URL + "/api/category/mesan1g/version/2/geotype/multipoint.json?downsample=2"
+    BASE_URL + "/api/category/mesan2g/version/1/geotype/multipoint.json?downsample=2"
 )
 MULTIPOINT_D10 = (
-    BASE_URL + "/api/category/mesan1g/version/2/geotype/multipoint.json?downsample=10"
+    BASE_URL + "/api/category/mesan2g/version/1/geotype/multipoint.json?downsample=10"
 )
 MULTIPOINT_D20 = (
-    BASE_URL + "/api/category/mesan1g/version/2/geotype/multipoint.json?downsample=20"
+    BASE_URL + "/api/category/mesan2g/version/1/geotype/multipoint.json?downsample=20"
 )
-PARAMETERS = BASE_URL + "/api/category/mesan1g/version/2/parameter.json"
+PARAMETERS = BASE_URL + "/api/category/mesan2g/version/1/parameter.json"
 
 APPROVED_TIME_NOW = json.loads(requests.get(APPROVED_TIME).content)
 VALID_TIME_NOW = json.loads(requests.get(VALID_TIME).content)
