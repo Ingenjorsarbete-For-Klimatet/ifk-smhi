@@ -306,7 +306,6 @@ class TestIntegrationMetobs:
         Args:
             parameter: parameter to test
         """
-
         parameters = Parameters()
         stations = Stations(parameters, parameter)
         periods = Periods(stations, stations.data[1][0])
