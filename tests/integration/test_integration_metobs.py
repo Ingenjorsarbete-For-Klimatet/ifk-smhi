@@ -2,8 +2,8 @@
 import json
 import time
 import pytest
-import pandas as pd
 import datetime
+import urllib
 from smhi.metobs import Metobs, Parameters, Stations, Periods, Data
 
 
@@ -15,23 +15,23 @@ def directdateread(parameter, station, period):
     station
     period
     """
-    tmpdata = pd.read_csv(
+    tmpdata = (
         "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/"
         + str(parameter)
         + "/station/"
         + str(station)
         + "/period/"
         + period
-        + "/data.csv",
-        skiprows=9,
-        usecols=["Datum", "Tid (UTC)"],
-        sep=";",
+        + "/data.csv"
     )
-    lastdate0 = datetime.datetime.strptime(
-        tmpdata["Datum"].iloc[-1] + "T" + tmpdata["Tid (UTC)"].iloc[-1],
-        "%Y-%m-%dT%H:%M:%S",
-    ).date()
-    return lastdate0
+    a = 0
+    for line in urllib.request.urlopen(tmpdata):
+        a = a + 1
+        if a == 8:
+            tmpstr = line.decode("utf-8")
+            break
+
+    return tmpstr[20:39]
 
 
 METOBS_INTEGRATION = {}
@@ -40,10 +40,8 @@ for i in [1, 2, 22]:
         METOBS_INTEGRATION[i] = json.load(f)
 
         if i == 1:
-            METOBS_INTEGRATION[i]["Tidsperiod (t.o.m)"] = (
-                directdateread(i, 192840, "corrected-archive").strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                ),
+            METOBS_INTEGRATION[i]["Tidsperiod (t.o.m)"] = directdateread(
+                i, 192840, "corrected-archive"
             )
 
         if i == 2:
@@ -147,9 +145,7 @@ class TestIntegrationMetobs:
         if raw_header_0:
             raw_header_0 = raw_header_0.replace(
                 "{{ date }}",
-                directdateread(parameter, station, period).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                ),
+                directdateread(parameter, station, period),
             )
 
         client = Metobs()
