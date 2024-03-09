@@ -2,8 +2,37 @@
 import json
 import time
 import pytest
+import pandas as pd
 import datetime
 from smhi.metobs import Metobs, Parameters, Stations, Periods, Data
+
+
+def directdateread(parameter, station, period):
+    """Help function to read date from web directly.
+
+    Args:
+    parameter
+    station
+    period
+    """
+    tmpdata = pd.read_csv(
+        "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/"
+        + str(parameter)
+        + "/station/"
+        + str(station)
+        + "/period/"
+        + period
+        + "/data.csv",
+        skiprows=9,
+        usecols=["Datum", "Tid (UTC)"],
+        sep=";",
+    )
+    lastdate0 = datetime.datetime.strptime(
+        tmpdata["Datum"].iloc[-1] + "T" + tmpdata["Tid (UTC)"].iloc[-1],
+        "%Y-%m-%dT%H:%M:%S",
+    ).date()
+    return lastdate0
+
 
 METOBS_INTEGRATION = {}
 for i in [1, 2, 22]:
@@ -12,7 +41,9 @@ for i in [1, 2, 22]:
 
         if i == 1:
             METOBS_INTEGRATION[i]["Tidsperiod (t.o.m)"] = (
-                datetime.date.today().strftime("%Y-%m") + "-01 07:20:09"
+                directdateread(i, 192840, "corrected-archive").strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ),
             )
 
         if i == 2:
@@ -72,7 +103,7 @@ class TestIntegrationMetobs:
                 + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
                 + "1 gång/tim;celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
                 + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
-                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 07:20:09;329.68;"
+                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }};329.68;"
                 + "68.4418;22.4435\n\n",
                 METOBS_INTEGRATION[1],
             ),
@@ -115,7 +146,10 @@ class TestIntegrationMetobs:
         """
         if raw_header_0:
             raw_header_0 = raw_header_0.replace(
-                "{{ date }}", datetime.date.today().strftime("%Y-%m") + "-01"
+                "{{ date }}",
+                directdateread(parameter, station, period).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ),
             )
 
         client = Metobs()
