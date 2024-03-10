@@ -16,7 +16,7 @@ class TestIntegrationMetobs:
     @pytest.mark.parametrize(
         "parameter, station, period, init_key, init_title, parameter_data_0, "
         + "station_data_0, period_data_0, data_title, table_locr, table_locc, "
-        + "table, raw_header_0, header_0",
+        + "table, header_0",
         [
             (
                 1,
@@ -33,7 +33,6 @@ class TestIntegrationMetobs:
                 None,
                 None,
                 False,
-                None,
                 {},
             ),
             (
@@ -51,13 +50,6 @@ class TestIntegrationMetobs:
                 0,
                 0,
                 -15.2,
-                "\ufeffStationsnamn;Stationsnummer;Stationsnät;Mäthöjd (meter "
-                + "över marken)\nKaresuando A;192840;SMHIs stationsnät;2.0\n\n"
-                + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
-                + "1 gång/tim;celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
-                + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
-                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }};329.68;"
-                + "68.4418;22.4435\n\n",
                 METOBS_INTEGRATION[1],
             ),
         ],
@@ -76,7 +68,6 @@ class TestIntegrationMetobs:
         table_locr,
         table_locc,
         table,
-        raw_header_0,
         header_0,
     ):
         """Integration test of the Metobs API used through the Metobs client.
@@ -94,7 +85,6 @@ class TestIntegrationMetobs:
             table_locr
             table_locc
             table
-            raw_header_0
             header_0
         """
         client = Metobs()
