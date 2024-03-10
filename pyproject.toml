@@ -26,7 +26,7 @@ documentation = "https://ingenjorsarbeteforklimatet.se/ifk-smhi/"
 repository = "https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi"
 
 [project.optional-dependencies]
-lint = ["ruff ~= 0.3.2"]
+lint = ["ruff ~= 0.3"]
 type = ["mypy ~= 1.7", "types-requests ~= 2.28", "pandas-stubs ~= 1.5"]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
 doc = [
