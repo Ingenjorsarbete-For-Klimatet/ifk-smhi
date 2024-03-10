@@ -258,10 +258,8 @@ class TestIntegrationMetobs:
             assert data.data.iloc[table_locr, table_locc] == table
             assert data.raw_data_header[0:324] == raw_header_0[0:324]
             data.data_header.pop("Tidsperiod (t.o.m)")
-            try:
+            if header_0.get("Tidsperiod (t.o.m)"):
                 header_0.pop("Tidsperiod (t.o.m)")
-            except KeyError:
-                pass
             assert data.data_header == header_0
 
         time.sleep(1)
