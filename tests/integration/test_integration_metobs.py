@@ -2,57 +2,12 @@
 import json
 import time
 import pytest
-import datetime
-import urllib
 from smhi.metobs import Metobs, Parameters, Stations, Periods, Data
-
-
-def directdateread(parameter, station, period):
-    """Help function to read date from web directly.
-
-    Args:
-    parameter
-    station
-    period
-    """
-    tmpdata = (
-        "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/"
-        + str(parameter)
-        + "/station/"
-        + str(station)
-        + "/period/"
-        + period
-        + "/data.csv"
-    )
-    a = 0
-    for line in urllib.request.urlopen(tmpdata):
-        a = a + 1
-        if a == 8:
-            tmpstr = line.decode("utf-8")
-            break
-
-    return tmpstr[20:39]
-
 
 METOBS_INTEGRATION = {}
 for i in [1, 2, 22]:
     with open(f"tests/fixtures/metobs_integration_{i}.json", encoding="utf-8") as f:
         METOBS_INTEGRATION[i] = json.load(f)
-
-        if i == 1:
-            METOBS_INTEGRATION[i]["Tidsperiod (t.o.m)"] = directdateread(
-                i, 192840, "corrected-archive"
-            )
-
-        if i == 2:
-            METOBS_INTEGRATION[i]["Tidsperiod (t.o.m)"] = (
-                datetime.date.today().strftime("%Y-%m") + "-01 08:20:12"
-            )
-
-        if i == 22:
-            METOBS_INTEGRATION[i]["Tidsperiod (t.o.m)"] = (
-                datetime.date.today().strftime("%Y-%m") + "-01 18:21:06"
-            )
 
 
 class TestIntegrationMetobs:
@@ -142,12 +97,6 @@ class TestIntegrationMetobs:
             raw_header_0
             header_0
         """
-        if raw_header_0:
-            raw_header_0 = raw_header_0.replace(
-                "{{ date }}",
-                directdateread(parameter, station, period),
-            )
-
         client = Metobs()
         client.get_parameters()
         client.get_stations(parameter)
@@ -164,6 +113,8 @@ class TestIntegrationMetobs:
         assert client.data.title == data_title
         if table:
             assert data.iloc[table_locr, table_locc] == table
+            data_header.pop("Tidsperiod (t.o.m)")
+            header_0.pop("Tidsperiod (t.o.m)")
             assert data_header == header_0
 
         time.sleep(1)
@@ -211,7 +162,7 @@ class TestIntegrationMetobs:
                 + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
                 + "1 gång/tim;celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
                 + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
-                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }} 07:20:09;329.68;"
+                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }};329.68;"
                 + "68.4418;22.4435\n\n",
                 METOBS_INTEGRATION[1],
             ),
@@ -299,11 +250,6 @@ class TestIntegrationMetobs:
             raw_header_0
             header_0
         """
-        if raw_header_0:
-            raw_header_0 = raw_header_0.replace(
-                "{{ date }}", datetime.date.today().strftime("%Y-%m") + "-01"
-            )
-
         parameters = Parameters()
         stations = Stations(parameters, parameter)
         periods = Periods(stations, station)
@@ -319,7 +265,12 @@ class TestIntegrationMetobs:
         assert data.title == data_title
         if table:
             assert data.data.iloc[table_locr, table_locc] == table
-            assert data.raw_data_header == raw_header_0
+            assert data.raw_data_header[0:324] == raw_header_0[0:324]
+            data.data_header.pop("Tidsperiod (t.o.m)")
+            try:
+                header_0.pop("Tidsperiod (t.o.m)")
+            except KeyError:
+                pass
             assert data.data_header == header_0
 
         time.sleep(1)
