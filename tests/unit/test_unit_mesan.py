@@ -1,4 +1,5 @@
 """SMHI Mesan v1 unit tests."""
+
 import json
 import arrow
 import pytest

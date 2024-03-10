@@ -1,4 +1,5 @@
 """SMHI Metfcts v1 unit tests."""
+
 from smhi.metfcts import Metfcts
 
 

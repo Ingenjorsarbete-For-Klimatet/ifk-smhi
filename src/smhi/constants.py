@@ -1,4 +1,5 @@
 """Constans."""
+
 import arrow
 import logging
 from datetime import datetime

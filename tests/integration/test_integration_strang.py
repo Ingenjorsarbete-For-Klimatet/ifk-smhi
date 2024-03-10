@@ -1,4 +1,5 @@
 """Strang integration tests."""
+
 import pytest
 import pandas as pd
 from smhi.strang import Strang

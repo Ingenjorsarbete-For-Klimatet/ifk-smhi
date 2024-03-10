@@ -1,4 +1,5 @@
 """SMHI Mesan API module."""
+
 import json
 import arrow
 import requests

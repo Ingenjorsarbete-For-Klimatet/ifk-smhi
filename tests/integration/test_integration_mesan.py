@@ -1,4 +1,5 @@
 """Mesan integration tests."""
+
 import json
 import pytest
 import requests

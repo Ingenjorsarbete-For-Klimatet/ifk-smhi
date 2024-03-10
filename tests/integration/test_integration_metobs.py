@@ -1,4 +1,5 @@
 """SMHI Metobs v1 integration tests."""
+
 import json
 import time
 import pytest
