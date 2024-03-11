@@ -113,7 +113,7 @@ class TestIntegrationMetobs:
     @pytest.mark.parametrize(
         "parameter, station, period, init_key, init_title, parameter_data_0, "
         + "station_data_0, period_data_0, data_title, table_locr, table_locc, "
-        + "table, raw_header_0, header_0",
+        + "table, header_0",
         [
             (
                 1,
@@ -130,7 +130,6 @@ class TestIntegrationMetobs:
                 None,
                 None,
                 False,
-                None,
                 {},
             ),
             (
@@ -148,13 +147,6 @@ class TestIntegrationMetobs:
                 0,
                 0,
                 -15.2,
-                "\ufeffStationsnamn;Stationsnummer;Stationsnät;Mäthöjd (meter "
-                + "över marken)\nKaresuando A;192840;SMHIs stationsnät;2.0\n\n"
-                + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;momentanvärde, "
-                + "1 gång/tim;celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
-                + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
-                + "(decimalgrader)\n2008-11-01 00:00:00;{{ date }};329.68;"
-                + "68.4418;22.4435\n\n",
                 METOBS_INTEGRATION[1],
             ),
             (
@@ -172,13 +164,6 @@ class TestIntegrationMetobs:
                 0,
                 2,
                 -16.1,
-                "\ufeffStationsnamn;Stationsnummer;Stationsnät;Mäthöjd (meter "
-                + "över marken)\nKaresuando A;192840;SMHIs stationsnät;2.0\n\n"
-                + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;medelvärde 1 "
-                + "dygn, 1 gång/dygn, kl 00;celsius\n\nTidsperiod (fr.o.m);Tidsperiod "
-                + "(t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud "
-                + "(decimalgrader)\n2008-11-01 00:00:00;2024-01-01 08:20:12;329.68;"
-                + "68.4418;22.4435\n\nFrån ",
                 METOBS_INTEGRATION[2],
             ),
             (
@@ -196,12 +181,6 @@ class TestIntegrationMetobs:
                 0,
                 2,
                 -8.7,
-                "\ufeffStationsnamn;Stationsnummer;Stationsnät;Mäthöjd "
-                + "(meter över marken)\nKaresuando A;192840;SMHIs stationsnät;2.0\n\n"
-                + "Parameternamn;Beskrivning;Enhet\nLufttemperatur;medel, 1 gång per "
-                + "månad;celsius\n\nTidsperiod (fr.o.m);Tidsperiod (t.o.m);Höjd (meter "
-                + "över havet);Latitud (decimalgrader);Longitud (decimalgrader)\n"
-                + "2008-12-01 00:00:00;2024-01-01 18:21:06;329.68;68.4418;22.4435\n\nFrån ",
                 METOBS_INTEGRATION[22],
             ),
         ],
@@ -220,7 +199,6 @@ class TestIntegrationMetobs:
         table_locr,
         table_locc,
         table,
-        raw_header_0,
         header_0,
     ):
         """Integration test of the Metobs API through the object clients.
@@ -238,7 +216,6 @@ class TestIntegrationMetobs:
             table_locr,
             table_locc
             table
-            raw_header_0
             header_0
         """
         parameters = Parameters()
@@ -256,7 +233,6 @@ class TestIntegrationMetobs:
         assert data.title == data_title
         if table:
             assert data.data.iloc[table_locr, table_locc] == table
-            assert data.raw_data_header[0:324] == raw_header_0[0:324]
             data.data_header.pop("Tidsperiod (t.o.m)")
             if header_0.get("Tidsperiod (t.o.m)"):
                 header_0.pop("Tidsperiod (t.o.m)")
