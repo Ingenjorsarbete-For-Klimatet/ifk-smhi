@@ -1,4 +1,5 @@
 """SMHI Metobs client."""
+
 import io
 import json
 import logging

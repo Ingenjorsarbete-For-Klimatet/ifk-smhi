@@ -1,4 +1,5 @@
 """SMHI Mesan API module."""
+
 import json
 import arrow
 import requests
@@ -57,8 +58,8 @@ class Mesan:
 
     def __init__(self) -> None:
         """Initialise Mesan."""
-        self._category: str = "mesan1g"
-        self._version: int = 2
+        self._category: str = "mesan2g"
+        self._version: int = 1
 
         self.latitude: Optional[float] = None
         self.longitude: Optional[float] = None

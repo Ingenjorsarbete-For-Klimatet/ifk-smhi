@@ -1,4 +1,5 @@
 """SMHI Strang unit tests."""
+
 import arrow
 import pytest
 import datetime

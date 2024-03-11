@@ -1,4 +1,5 @@
 """Read SMHI data."""
+
 import logging
 import pandas as pd
 from geopy.geocoders import Nominatim

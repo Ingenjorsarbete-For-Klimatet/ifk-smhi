@@ -1,4 +1,5 @@
 """SMHI Metobs v1 unit tests."""
+
 import json
 import pytest
 import pandas as pd
