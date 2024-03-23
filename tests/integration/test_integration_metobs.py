@@ -2,13 +2,18 @@
 
 import json
 import time
+
+import pandas as pd
 import pytest
-from smhi.metobs import Parameters, Stations, Periods, Data
+from smhi.metobs import Data, Parameters, Periods, Stations
 
 METOBS_INTEGRATION = {}
 for i in [1, 2, 22]:
     with open(f"tests/fixtures/metobs_integration_{i}.json", encoding="utf-8") as f:
-        METOBS_INTEGRATION[i] = json.load(f)
+        METOBS_INTEGRATION[i] = []
+        all_headers = json.load(f)
+        for header in all_headers:
+            METOBS_INTEGRATION[i].append(pd.DataFrame(header, index=[0]))
 
 
 class TestIntegrationMetobs:
@@ -137,10 +142,20 @@ class TestIntegrationMetobs:
         assert data.title == data_title
         if table:
             assert data.data.iloc[table_locr, table_locc] == table
-            data.data_header.pop("Tidsperiod (t.o.m)")
-            if header_0.get("Tidsperiod (t.o.m)"):
-                header_0.pop("Tidsperiod (t.o.m)")
-            assert data.data_header == header_0
+            pd.testing.assert_frame_equal(data.station, header_0[0])
+            pd.testing.assert_frame_equal(data.parameter, header_0[1])
+            pd.testing.assert_frame_equal(
+                data.period[
+                    data.period.columns.drop(
+                        list(data.period.filter(regex="Tidsperiod"))
+                    )
+                ],
+                header_0[2][
+                    header_0[2].columns.drop(
+                        list(header_0[2].filter(regex="Tidsperiod"))
+                    )
+                ],
+            )
 
         time.sleep(1)
 
@@ -165,7 +180,7 @@ class TestIntegrationMetobs:
             assert True
         except TypeError:
             assert True
-        except BaseException:
+        except Exception:
             assert False
 
         time.sleep(1)

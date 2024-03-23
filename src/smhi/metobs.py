@@ -2,24 +2,19 @@
 
 import io
 import logging
-import requests
+from collections import defaultdict, namedtuple
+from typing import Any, Optional, Union
+
 import pandas as pd
-from typing import Union, Optional, Any
+import requests
 from requests.structures import CaseInsensitiveDict
-from smhi.constants import (
-    TYPE_MAP,
-    METOBS_AVAILABLE_PERIODS,
-    METOBS_PARAMETER_TIM,
-    METOBS_PARAMETER_DYGN,
-    METOBS_PARAMETER_MANAD,
-)
-
-from smhi.models.metobs_versions import VersionModel
-from smhi.models.metobs_parameters import ParameterModel
-from smhi.models.metobs_stations import StationModel
-from smhi.models.metobs_periods import PeriodModel
 from smhi.models.metobs_data import DataModel
+from smhi.models.metobs_parameters import ParameterModel
+from smhi.models.metobs_periods import PeriodModel
+from smhi.models.metobs_stations import StationModel
+from smhi.models.metobs_versions import VersionModel
 
+MetobsData = namedtuple("MetobsData", "station, parameter, period, stationdata")
 MetobsModels = VersionModel | ParameterModel | StationModel | PeriodModel | DataModel
 
 
@@ -32,6 +27,7 @@ class BaseMetobs:
     title: str
     summary: str
     link: str
+    type_map = defaultdict(lambda: "application/json", json="application/json")
 
     def __init__(self) -> None:
         """Initialise base class."""
@@ -90,7 +86,7 @@ class BaseMetobs:
         Raises:
             IndexError
         """
-        self.data_type = TYPE_MAP[data_type]
+        self.data_type = self.type_map[data_type]
         try:
             requested_data = [x for x in data if getattr(x, key) == str(parameter)][0]
             url = [x.href for x in requested_data.link if x.type == self.data_type][0]
@@ -288,21 +284,32 @@ class Periods(BaseMetobs):
                 stations_in_parameter.stations, "key", stationset, data_type
             )
 
-        content = self._get_and_parse_request(url, PeriodModel)
+        model = self._get_and_parse_request(url, PeriodModel)
 
-        self.owner = content.owner
-        self.ownercategory = content.ownerCategory
-        self.measuringstations = content.measuringStations
-        self.active = content.active
-        self.time_from = content.from_
-        self.time_to = content.to
-        self.position = content.position
-        self.periods = sorted(content.period, key=lambda x: x.key)
+        self.owner = model.owner
+        self.ownercategory = model.ownerCategory
+        self.measuringstations = model.measuringStations
+        self.active = model.active
+        self.time_from = model.from_
+        self.time_to = model.to
+        self.position = model.position
+        self.periods = sorted(model.period, key=lambda x: x.key)
         self.data = tuple(x.key for x in self.periods)
 
 
 class Data(BaseMetobs):
     """Get data from period for version 1 of Metobs API."""
+
+    metobs_available_parameters = [
+        "latest-hour",
+        "latest-day",
+        "latest-months",
+        "corrected-archive",
+    ]
+
+    metobs_parameter_tim = ["Datum", "Tid (UTC)"]
+    metobs_parameter_dygn = ["Representativt dygn"]
+    metobs_parameter_manad = ["Representativ månad"]
 
     def __init__(
         self,
@@ -329,104 +336,83 @@ class Data(BaseMetobs):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        if period not in METOBS_AVAILABLE_PERIODS:
+        if period not in self.metobs_available_parameters:
             raise NotImplementedError(
                 "Select a supported periods: }"
-                + ", ".join([p for p in METOBS_AVAILABLE_PERIODS])
+                + ", ".join([p for p in self.metobs_available_parameters])
             )
 
         self.periods_in_station = periods_in_station
         self.selected_period = period
 
         url, _ = self._get_url(periods_in_station.periods, "key", period, data_type)
-        content = self._get_and_parse_request(url, DataModel)
+        model = self._get_and_parse_request(url, DataModel)
 
-        self.time_from = content.from_
-        self.time_to = content.to
-        self.raw_data = content.data
-        self._get_data()
+        self.time_from = model.from_
+        self.time_to = model.to
+        self.raw_data = model.data
 
-    def _get_data(self, type: str = "text/plain") -> None:
+        data_model = self._get_data()
+
+        self.station = data_model.station
+        self.parameter = data_model.parameter
+        self.period = data_model.period
+        self.data = self._set_dataframe_index(data_model.stationdata)
+
+    def _get_data(self, type: str = "text/plain") -> MetobsData:
         """Get the selected data file.
 
         Args:
             type: type of request
         """
-        for item in self.raw_data:
-            for link in item.link:
-                if link.type != type:
-                    continue
+        link = [
+            link.href
+            for item in self.raw_data
+            for link in item.link
+            if link.type == type
+        ]
 
-                content = requests.get(link.href).content.decode("utf-8")
-                raw_data_header, raw_data = self._separate_header_data(content)
-                self._parse_header(raw_data_header)
-                self._parse_data(raw_data)
-                return
+        if len(link) == 0:
+            raise NotImplementedError("Can't find CSV file to download.")
+        if len(link) > 1:
+            raise NotImplementedError(
+                "Found several CSV files to download, this is currently not supported."
+            )
 
-    def _separate_header_data(self, content: str) -> tuple:
-        """Separate header and data into two strings.
-
-        Args:
-            content: raw data string
-        """
-        data_starting_point = content.find("Datum")
-        self.raw_data_header = content[:data_starting_point]
-        self.raw_data = content[data_starting_point:-1]
-
-        return self.raw_data_header, self.raw_data
-
-    def _parse_header(self, raw_data_header: str) -> None:
-        """Parse header string.
-
-        Args:
-            raw_data_header: raw data header as a string
-        """
-        data_headers = []
-        for header in raw_data_header.split("\n\n")[:-1]:
-            try:
-                data_headers.append(
-                    pd.read_csv(
-                        io.StringIO(header),
-                        sep=";",
-                        on_bad_lines="skip",
-                    ).to_dict("records")[0]
-                )
-            except pd.errors.EmptyDataError:
-                logging.warning("No columns to parse.")
-
-        self.data_header = {k: v for d in data_headers for k, v in d.items()}
-
-    def _parse_data(self, raw_data: str) -> None:
-        """Parse string data.
-
-        Args:
-            raw_data: utf-8 decoded response
-
-        Raises:
-            NotImplementedError
-        """
-        self.data = pd.read_csv(
-            io.StringIO(raw_data),
-            sep=";",
-            on_bad_lines="skip",
-            usecols=[0, 1, 2, 3],
+        csv_content = requests.get(link[0]).content.decode("utf-8").split("\n\n")
+        return MetobsData(
+            *[
+                pd.read_csv(io.StringIO(raw_data), sep=";", on_bad_lines="skip")
+                for raw_data in csv_content
+            ]
         )
-        columns = self.data.columns
 
-        if any([c for c in METOBS_PARAMETER_TIM if c in columns]):
-            datetime_columns = METOBS_PARAMETER_TIM
-        elif any([c for c in METOBS_PARAMETER_DYGN if c in columns]):
-            datetime_columns = METOBS_PARAMETER_DYGN
-        elif any([c for c in METOBS_PARAMETER_MANAD if c in columns]):
-            datetime_columns = METOBS_PARAMETER_MANAD
+    def _set_dataframe_index(self, stationdata: pd.DataFrame) -> pd.DataFrame:
+        """Set dataframe index based on datetime column.
+
+        Args:
+            data: station dataframe
+
+        Returns:
+            return augmented dataframe
+
+        Raise:
+            TypeError
+        """
+        columns = stationdata.columns
+        if any([c for c in self.metobs_parameter_tim if c in columns]):
+            datetime_columns = self.metobs_parameter_tim
+        elif any([c for c in self.metobs_parameter_dygn if c in columns]):
+            datetime_columns = self.metobs_parameter_dygn
+        elif any([c for c in self.metobs_parameter_manad if c in columns]):
+            datetime_columns = self.metobs_parameter_manad
         else:
             raise TypeError("Can't parse type.")
 
-        try:
-            self.data.set_index(
-                pd.to_datetime(self.data[datetime_columns].agg(" ".join, axis=1)),
-                inplace=True,
-            )
-            self.data.drop(datetime_columns, axis=1, inplace=True)
-        except TypeError:
-            raise TypeError("Can't parse date of empty data.")
+        stationdata.set_index(
+            pd.to_datetime(stationdata[datetime_columns].agg(" ".join, axis=1)),
+            inplace=True,
+        )
+        stationdata.drop(datetime_columns, axis=1, inplace=True)
+
+        return stationdata

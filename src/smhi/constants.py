@@ -1,12 +1,12 @@
 """Constans."""
 
-import arrow
 import logging
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
 from posixpath import join as urljoin
-from typing import NamedTuple, Optional, Callable
+from typing import Callable, NamedTuple, Optional
 
+import arrow
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
@@ -21,8 +21,6 @@ def get_now() -> datetime:
     return arrow.utcnow().datetime  # .isoformat("T", "seconds") + "Z"
 
 
-TYPE_MAP = defaultdict(lambda: "application/json", json="application/json")
-
 METFCTS_URL = (
     "https://opendata-download-metfcst.smhi.se/"
     + "api/category/{category}/version/{version}/"
@@ -31,16 +29,6 @@ MESAN_URL = (
     "https://opendata-download-metanalys.smhi.se/"
     + "api/category/{category}/version/{version}/"
 )
-
-METOBS_AVAILABLE_PERIODS = [
-    "latest-hour",
-    "latest-day",
-    "latest-months",
-    "corrected-archive",
-]
-METOBS_PARAMETER_TIM = ["Datum", "Tid (UTC)"]
-METOBS_PARAMETER_DYGN = ["Representativt dygn"]
-METOBS_PARAMETER_MANAD = ["Representativ månad"]
 
 STRANG_BASE_URL = "https://opendata-download-metanalys.smhi.se"
 STRANG_POINT_URL = urljoin(
