@@ -32,7 +32,6 @@ MESAN_URL = (
     + "api/category/{category}/version/{version}/"
 )
 
-METOBS_URL = "https://opendata-download-metobs.smhi.se/api.json"
 METOBS_AVAILABLE_PERIODS = [
     "latest-hour",
     "latest-day",

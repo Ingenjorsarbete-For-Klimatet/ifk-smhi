@@ -1,14 +1,12 @@
 """SMHI Metobs client."""
 
 import io
-import json
 import logging
 import requests
 import pandas as pd
-from typing import Union, Optional, Any, Dict
+from typing import Union, Optional, Any
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import (
-    METOBS_URL,
     TYPE_MAP,
     METOBS_AVAILABLE_PERIODS,
     METOBS_PARAMETER_TIM,
@@ -16,232 +14,28 @@ from smhi.constants import (
     METOBS_PARAMETER_MANAD,
 )
 
+from smhi.models.metobs_versions import VersionModel
+from smhi.models.metobs_parameters import ParameterModel
+from smhi.models.metobs_stations import StationModel
+from smhi.models.metobs_periods import PeriodModel
+from smhi.models.metobs_data import DataModel
 
-class Metobs:
-    """SMHI Metobs class."""
-
-    def __init__(self, data_type: str = "json") -> None:
-        """Initialise the SMHI Metobs class with a data type format used to get data.
-
-        For now, only supports `json` and version 1.
-
-        Args:
-            data_type: type of request
-        """
-        if data_type != "json":
-            raise NotImplementedError(
-                "API for type {0} is not supported for now. Use json".format(data_type)
-            )
-
-        self.data_type = TYPE_MAP[data_type]
-        self.version: Optional[Union[str, int]] = None
-        self.versions = Versions()
-        self.parameters: Optional[Parameters] = None
-        self.stations: Optional[Stations] = None
-        self.periods: Optional[Periods] = None
-        self.data: Optional[Data] = None
-
-    def get_parameters(self, version: Union[str, int] = "1.0"):
-        """Get SMHI Metobs API parameters from version. Only supports `version = 1.0`.
-
-        Args:
-            version: selected API version
-        """
-        if version == 1:
-            version = "1.0"
-
-        if version != "1.0":
-            raise NotImplementedError(
-                "Version {} not supported. Only supports version = 1.0.".format(version)
-            )
-
-        self.version = version
-        self.parameters = Parameters(self.versions)
-
-    def get_stations(
-        self, parameter: Optional[int] = None, parameter_title: Optional[str] = None
-    ):
-        """Get SMHI Metobs API (version 1) stations from given parameter.
-
-        Args:
-            parameter: integer id of parameter
-            parameter_title: exact title of parameter
-        """
-        if self.parameters is None:
-            logging.info("No parameters found, call get_parameters first.")
-            return
-
-        if parameter is None and parameter_title is None:
-            raise NotImplementedError("Both arguments None.")
-
-        if parameter:
-            self.stations = Stations(self.parameters, parameter=parameter)
-        else:
-            self.stations = Stations(self.parameters, parameter_title=parameter_title)
-
-    def get_periods(
-        self, station: Optional[int] = None, stationset: Optional[str] = None
-    ):
-        """Get SMHI Metobs API (version 1) periods from given stations or stationset.
-
-        Args:
-            station: integer id of station
-            stationset: exact title of station
-        """
-        if self.stations is None:
-            logging.info("No stations found, call get_stations first.")
-            return
-
-        if station is None and stationset is None:
-            raise NotImplementedError("Both arguments None.")
-
-        if station:
-            self.periods = Periods(self.stations, station)
-        else:
-            self.periods = Periods(self.stations, stationset=stationset)
-
-    def get_data(
-        self, period: str = "corrected-archive"
-    ) -> tuple[Optional[pd.DataFrame], Optional[tuple[dict]]]:
-        """Get SMHI Metobs API (version 1) data from given period.
-
-        Args:
-            period: period
-
-        Returns:
-            data table
-            data header dict
-        """
-        if self.periods is None:
-            logging.info("No periods found, call get_periods first.")
-            return None, None
-
-        self.data = Data(self.periods, period)
-
-        return self.data.data, self.data.data_header
-
-    def get_data_from_selection(
-        self,
-        parameter: int,
-        station: int,
-        period: str,
-    ) -> tuple[Optional[pd.DataFrame], Optional[tuple[dict]]]:
-        """Get data from explicit parameters.
-
-        Get data from explicit parameter, station and period,
-        without inspecting each level. Note, no version parameters.
-
-        Args:
-            parameter: parameter to get
-            station: station to get
-            period: period to get
-
-        Returns:
-            data table
-            data header dict
-        """
-        self.get_parameters()
-        self.get_stations(parameter)
-        self.get_periods(station)
-        data, data_header = self.get_data(period)
-        return data, data_header
-
-    def get_data_stationset(
-        self,
-        parameter: int,
-        stationset: str,
-        period: str,
-    ) -> tuple[Optional[pd.DataFrame], Optional[tuple[dict]]]:
-        """Get data from stationset.
-
-        Get data from explicit parameters, stations set and period,
-        without inspecting each level. Note, no version parameters.
-
-        Args:
-            parameter: parameter to get
-            stationset: stationset to get
-            period: period to get
-
-        Returns:
-            data table
-        """
-        self.get_parameters()
-        self.get_stations(parameter)
-        self.get_periods(None, stationset)
-        data, data_header = self.get_data(period)
-        return data, data_header
-
-    def inspect(self, num_print: int = 10) -> None:
-        """Inspect object state.
-
-        Args:
-            num_print: number of items to print
-        """
-        print("API version")
-        print("Available versions: ", [x["key"] for x in self.versions.data])
-        print("Selected version: ", self.version)
-        print()
-
-        if self.parameters:
-            print("API parameters")
-            print("Available parameters ({0} first): ".format(num_print))
-            print(self.parameters.data[:num_print])
-            print(
-                "See all ({0}) parameters with client.parameters.data".format(
-                    len(self.parameters.data)
-                )
-            )
-            if self.stations:
-                print("Selected parameters: ", self.stations.selected_parameter)
-            print()
-
-        if self.stations:
-            print("API stations")
-            print("Available stations ({0} first): ".format(num_print))
-            print(self.stations.data[:num_print])
-            print(
-                "See all ({0}) stations with client.stations.data".format(
-                    len(self.stations.data)
-                )
-            )
-            if self.periods:
-                print(
-                    "Selected stations: {0} {1}".format(
-                        self.periods.selected_station,
-                        [
-                            x[1]
-                            for x in self.stations.data
-                            if x[0] == self.periods.selected_station
-                        ][0],
-                    )
-                )
-            print()
-
-        if self.periods:
-            print("API periods")
-            print("Available periods: ")
-            print(self.periods.data)
-            if self.data:
-                print("Selected periods: ", self.data.selected_period)
-            print()
+MetobsModels = VersionModel | ParameterModel | StationModel | PeriodModel | DataModel
 
 
-class BaseLevel:
-    """Base Metobs level version 1 class."""
+class BaseMetobs:
+    """Base Metobs class."""
+
+    headers: CaseInsensitiveDict
+    key: str
+    updated: int
+    title: str
+    summary: str
+    link: str
 
     def __init__(self) -> None:
         """Initialise base class."""
-        self.headers: Optional[CaseInsensitiveDict] = None
-        self.key: Optional[str] = None
-        self.updated: Optional[str] = None
-        self.title: Optional[str] = None
-        self.summary: Optional[str] = None
-        self.link: Optional[str] = None
-        self.data_type: Optional[str] = None
-        self.raw_data_header: Optional[str] = None
-        self.data_header: Any = None
-        self.raw_data: Any = None
-        self.data: Any = None
+        pass
 
     @property
     def show(self) -> None:
@@ -252,26 +46,27 @@ class BaseLevel:
         for item in self.data:
             logging.info(item)
 
-    def _get_and_parse_request(self, url: str) -> Dict[Any, Any]:
+    def _get_and_parse_request(self, url: str, model: MetobsModels) -> MetobsModels:
         """Get and parse API request. Only JSON supported.
 
         Args:
             url: url to get from
+            model: pydantic model to populate
 
         Returns:
-            jsonified content
+            pydantic model
         """
         response = requests.get(url, timeout=200)
-        content = json.loads(response.content)
+        model = model.model_validate_json(response.content)
 
         self.headers = response.headers
-        self.key = content["key"]
-        self.updated = content["updated"]
-        self.title = content["title"]
-        self.summary = content["summary"]
-        self.link = content["link"]
+        self.key = model.key
+        self.updated = model.updated
+        self.title = model.title
+        self.summary = model.summary
+        self.link = model.link
 
-        return content
+        return model
 
     def _get_url(
         self,
@@ -297,11 +92,9 @@ class BaseLevel:
         """
         self.data_type = TYPE_MAP[data_type]
         try:
-            requested_data = [x for x in data if x[key] == str(parameter)][0]
-            url = [
-                x["href"] for x in requested_data["link"] if x["type"] == self.data_type
-            ][0]
-            summary = requested_data["summary"]
+            requested_data = [x for x in data if getattr(x, key) == str(parameter)][0]
+            url = [x.href for x in requested_data.link if x.type == self.data_type][0]
+            summary = requested_data.summary
             return url, summary
         except IndexError:
             raise IndexError("Can't find data for parameters: {p}".format(p=parameter))
@@ -309,8 +102,10 @@ class BaseLevel:
             raise KeyError("Can't find key: {key}".format(key=key))
 
 
-class Versions(BaseLevel):
-    """Get versions of Metobs API."""
+class Versions(BaseMetobs):
+    """Get available versions of Metobs API."""
+
+    base_url: str = "https://opendata-download-metobs.smhi.se/api.{data_type}"
 
     def __init__(
         self,
@@ -331,11 +126,14 @@ class Versions(BaseLevel):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        content = self._get_and_parse_request(METOBS_URL)
-        self.data = tuple(content["version"])
+        base_url = self.base_url.format(data_type=data_type)
+
+        model = self._get_and_parse_request(base_url, VersionModel)
+
+        self.data = model.version
 
 
-class Parameters(BaseLevel):
+class Parameters(BaseMetobs):
     """Get parameters for version 1 of Metobs API."""
 
     def __init__(
@@ -360,21 +158,24 @@ class Parameters(BaseLevel):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        if version != 1 and version != "1.0":
+        version = "1.0" if version == 1 else version
+        if version != "1.0":
             raise NotImplementedError("Only supports version 1.0.")
 
         if versions_object is None:
             versions_object = Versions()
 
         self.versions_object = versions_object
-        self.selected_version = "1.0" if version == 1 else version
+        self.selected_version = version
+
         url, _ = self._get_url(versions_object.data, "key", version, data_type)
-        content = self._get_and_parse_request(url)
-        self.resource = sorted(content["resource"], key=lambda x: int(x["key"]))
-        self.data = tuple((x["key"], x["title"], x["summary"]) for x in self.resource)
+        model = self._get_and_parse_request(url, ParameterModel)
+
+        self.resource = sorted(model.resource, key=lambda x: int(x.key))
+        self.data = tuple((x.key, x.title, x.summary) for x in self.resource)
 
 
-class Stations(BaseLevel):
+class Stations(BaseMetobs):
     """Get stations from parameter for version 1 of Metobs API."""
 
     def __init__(
@@ -422,14 +223,15 @@ class Stations(BaseLevel):
 
         self.parameter_summary = parameter_summary
 
-        content = self._get_and_parse_request(url)
-        self.valuetype = content["valueType"]
-        self.stationset = content["stationSet"]
-        self.stations = sorted(content["station"], key=lambda x: int(x["id"]))
-        self.data = tuple((x["id"], x["name"]) for i, x in enumerate(self.stations))
+        model = self._get_and_parse_request(url, StationModel)
+
+        self.valuetype = model.valueType
+        self.stationset = model.stationSet
+        self.stations = sorted(model.station, key=lambda x: int(x.id))
+        self.data = tuple((x.id, x.name) for x in self.stations)
 
 
-class Periods(BaseLevel):
+class Periods(BaseMetobs):
     """Get periods from station for version 1 of Metobs API.
 
     Note that stationset_title is not supported
@@ -486,19 +288,20 @@ class Periods(BaseLevel):
                 stations_in_parameter.stations, "key", stationset, data_type
             )
 
-        content = self._get_and_parse_request(url)
-        self.owner = content["owner"]
-        self.ownercategory = content["ownerCategory"]
-        self.measuringstations = content["measuringStations"]
-        self.active = content["active"]
-        self.time_from = content["from"]
-        self.time_to = content["to"]
-        self.position = content["position"]
-        self.periods = sorted(content["period"], key=lambda x: x["key"])
-        self.data = tuple(x["key"] for x in self.periods)
+        content = self._get_and_parse_request(url, PeriodModel)
+
+        self.owner = content.owner
+        self.ownercategory = content.ownerCategory
+        self.measuringstations = content.measuringStations
+        self.active = content.active
+        self.time_from = content.from_
+        self.time_to = content.to
+        self.position = content.position
+        self.periods = sorted(content.period, key=lambda x: x.key)
+        self.data = tuple(x.key for x in self.periods)
 
 
-class Data(BaseLevel):
+class Data(BaseMetobs):
     """Get data from period for version 1 of Metobs API."""
 
     def __init__(
@@ -534,11 +337,13 @@ class Data(BaseLevel):
 
         self.periods_in_station = periods_in_station
         self.selected_period = period
+
         url, _ = self._get_url(periods_in_station.periods, "key", period, data_type)
-        content = self._get_and_parse_request(url)
-        self.time_from = content["from"]
-        self.time_to = content["to"]
-        self.raw_data = content["data"]
+        content = self._get_and_parse_request(url, DataModel)
+
+        self.time_from = content.from_
+        self.time_to = content.to
+        self.raw_data = content.data
         self._get_data()
 
     def _get_data(self, type: str = "text/plain") -> None:
@@ -548,11 +353,11 @@ class Data(BaseLevel):
             type: type of request
         """
         for item in self.raw_data:
-            for link in item["link"]:
-                if link["type"] != type:
+            for link in item.link:
+                if link.type != type:
                     continue
 
-                content = requests.get(link["href"]).content.decode("utf-8")
+                content = requests.get(link.href).content.decode("utf-8")
                 raw_data_header, raw_data = self._separate_header_data(content)
                 self._parse_header(raw_data_header)
                 self._parse_data(raw_data)
