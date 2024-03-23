@@ -42,6 +42,9 @@ dev = [
     "pre-commit ~= 2.20",
 ]
 
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "N", "I"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 exclude = ["material"]
