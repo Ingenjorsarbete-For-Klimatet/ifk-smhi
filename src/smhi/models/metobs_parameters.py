@@ -9,6 +9,15 @@ from typing import List
 from pydantic import BaseModel, Field, field_validator
 
 
+class ParameterItem(BaseModel):
+    key: str
+    title: str
+    summary: str
+    unit: str
+    updated: int
+    geo_box: GeoBox
+
+
 class LinkItem(BaseModel):
     href: str
     rel: str

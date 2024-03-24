@@ -10,7 +10,7 @@ import requests
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import METOBS_AVAILABLE_PERIODS, TYPE_MAP
 from smhi.models.metobs_data import DataModel
-from smhi.models.metobs_parameters import ParameterModel
+from smhi.models.metobs_parameters import ParameterItem, ParameterModel
 from smhi.models.metobs_periods import PeriodModel
 from smhi.models.metobs_stations import StationModel
 from smhi.models.metobs_versions import VersionModel
@@ -168,7 +168,17 @@ class Parameters(BaseMetobs):
         self.versions_object = versions_object
         self.selected_version = version
         self.resource = model.resource
-        self.data = tuple((x.key, x.title, x.summary) for x in self.resource)
+        self.data = tuple(
+            ParameterItem(
+                key=x.key,
+                title=x.title,
+                summary=x.summary,
+                unit=x.unit,
+                updated=x.updated,
+                geo_box=x.geo_box,
+            )
+            for x in self.resource
+        )
 
 
 class Stations(BaseMetobs):

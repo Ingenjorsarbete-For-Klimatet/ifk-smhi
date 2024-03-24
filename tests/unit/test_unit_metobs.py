@@ -16,7 +16,7 @@ from smhi.metobs import (
     Versions,
 )
 from smhi.models.metobs_data import DataModel
-from smhi.models.metobs_parameters import ParameterModel
+from smhi.models.metobs_parameters import ParameterItem, ParameterModel
 from smhi.models.metobs_periods import PeriodModel
 from smhi.models.metobs_stations import StationModel
 from smhi.models.metobs_versions import VersionModel
@@ -111,6 +111,10 @@ def get_data(file, load_type=None):
     with open(file) as f:
         if load_type is None:
             file_contents = tuple([tuple(x) for x in json.load(f)])
+        elif load_type == "parameters":
+            file_contents = tuple(
+                ParameterItem.model_validate_json(x) for x in json.load(f)
+            )
         elif load_type == "data":
             file_contents = MockedResponse(200, None, f.read())
         else:
@@ -148,7 +152,7 @@ def setup_parameters(setup_versions):
     mocked_model = get_model(
         "tests/fixtures/metobs/parameters_model.json", ParameterModel
     )
-    mocked_data = get_data("tests/fixtures/metobs/parameters_data.json")
+    mocked_data = get_data("tests/fixtures/metobs/parameters_data.json", "parameters")
 
     return (
         mocked_response,
