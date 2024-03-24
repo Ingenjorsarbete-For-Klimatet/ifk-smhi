@@ -1,10 +1,11 @@
 """Mesan integration tests."""
 
+import datetime as dt
 import json
+
 import pytest
 import requests
 from smhi.mesan import Mesan
-import datetime as dt
 
 BASE_URL = "https://opendata-download-metanalys.smhi.se"
 APPROVED_TIME = BASE_URL + "/api/category/mesan2g/version/1/approvedtime.json"

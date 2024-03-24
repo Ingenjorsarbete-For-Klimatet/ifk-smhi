@@ -2,7 +2,6 @@
 
 from smhi.metfcts import Metfcts
 
-
 BASE_URL = (
     "https://opendata-download-metfcst.smhi.se/" + "api/category/pmp3g/version/2/"
 )

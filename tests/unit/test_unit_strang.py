@@ -1,21 +1,21 @@
 """SMHI Strang unit tests."""
 
-import arrow
-import pytest
 import datetime
-import pandas as pd
-from dateutil.tz import tzutc
 from functools import partial
 from unittest.mock import patch
-from smhi.strang import Strang
+
+import arrow
+import pandas as pd
+import pytest
+from dateutil.tz import tzutc
 from smhi.constants import (
     STRANG,
     STRANG_EMPTY,
-    STRANG_POINT_URL,
-    STRANG_PARAMETERS,
     STRANG_MULTIPOINT_URL,
+    STRANG_PARAMETERS,
+    STRANG_POINT_URL,
 )
-
+from smhi.strang import Strang
 
 INPUT_DAILY_2020_01_01_2020_01_02 = [
     {"date_time": datetime.datetime(2020, 1, 1, 0, 0, tzinfo=tzutc()), "value": 608.0},
