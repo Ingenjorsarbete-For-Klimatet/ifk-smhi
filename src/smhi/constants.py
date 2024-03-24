@@ -10,6 +10,8 @@ import arrow
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
+TYPE_MAP = defaultdict(lambda: "application/json", json="application/json")
+
 
 def get_now() -> datetime:
     """
@@ -29,6 +31,13 @@ MESAN_URL = (
     "https://opendata-download-metanalys.smhi.se/"
     + "api/category/{category}/version/{version}/"
 )
+
+METOBS_AVAILABLE_PERIODS = [
+    "latest-hour",
+    "latest-day",
+    "latest-months",
+    "corrected-archive",
+]
 
 STRANG_BASE_URL = "https://opendata-download-metanalys.smhi.se"
 STRANG_POINT_URL = urljoin(

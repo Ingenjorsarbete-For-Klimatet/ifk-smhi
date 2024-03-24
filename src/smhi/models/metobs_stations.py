@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class LinkItem(BaseModel):
@@ -52,3 +52,8 @@ class StationModel(BaseModel):
     link: List[LinkItem]
     station_set: List[StationSetItem] = Field(..., alias="stationSet")
     station: List[StationItem]
+
+    @field_validator("station")
+    @classmethod
+    def serialize_courses_in_order(cls, station: List[StationItem]):
+        return sorted(station, key=lambda x: int(x.id))

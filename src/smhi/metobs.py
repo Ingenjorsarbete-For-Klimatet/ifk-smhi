@@ -2,12 +2,13 @@
 
 import io
 import logging
-from collections import defaultdict, namedtuple
-from typing import Any, Optional, Union
+from collections import namedtuple
+from typing import Any, Optional, TypeAlias, Union
 
 import pandas as pd
 import requests
 from requests.structures import CaseInsensitiveDict
+from smhi.constants import METOBS_AVAILABLE_PERIODS, TYPE_MAP
 from smhi.models.metobs_data import DataModel
 from smhi.models.metobs_parameters import ParameterModel
 from smhi.models.metobs_periods import PeriodModel
@@ -15,32 +16,24 @@ from smhi.models.metobs_stations import StationModel
 from smhi.models.metobs_versions import VersionModel
 
 MetobsData = namedtuple("MetobsData", "station, parameter, period, stationdata")
-MetobsModels = VersionModel | ParameterModel | StationModel | PeriodModel | DataModel
+MetobsModels: TypeAlias = (
+    VersionModel | ParameterModel | StationModel | PeriodModel | DataModel
+)
+
+logger = logging.getLogger(__name__)
 
 
 class BaseMetobs:
     """Base Metobs class."""
 
-    headers: CaseInsensitiveDict
-    key: str
-    updated: int
-    title: str
-    summary: str
-    link: str
-    type_map = defaultdict(lambda: "application/json", json="application/json")
-
     def __init__(self) -> None:
         """Initialise base class."""
-        pass
-
-    @property
-    def show(self) -> None:
-        """Show property."""
-        if self.data is None:
-            return None
-
-        for item in self.data:
-            logging.info(item)
+        self.headers: Optional[CaseInsensitiveDict] = None
+        self.key: Optional[str] = None
+        self.updated: Optional[int] = None
+        self.title: Optional[str] = None
+        self.summary: Optional[str] = None
+        self.link: Optional[str] = None
 
     def _get_and_parse_request(self, url: str, model: MetobsModels) -> MetobsModels:
         """Get and parse API request. Only JSON supported.
@@ -51,8 +44,18 @@ class BaseMetobs:
 
         Returns:
             pydantic model
+
+        Raise:
+            requests.exceptions.HTTPError
         """
+        logger.info(f"Fetching from {url} for model {model}.")
+
         response = requests.get(url, timeout=200)
+        if response.status_code != 200:
+            raise requests.exceptions.HTTPError(
+                f"Could not find or load from given URL: {url}."
+            )
+
         model = model.model_validate_json(response.content)
 
         self.headers = response.headers
@@ -86,7 +89,7 @@ class BaseMetobs:
         Raises:
             IndexError
         """
-        self.data_type = self.type_map[data_type]
+        self.data_type = TYPE_MAP[data_type]
         try:
             requested_data = [x for x in data if getattr(x, key) == str(parameter)][0]
             url = [x.href for x in requested_data.link if x.type == self.data_type][0]
@@ -94,14 +97,12 @@ class BaseMetobs:
             return url, summary
         except IndexError:
             raise IndexError("Can't find data for parameters: {p}".format(p=parameter))
-        except KeyError:
-            raise KeyError("Can't find key: {key}".format(key=key))
+        except TypeError:
+            raise TypeError("Can't find field: {key}".format(key=key))
 
 
 class Versions(BaseMetobs):
     """Get available versions of Metobs API."""
-
-    base_url: str = "https://opendata-download-metobs.smhi.se/api.{data_type}"
 
     def __init__(
         self,
@@ -122,9 +123,9 @@ class Versions(BaseMetobs):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        base_url = self.base_url.format(data_type=data_type)
+        self.base_url = f"https://opendata-download-metobs.smhi.se/api.{data_type}"
 
-        model = self._get_and_parse_request(base_url, VersionModel)
+        model = self._get_and_parse_request(self.base_url, VersionModel)
 
         self.data = model.version
 
@@ -161,13 +162,12 @@ class Parameters(BaseMetobs):
         if versions_object is None:
             versions_object = Versions()
 
-        self.versions_object = versions_object
-        self.selected_version = version
-
         url, _ = self._get_url(versions_object.data, "key", version, data_type)
         model = self._get_and_parse_request(url, ParameterModel)
 
-        self.resource = sorted(model.resource, key=lambda x: int(x.key))
+        self.versions_object = versions_object
+        self.selected_version = version
+        self.resource = model.resource
         self.data = tuple((x.key, x.title, x.summary) for x in self.resource)
 
 
@@ -208,22 +208,20 @@ class Stations(BaseMetobs):
         self.parameters_in_version = parameters_in_version
         if parameter:
             self.selected_parameter = parameter
-            url, parameter_summary = self._get_url(
+            url, _ = self._get_url(
                 parameters_in_version.resource, "key", parameter, data_type
             )
         if parameter_title:
             self.selected_parameter = parameter_title
-            url, parameter_summary = self._get_url(
+            url, _ = self._get_url(
                 parameters_in_version.resource, "title", parameter_title, data_type
             )
 
-        self.parameter_summary = parameter_summary
-
         model = self._get_and_parse_request(url, StationModel)
 
-        self.valuetype = model.valueType
-        self.stationset = model.stationSet
-        self.stations = sorted(model.station, key=lambda x: int(x.id))
+        self.valuetype = model.value_type
+        self.stationset = model.station_set
+        self.stations = model.station
         self.data = tuple((x.id, x.name) for x in self.stations)
 
 
@@ -256,7 +254,6 @@ class Periods(BaseMetobs):
         """
         super().__init__()
         self.selected_station: Optional[Union[int, str]] = None
-        self.parameter_summary = stations_in_parameter.parameter_summary
 
         if data_type != "json":
             raise TypeError("Only json supported.")
@@ -287,26 +284,20 @@ class Periods(BaseMetobs):
         model = self._get_and_parse_request(url, PeriodModel)
 
         self.owner = model.owner
-        self.ownercategory = model.ownerCategory
-        self.measuringstations = model.measuringStations
+        self.ownercategory = model.owner_category
+        self.measuringstations = model.measuring_stations
         self.active = model.active
         self.time_from = model.from_
         self.time_to = model.to
         self.position = model.position
-        self.periods = sorted(model.period, key=lambda x: x.key)
+        self.periods = model.period
         self.data = tuple(x.key for x in self.periods)
 
 
 class Data(BaseMetobs):
     """Get data from period for version 1 of Metobs API."""
 
-    metobs_available_parameters = [
-        "latest-hour",
-        "latest-day",
-        "latest-months",
-        "corrected-archive",
-    ]
-
+    metobs_available_periods = METOBS_AVAILABLE_PERIODS
     metobs_parameter_tim = ["Datum", "Tid (UTC)"]
     metobs_parameter_dygn = ["Representativt dygn"]
     metobs_parameter_manad = ["Representativ månad"]
@@ -331,15 +322,13 @@ class Data(BaseMetobs):
         """
         super().__init__()
 
-        self.parameter_summary = periods_in_station.parameter_summary
-
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        if period not in self.metobs_available_parameters:
+        if period not in self.metobs_available_periods:
             raise NotImplementedError(
                 "Select a supported periods: }"
-                + ", ".join([p for p in self.metobs_available_parameters])
+                + ", ".join([p for p in self.metobs_available_periods])
             )
 
         self.periods_in_station = periods_in_station
@@ -379,7 +368,7 @@ class Data(BaseMetobs):
                 "Found several CSV files to download, this is currently not supported."
             )
 
-        csv_content = requests.get(link[0]).content.decode("utf-8").split("\n\n")
+        csv_content = requests.get(link[0]).content.split("\n\n")
         return MetobsData(
             *[
                 pd.read_csv(io.StringIO(raw_data), sep=";", on_bad_lines="skip")
