@@ -18,6 +18,8 @@ dependencies = [
     "pandas ~= 1.5",
     "geopy ~= 2.2",
     "arrow ~= 1.2",
+    "shapely ~= 2.0",
+    "pydantic ~= 2.6",
 ]
 
 [project.urls]
@@ -27,7 +29,7 @@ repository = "https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi"
 
 [project.optional-dependencies]
 lint = ["ruff ~= 0.3"]
-type = ["mypy ~= 1.7", "types-requests ~= 2.31.0.20240310", "pandas-stubs ~= 1.5.3.230321"]
+type = ["mypy ~= 1.7", "types-requests ~= 2.31", "pandas-stubs ~= 1.5"]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
 doc = [
     "mkdocs ~= 1.4",
