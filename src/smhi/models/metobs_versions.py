@@ -30,3 +30,7 @@ class VersionModel(BaseModel):
     summary: str
     link: List[LinkItem]
     version: List[VersionItem]
+
+    @property
+    def data(self) -> List[VersionItem]:
+        return self.version

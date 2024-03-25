@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class LinkItem(BaseModel):
@@ -36,10 +36,9 @@ class DataModel(BaseModel):
 
 
 class MetobsData(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     station: Optional[pd.DataFrame] = None
     parameter: Optional[pd.DataFrame] = None
     period: Optional[pd.DataFrame] = None
     stationdata: Optional[pd.DataFrame] = None
-
-    class Config:
-        arbitrary_types_allowed = True

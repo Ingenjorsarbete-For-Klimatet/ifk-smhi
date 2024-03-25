@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -51,3 +51,10 @@ class ParameterModel(BaseModel):
     @classmethod
     def serialise_resource_in_order(cls, resource: List[ResourceItem]):
         return sorted(resource, key=lambda x: int(x.key))
+
+    @property
+    def data(self) -> Tuple[ParameterItem, ...]:
+        return tuple(
+            ParameterItem(key=x.key, title=x.title, summary=x.summary, unit=x.unit)
+            for x in self.resource
+        )

@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -57,3 +57,7 @@ class StationModel(BaseModel):
     @classmethod
     def serialise_station_in_order(cls, station: List[StationItem]):
         return sorted(station, key=lambda x: int(x.id))
+
+    @property
+    def data(self) -> Tuple[Tuple[int, str], ...]:
+        return tuple((x.id, x.name) for x in self.station)

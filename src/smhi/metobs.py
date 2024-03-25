@@ -9,8 +9,8 @@ import pandas as pd
 import requests
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import METOBS_AVAILABLE_PERIODS
-from smhi.models.metobs_data import DataModel, MetobsData
-from smhi.models.metobs_parameters import ParameterItem, ParameterModel
+from smhi.models.metobs_data import DataModel, Datum, MetobsData
+from smhi.models.metobs_parameters import ParameterModel
 from smhi.models.metobs_periods import PeriodModel
 from smhi.models.metobs_stations import StationModel
 from smhi.models.metobs_versions import VersionModel
@@ -168,11 +168,9 @@ class Parameters(BaseMetobs):
 
         self.versions_object = versions_object
         self.selected_version = version
+
         self.resource = model.resource
-        self.data = tuple(
-            ParameterItem(key=x.key, title=x.title, summary=x.summary, unit=x.unit)
-            for x in self.resource
-        )
+        self.data = model.data
 
 
 class Stations(BaseMetobs):
@@ -209,7 +207,6 @@ class Stations(BaseMetobs):
         if parameter and parameter_title:
             raise NotImplementedError("Can't decide which input to select.")
 
-        self.parameters_in_version = parameters_in_version
         if parameter:
             self.selected_parameter = parameter
             url, _ = self._get_url(
@@ -223,10 +220,12 @@ class Stations(BaseMetobs):
 
         model = self._get_and_parse_request(url, StationModel)
 
-        self.valuetype = model.value_type
-        self.stationset = model.station_set
-        self.stations = model.station
-        self.data = tuple((x.id, x.name) for x in self.stations)
+        self.parameters_in_version = parameters_in_version
+
+        self.value_type = model.value_type
+        self.station_set = model.station_set
+        self.station = model.station
+        self.data = model.data
 
 
 class Periods(BaseMetobs):
@@ -240,7 +239,7 @@ class Periods(BaseMetobs):
         stations_in_parameter: Stations,
         station: Optional[int] = None,
         station_name: Optional[str] = None,
-        stationset: Optional[str] = None,
+        station_set: Optional[str] = None,
         data_type: str = "json",
     ) -> None:
         """Get periods from station.
@@ -249,7 +248,7 @@ class Periods(BaseMetobs):
             stations_in_parameter: stations object
             station: integer station key to get
             station_name: exact station name to get
-            stationset: station set to get
+            station_set: station set to get
             data_type: data_type of request
 
         Raises:
@@ -262,40 +261,41 @@ class Periods(BaseMetobs):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        if [station, station_name, stationset].count(None) == 3:
+        if [station, station_name, station_set].count(None) == 3:
             raise NotImplementedError("No stations selected.")
 
-        if [bool(x) for x in [station, station_name, stationset]].count(True) > 1:
+        if [bool(x) for x in [station, station_name, station_set]].count(True) > 1:
             raise NotImplementedError("Can't decide which input to select.")
 
-        self.stations_in_parameter = stations_in_parameter
         if station:
             self.selected_station = station
             url, _ = self._get_url(
-                stations_in_parameter.stations, "key", station, data_type
+                stations_in_parameter.station, "key", station, data_type
             )
         if station_name:
             self.selected_station = station_name
             url, _ = self._get_url(
-                stations_in_parameter.stations, "name", station_name, data_type
+                stations_in_parameter.station, "name", station_name, data_type
             )
-        if stationset:
-            self.selected_station = stationset
+        if station_set:
+            self.selected_station = station_set
             url, _ = self._get_url(
-                stations_in_parameter.stationset, "key", stationset, data_type
+                stations_in_parameter.station_set, "key", station_set, data_type
             )
 
         model = self._get_and_parse_request(url, PeriodModel)
 
+        self.stations_in_parameter = stations_in_parameter
+
         self.owner = model.owner
-        self.ownercategory = model.owner_category
-        self.measuringstations = model.measuring_stations
+        self.owner_category = model.owner_category
+        self.measuring_stations = model.measuring_stations
         self.active = model.active
-        self.time_from = model.from_
-        self.time_to = model.to
+        self.from_ = model.from_
+        self.to = model.to
         self.position = model.position
-        self.periods = model.period
-        self.data = tuple(x.key for x in self.periods)
+        self.period = model.period
+        self.data = model.data
 
 
 class Data(BaseMetobs):
@@ -329,7 +329,11 @@ class Data(BaseMetobs):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        if len(periods_in_station.data) == 1 and periods_in_station.data[0] != period:
+        if (
+            len(periods_in_station.data) == 1
+            and periods_in_station.data[0] != period
+            and period in self.metobs_available_periods
+        ):
             logger.info(
                 "Found only one period to download. "
                 + f"Overriding the user selected {period} with the found {periods_in_station.data[0]}."
@@ -345,17 +349,16 @@ class Data(BaseMetobs):
         self.periods_in_station = periods_in_station
         self.selected_period = period
 
-        url, _ = self._get_url(periods_in_station.periods, "key", period, data_type)
+        url, _ = self._get_url(periods_in_station.period, "key", period, data_type)
         model = self._get_and_parse_request(url, DataModel)
 
-        self.time_from = model.from_
-        self.time_to = model.to
-        self.raw_data = model.data
+        self.from_ = model.from_
+        self.to = model.to
 
-        data_model = self._get_data()
+        data_model = self._get_data(model.data)
         stationdata = self._drop_nan(data_model.stationdata)
 
-        if periods_in_station.stationset is not None:
+        if data_model.station is not None:
             stationdata = self._set_dataframe_index(data_model.stationdata)
         else:
             pass
@@ -365,20 +368,18 @@ class Data(BaseMetobs):
         self.period = data_model.period
         self.data = stationdata
 
-    def _get_data(self, type: str = "text/plain") -> MetobsData:
+    def _get_data(self, raw_data: list[Datum], type: str = "text/plain") -> MetobsData:
         """Get the selected data file.
 
         Args:
+            raw_data: raw data
             type: type of request
 
         Returns:
             data model
         """
         link = [
-            link.href
-            for item in self.raw_data
-            for link in item.link
-            if link.type == type
+            link.href for item in raw_data for link in item.link if link.type == type
         ]
 
         if len(link) == 0:
@@ -392,19 +393,19 @@ class Data(BaseMetobs):
 
         # these are the two cases I've found. Generalise if there are others
         if len(csv_content) == 2:
-            datamodel = MetobsData(
+            data_model = MetobsData(
                 parameter=self._parse_csv(csv_content[0]),
                 stationdata=self._parse_csv(csv_content[1]),
             )
         else:
-            datamodel = MetobsData(
+            data_model = MetobsData(
                 station=self._parse_csv(csv_content[0]),
                 parameter=self._parse_csv(csv_content[1]),
                 period=self._parse_csv(csv_content[2]),
                 stationdata=self._parse_csv(csv_content[3]),
             )
 
-        return datamodel
+        return data_model
 
     def _parse_csv(self, csv) -> pd.DataFrame:
         """Parse CSV files with pandas.

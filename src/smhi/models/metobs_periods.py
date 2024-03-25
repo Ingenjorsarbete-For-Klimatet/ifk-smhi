@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -50,3 +50,7 @@ class PeriodModel(BaseModel):
     @classmethod
     def serialise_period_in_order(cls, period: List[PeriodItem]):
         return sorted(period, key=lambda x: x.key)
+
+    @property
+    def data(self) -> Tuple[str, ...]:
+        return tuple(x.key for x in self.period)

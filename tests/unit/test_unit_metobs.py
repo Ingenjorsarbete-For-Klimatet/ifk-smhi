@@ -34,7 +34,7 @@ class MockModel(BaseModel):
     link: list[MockModelInner]
 
 
-class MockedResponse:
+class MockResponse:
     def __init__(self, status, header, content):
         self.status_code = status
         self.headers = header
@@ -82,25 +82,9 @@ def get_response(file, encode=False):
     if encode is True:
         content = content.encode("utf-8")
 
-    mocked_get = MockedResponse(200, headers, content)
+    mocked_get = MockResponse(200, headers, content)
 
     return mocked_get
-
-
-def get_model(file, model):
-    """Read in expected pydantic structure.
-
-    Args:
-        file: file to load
-        model
-
-    Returns:
-        expected pydantic model
-    """
-    with open(file) as f:
-        file_contents = json.load(f)
-
-    return model.model_validate_json(file_contents)
 
 
 def get_data(file, load_type=None):
@@ -121,7 +105,7 @@ def get_data(file, load_type=None):
                 ParameterItem.model_validate_json(x) for x in json.load(f)
             )
         elif load_type == "data":
-            file_contents = MockedResponse(200, None, f.read().encode("utf-8"))
+            file_contents = MockResponse(200, None, f.read().encode("utf-8"))
         else:
             file_contents = tuple(json.load(f))
 
@@ -137,7 +121,7 @@ def setup_versions():
         expected answer as pydantic structure
     """
     mocked_response = get_response("tests/fixtures/metobs/versions.txt")
-    mocked_model = get_model("tests/fixtures/metobs/versions_model.json", VersionModel)
+    mocked_model = VersionModel.model_validate_json(mocked_response.content)
 
     return mocked_response, mocked_model
 
@@ -154,15 +138,13 @@ def setup_parameters(setup_versions):
     _, mocked_model_versions = setup_versions
 
     mocked_response = get_response("tests/fixtures/metobs/parameters.txt")
-    mocked_model = get_model(
-        "tests/fixtures/metobs/parameters_model.json", ParameterModel
-    )
+    mocked_model = ParameterModel.model_validate_json(mocked_response.content)
     mocked_data = get_data("tests/fixtures/metobs/parameters_data.json", "parameters")
 
     return (
         mocked_response,
         mocked_model,
-        MockVersions(mocked_model_versions.version),
+        mocked_model_versions,
         mocked_data,
     )
 
@@ -179,18 +161,13 @@ def setup_stations(setup_parameters):
     _, mocked_model_parameters, _, _ = setup_parameters
 
     mocked_response = get_response("tests/fixtures/metobs/stations.txt")
-    mocked_model = get_model("tests/fixtures/metobs/stations_model.json", StationModel)
+    mocked_model = StationModel.model_validate_json(mocked_response.content)
     mocked_data = get_data("tests/fixtures/metobs/stations_data.json")
 
     return (
         mocked_response,
         mocked_model,
-        MockParameters(
-            mocked_model_parameters.resource,
-            tuple(
-                (x.key, x.title, x.summary) for x in mocked_model_parameters.resource
-            ),
-        ),
+        mocked_model_parameters,
         mocked_data,
     )
 
@@ -207,16 +184,13 @@ def setup_periods(setup_stations):
     _, mocked_model_stations, _, _ = setup_stations
 
     mocked_response = get_response("tests/fixtures/metobs/periods.txt")
-    mocked_model = get_model("tests/fixtures/metobs/periods_model.json", PeriodModel)
+    mocked_model = PeriodModel.model_validate_json(mocked_response.content)
     mocked_data = get_data("tests/fixtures/metobs/periods_data.json", "period")
 
     return (
         mocked_response,
         mocked_model,
-        MockStations(
-            station=mocked_model_stations.station,
-            data=tuple((x.id, x.name) for x in mocked_model_stations.station),
-        ),
+        mocked_model_stations,
         mocked_data,
     )
 
@@ -233,16 +207,13 @@ def setup_periods_set(setup_stations):
     _, mocked_model_stations, _, _ = setup_stations
 
     mocked_response = get_response("tests/fixtures/metobs/periods.txt")
-    mocked_model = get_model("tests/fixtures/metobs/periods_model.json", PeriodModel)
+    mocked_model = PeriodModel.model_validate_json(mocked_response.content)
     mocked_data = get_data("tests/fixtures/metobs/periods_data.json", "period")
 
     return (
         mocked_response,
         mocked_model,
-        MockStations(
-            stationset=mocked_model_stations.station,
-            data=tuple((x.id, x.name) for x in mocked_model_stations.station),
-        ),
+        mocked_model_stations,
         mocked_data,
     )
 
@@ -259,8 +230,9 @@ def setup_data(setup_periods):
     _, mocked_model_periods, _, _ = setup_periods
 
     mocked_response = get_response("tests/fixtures/metobs/data.txt", encode=True)
-    mocked_model = get_model("tests/fixtures/metobs/data_model.json", DataModel)
+    mocked_model = DataModel.model_validate_json(mocked_response.content)
     mocked_csv_data = get_data("tests/fixtures/metobs/data_csv.csv", "data")
+
     mocked_station = get_data("tests/fixtures/metobs/data_station.json")
     mocked_parameter = get_data("tests/fixtures/metobs/data_parameter.json")
     mocked_period = get_data("tests/fixtures/metobs/data_period.json")
@@ -269,10 +241,7 @@ def setup_data(setup_periods):
     return (
         mocked_response,
         mocked_model,
-        MockPeriods(
-            mocked_model_periods.period,
-            tuple(x.key for x in mocked_model_periods.period),
-        ),
+        mocked_model_periods,
         mocked_csv_data,
         mocked_station,
         mocked_parameter,
@@ -313,7 +282,7 @@ class TestUnitBaseMetobs:
         assert base.summary is None
         assert base.link is None
 
-    @patch("smhi.metobs.requests.get", return_value=MockedResponse(200, None, None))
+    @patch("smhi.metobs.requests.get", return_value=MockResponse(200, None, None))
     def test_unit_basemetobs_get_and_parse_request(self, mock_requests_get):
         """Unit test for BaseMetobs _get_and_parse_request method.
 
@@ -524,10 +493,9 @@ class TestUnitStations:
         if parameter_title:
             assert stations.selected_parameter == parameter_title
 
-        # assert stations.parameter_summary == expected_answer.value_type
-        assert stations.valuetype == expected_answer.value_type
-        assert stations.stationset == expected_answer.station_set
-        assert stations.stations == expected_answer.station
+        assert stations.value_type == expected_answer.value_type
+        assert stations.station_set == expected_answer.station_set
+        assert stations.station == expected_answer.station
         assert stations.data == expected_data
 
 
@@ -566,7 +534,7 @@ class TestUnitPeriods:
             mock_tuple: mock of tuple call
             data_type: format of api data
         """
-        if not stationset:
+        if stationset is None:
             mock_response, expected_answer, mock_stations, expected_data = setup_periods
             mock_requests_get.return_value = mock_response
         else:
@@ -605,13 +573,13 @@ class TestUnitPeriods:
             assert periods.selected_station == stationset
 
         assert periods.owner == expected_answer.owner
-        assert periods.ownercategory == expected_answer.owner_category
-        assert periods.measuringstations == expected_answer.measuring_stations
+        assert periods.owner_category == expected_answer.owner_category
+        assert periods.measuring_stations == expected_answer.measuring_stations
         assert periods.active == expected_answer.active
-        assert periods.time_from == expected_answer.from_
-        assert periods.time_to == expected_answer.to
+        assert periods.from_ == expected_answer.from_
+        assert periods.to == expected_answer.to
         assert periods.position == expected_answer.position
-        assert periods.periods == expected_answer.period
+        assert periods.period == expected_answer.period
         assert periods.data == expected_data
 
 
@@ -666,9 +634,8 @@ class TestUnitData:
 
         data = Data(mock_periods, period, data_type)
 
-        data.time_from = expected_answer.from_
-        data.time_to = expected_answer.to
-        data.raw_data = expected_answer.data
+        data.from_ = expected_answer.from_
+        data.to = expected_answer.to
         data.station = expected_station
         data.parameter = expected_parameter
         data.period = expected_period
