@@ -4,8 +4,9 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
+import pandas as pd
 from pydantic import BaseModel, Field
 
 
@@ -16,19 +17,29 @@ class LinkItem(BaseModel):
 
 
 class Datum(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
     summary: str
     link: List[LinkItem]
 
 
 class DataModel(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
     summary: str
     from_: int = Field(..., alias="from")
     to: int
     link: List[LinkItem]
     data: List[Datum]
+
+
+class MetobsData(BaseModel):
+    station: Optional[pd.DataFrame] = None
+    parameter: Optional[pd.DataFrame] = None
+    period: Optional[pd.DataFrame] = None
+    stationdata: Optional[pd.DataFrame] = None
+
+    class Config:
+        arbitrary_types_allowed = True

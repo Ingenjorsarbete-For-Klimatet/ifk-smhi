@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -16,16 +16,16 @@ class LinkItem(BaseModel):
 
 
 class VersionItem(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
     summary: str
     link: List[LinkItem]
 
 
 class VersionModel(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
     summary: str
     link: List[LinkItem]

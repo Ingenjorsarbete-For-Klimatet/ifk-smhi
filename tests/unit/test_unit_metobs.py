@@ -53,8 +53,9 @@ class MockParameters:
 
 
 class MockStations:
-    def __init__(self, station, data):
+    def __init__(self, data, station=None, stationset=None):
         self.stations = station
+        self.stationset = stationset
         self.data = data
 
 
@@ -64,7 +65,7 @@ class MockPeriods:
         self.data = data
 
 
-def get_response(file):
+def get_response(file, encode=False):
     """Read in response.
 
     Args:
@@ -77,6 +78,10 @@ def get_response(file):
         mocked_response = f.read()
 
     headers, content = mocked_response.split("\n\n")
+
+    if encode is True:
+        content = content.encode("utf-8")
+
     mocked_get = MockedResponse(200, headers, content)
 
     return mocked_get
@@ -116,7 +121,7 @@ def get_data(file, load_type=None):
                 ParameterItem.model_validate_json(x) for x in json.load(f)
             )
         elif load_type == "data":
-            file_contents = MockedResponse(200, None, f.read())
+            file_contents = MockedResponse(200, None, f.read().encode("utf-8"))
         else:
             file_contents = tuple(json.load(f))
 
@@ -209,8 +214,34 @@ def setup_periods(setup_stations):
         mocked_response,
         mocked_model,
         MockStations(
-            mocked_model_stations.station,
-            tuple((x.id, x.name) for x in mocked_model_stations.station),
+            station=mocked_model_stations.station,
+            data=tuple((x.id, x.name) for x in mocked_model_stations.station),
+        ),
+        mocked_data,
+    )
+
+
+@pytest.fixture
+def setup_periods_set(setup_stations):
+    """Read in Periods from stationset response.
+
+    Returns:
+        mocked response
+        expected answer as pydantic structure
+        periods data
+    """
+    _, mocked_model_stations, _, _ = setup_stations
+
+    mocked_response = get_response("tests/fixtures/metobs/periods.txt")
+    mocked_model = get_model("tests/fixtures/metobs/periods_model.json", PeriodModel)
+    mocked_data = get_data("tests/fixtures/metobs/periods_data.json", "period")
+
+    return (
+        mocked_response,
+        mocked_model,
+        MockStations(
+            stationset=mocked_model_stations.station,
+            data=tuple((x.id, x.name) for x in mocked_model_stations.station),
         ),
         mocked_data,
     )
@@ -227,7 +258,7 @@ def setup_data(setup_periods):
     """
     _, mocked_model_periods, _, _ = setup_periods
 
-    mocked_response = get_response("tests/fixtures/metobs/data.txt")
+    mocked_response = get_response("tests/fixtures/metobs/data.txt", encode=True)
     mocked_model = get_model("tests/fixtures/metobs/data_model.json", DataModel)
     mocked_csv_data = get_data("tests/fixtures/metobs/data_csv.csv", "data")
     mocked_station = get_data("tests/fixtures/metobs/data_station.json")
@@ -510,11 +541,11 @@ class TestUnitPeriods:
             (None, None, None, "json"),
             (1, None, None, "json"),
             (None, "Akalla", None, "json"),
-            (None, None, 1, "json"),
+            (None, None, "all", "json"),
             (1, "Akalla", None, "json"),
-            (1, None, 1, "json"),
-            (None, "Akalla", 1, "json"),
-            (1, "Akalla", 1, "json"),
+            (1, None, "all", "json"),
+            (None, "Akalla", "all", "json"),
+            (1, "Akalla", "all", "json"),
         ],
     )
     @patch("smhi.metobs.requests.get")
@@ -526,6 +557,7 @@ class TestUnitPeriods:
         stationset,
         data_type,
         setup_periods,
+        setup_periods_set,
     ):
         """Unit test for Periods init method.
 
@@ -534,8 +566,17 @@ class TestUnitPeriods:
             mock_tuple: mock of tuple call
             data_type: format of api data
         """
-        mock_response, expected_answer, mock_stations, expected_data = setup_periods
-        mock_requests_get.return_value = mock_response
+        if not stationset:
+            mock_response, expected_answer, mock_stations, expected_data = setup_periods
+            mock_requests_get.return_value = mock_response
+        else:
+            (
+                mock_response,
+                expected_answer,
+                mock_stations,
+                expected_data,
+            ) = setup_periods_set
+            mock_requests_get.return_value = mock_response
 
         if data_type != "json":
             with pytest.raises(TypeError):

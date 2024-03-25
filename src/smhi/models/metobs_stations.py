@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -16,16 +16,16 @@ class LinkItem(BaseModel):
 
 
 class StationSetItem(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
     summary: str
     link: List[LinkItem]
 
 
 class StationItem(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
     summary: str
     link: List[LinkItem]
@@ -43,8 +43,8 @@ class StationItem(BaseModel):
 
 
 class StationModel(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
     summary: str
     unit: str
@@ -55,5 +55,5 @@ class StationModel(BaseModel):
 
     @field_validator("station")
     @classmethod
-    def serialize_courses_in_order(cls, station: List[StationItem]):
+    def serialise_station_in_order(cls, station: List[StationItem]):
         return sorted(station, key=lambda x: int(x.id))

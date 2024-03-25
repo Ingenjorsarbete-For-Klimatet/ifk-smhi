@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -24,29 +24,29 @@ class LinkItem(BaseModel):
 
 
 class PeriodItem(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
     summary: str
     link: List[LinkItem]
 
 
 class PeriodModel(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
-    owner: str
-    owner_category: str = Field(..., alias="ownerCategory")
-    measuring_stations: str = Field(..., alias="measuringStations")
-    active: bool
+    owner: Optional[str] = None
+    owner_category: Optional[str] = Field(default=None, alias="ownerCategory")
+    measuring_stations: Optional[str] = Field(default=None, alias="measuringStations")
+    active: Optional[bool] = None
     summary: str
-    from_: int = Field(..., alias="from")
-    to: int
-    position: List[PositionItem]
+    from_: Optional[int] = Field(default=None, alias="from")
+    to: Optional[int] = None
+    position: Optional[List[PositionItem]] = None
     link: List[LinkItem]
     period: List[PeriodItem]
 
     @field_validator("period")
     @classmethod
-    def serialize_courses_in_order(cls, period: List[PeriodItem]):
+    def serialise_period_in_order(cls, period: List[PeriodItem]):
         return sorted(period, key=lambda x: x.key)

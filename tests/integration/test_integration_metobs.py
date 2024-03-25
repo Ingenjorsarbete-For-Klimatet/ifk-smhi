@@ -160,7 +160,7 @@ class TestIntegrationMetobs:
         time.sleep(1)
 
     @pytest.mark.parametrize(
-        "parameter", [parameter for parameter, _, _ in Parameters().data]
+        "parameter", [parameter.key for parameter in Parameters().data]
     )
     def test_integration_metobs_passing(self, parameter):
         """Test that all parameters available return data without error.

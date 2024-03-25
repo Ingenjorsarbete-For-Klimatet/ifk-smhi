@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -14,8 +14,6 @@ class ParameterItem(BaseModel):
     title: str
     summary: str
     unit: str
-    updated: int
-    geo_box: GeoBox
 
 
 class LinkItem(BaseModel):
@@ -32,8 +30,8 @@ class GeoBox(BaseModel):
 
 
 class ResourceItem(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
     summary: str
     link: List[LinkItem]
@@ -42,8 +40,8 @@ class ResourceItem(BaseModel):
 
 
 class ParameterModel(BaseModel):
-    key: str | None
-    updated: int | None
+    key: Optional[str] = None
+    updated: Optional[int] = None
     title: str
     summary: str
     link: List[LinkItem]
@@ -51,5 +49,5 @@ class ParameterModel(BaseModel):
 
     @field_validator("resource")
     @classmethod
-    def serialize_courses_in_order(cls, resource: List[ResourceItem]):
+    def serialise_resource_in_order(cls, resource: List[ResourceItem]):
         return sorted(resource, key=lambda x: int(x.key))

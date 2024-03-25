@@ -2,20 +2,19 @@
 
 import io
 import logging
-from collections import namedtuple
+from collections import defaultdict
 from typing import Any, Optional, TypeAlias, Union
 
 import pandas as pd
 import requests
 from requests.structures import CaseInsensitiveDict
-from smhi.constants import METOBS_AVAILABLE_PERIODS, TYPE_MAP
-from smhi.models.metobs_data import DataModel
+from smhi.constants import METOBS_AVAILABLE_PERIODS
+from smhi.models.metobs_data import DataModel, MetobsData
 from smhi.models.metobs_parameters import ParameterItem, ParameterModel
 from smhi.models.metobs_periods import PeriodModel
 from smhi.models.metobs_stations import StationModel
 from smhi.models.metobs_versions import VersionModel
 
-MetobsData = namedtuple("MetobsData", "station, parameter, period, stationdata")
 MetobsModels: TypeAlias = (
     VersionModel | ParameterModel | StationModel | PeriodModel | DataModel
 )
@@ -89,7 +88,9 @@ class BaseMetobs:
         Raises:
             IndexError
         """
-        self.data_type = TYPE_MAP[data_type]
+        self.data_type = defaultdict(
+            lambda: "application/json", json="application/json"
+        )[data_type]
         try:
             requested_data = [x for x in data if getattr(x, key) == str(parameter)][0]
             url = [x.href for x in requested_data.link if x.type == self.data_type][0]
@@ -169,14 +170,7 @@ class Parameters(BaseMetobs):
         self.selected_version = version
         self.resource = model.resource
         self.data = tuple(
-            ParameterItem(
-                key=x.key,
-                title=x.title,
-                summary=x.summary,
-                unit=x.unit,
-                updated=x.updated,
-                geo_box=x.geo_box,
-            )
+            ParameterItem(key=x.key, title=x.title, summary=x.summary, unit=x.unit)
             for x in self.resource
         )
 
@@ -288,7 +282,7 @@ class Periods(BaseMetobs):
         if stationset:
             self.selected_station = stationset
             url, _ = self._get_url(
-                stations_in_parameter.stations, "key", stationset, data_type
+                stations_in_parameter.stationset, "key", stationset, data_type
             )
 
         model = self._get_and_parse_request(url, PeriodModel)
@@ -335,6 +329,13 @@ class Data(BaseMetobs):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
+        if len(periods_in_station.data) == 1 and periods_in_station.data[0] != period:
+            logger.info(
+                "Found only one period to download. "
+                + f"Overriding the user selected {period} with the found {periods_in_station.data[0]}."
+            )
+            period = periods_in_station.data[0]
+
         if period not in self.metobs_available_periods:
             raise NotImplementedError(
                 "Select a supported periods: }"
@@ -352,17 +353,26 @@ class Data(BaseMetobs):
         self.raw_data = model.data
 
         data_model = self._get_data()
+        stationdata = self._drop_nan(data_model.stationdata)
+
+        if periods_in_station.stationset is not None:
+            stationdata = self._set_dataframe_index(data_model.stationdata)
+        else:
+            pass
 
         self.station = data_model.station
         self.parameter = data_model.parameter
         self.period = data_model.period
-        self.data = self._set_dataframe_index(data_model.stationdata)
+        self.data = stationdata
 
     def _get_data(self, type: str = "text/plain") -> MetobsData:
         """Get the selected data file.
 
         Args:
             type: type of request
+
+        Returns:
+            data model
         """
         link = [
             link.href
@@ -378,13 +388,45 @@ class Data(BaseMetobs):
                 "Found several CSV files to download, this is currently not supported."
             )
 
-        csv_content = requests.get(link[0]).content.split("\n\n")
-        return MetobsData(
-            *[
-                pd.read_csv(io.StringIO(raw_data), sep=";", on_bad_lines="skip")
-                for raw_data in csv_content
-            ]
-        )
+        csv_content = self._request_and_decode(link[0])
+
+        # these are the two cases I've found. Generalise if there are others
+        if len(csv_content) == 2:
+            datamodel = MetobsData(
+                parameter=self._parse_csv(csv_content[0]),
+                stationdata=self._parse_csv(csv_content[1]),
+            )
+        else:
+            datamodel = MetobsData(
+                station=self._parse_csv(csv_content[0]),
+                parameter=self._parse_csv(csv_content[1]),
+                period=self._parse_csv(csv_content[2]),
+                stationdata=self._parse_csv(csv_content[3]),
+            )
+
+        return datamodel
+
+    def _parse_csv(self, csv) -> pd.DataFrame:
+        """Parse CSV files with pandas.
+
+        Args:
+            csv: csv string
+
+        Returns:
+            pandas dataframe
+        """
+        return pd.read_csv(io.StringIO(csv), sep=";", on_bad_lines="skip")
+
+    def _request_and_decode(self, link: str) -> list[str]:
+        """Request CSV and decode it.
+
+        Args:
+            link: link to fetch from
+
+        Returns:
+            decoded list of csv files
+        """
+        return requests.get(link).content.decode("utf-8").split("\n\n")
 
     def _set_dataframe_index(self, stationdata: pd.DataFrame) -> pd.DataFrame:
         """Set dataframe index based on datetime column.
@@ -415,3 +457,16 @@ class Data(BaseMetobs):
         stationdata.drop(datetime_columns, axis=1, inplace=True)
 
         return stationdata
+
+    def _drop_nan(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Drop nan from dataframe rows.
+
+        Args:
+            df: dataframe
+
+        Returns
+            dataframe with dropped nan rows
+        """
+        df.dropna(axis="index", how="all", subset=df.columns[:2], inplace=True)
+
+        return df
