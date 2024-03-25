@@ -6,6 +6,7 @@ import time
 import pandas as pd
 import pytest
 from smhi.metobs import Data, Parameters, Periods, Stations
+from smhi.models.metobs_parameters import ParameterItem
 
 METOBS_INTEGRATION = {}
 for i in [1, 2, 22]:
@@ -31,7 +32,12 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
+                ParameterItem(
+                    key="1",
+                    title="Lufttemperatur",
+                    summary="momentanvärde, 1 gång/tim",
+                    unit="celsius",
+                ),
                 (1, "Akalla"),
                 "corrected-archive",
                 "Lufttemperatur - Akalla - Kvalitetskontrollerade historiska "
@@ -48,7 +54,12 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
+                ParameterItem(
+                    key="1",
+                    title="Lufttemperatur",
+                    summary="momentanvärde, 1 gång/tim",
+                    unit="celsius",
+                ),
                 (192840, "Karesuando A"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
@@ -65,7 +76,12 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ("2", "Lufttemperatur", "medelvärde 1 dygn, 1 gång/dygn, kl 00"),
+                ParameterItem(
+                    key="2",
+                    title="Lufttemperatur",
+                    summary="medelvärde 1 dygn, 1 gång/dygn, kl 00",
+                    unit="celsius",
+                ),
                 (192840, "Karesuando A"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
@@ -82,7 +98,12 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ("22", "Lufttemperatur", "medel, 1 gång per månad"),
+                ParameterItem(
+                    key="22",
+                    title="Lufttemperatur",
+                    summary="medel, 1 gång per månad",
+                    unit="celsius",
+                ),
                 (192840, "Karesuando A"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "

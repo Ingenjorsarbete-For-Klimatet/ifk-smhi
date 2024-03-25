@@ -356,12 +356,15 @@ class Data(BaseMetobs):
         self.to = model.to
 
         data_model = self._get_data(model.data)
+        stationdata = data_model.stationdata
+        stationdata = self._clean_columns(stationdata)
         stationdata = self._drop_nan(data_model.stationdata)
 
-        if data_model.station is not None:
-            stationdata = self._set_dataframe_index(data_model.stationdata)
-        else:
-            pass
+        if (
+            self._has_datetime_columns(data_model.stationdata) is True
+            and not stationdata.empty
+        ):
+            stationdata = self._set_dataframe_index(stationdata)
 
         self.station = data_model.station
         self.parameter = data_model.parameter
@@ -459,8 +462,8 @@ class Data(BaseMetobs):
 
         return stationdata
 
-    def _drop_nan(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Drop nan from dataframe rows.
+    def _drop_nan(self, df: pd.DataFrame, n_cols: int = 2) -> pd.DataFrame:
+        """Drop nan from dataframe rows by first first n cols.
 
         Args:
             df: dataframe
@@ -468,6 +471,37 @@ class Data(BaseMetobs):
         Returns
             dataframe with dropped nan rows
         """
-        df.dropna(axis="index", how="all", subset=df.columns[:2], inplace=True)
+        df.dropna(axis="index", how="all", subset=df.columns[:n_cols], inplace=True)
 
         return df
+
+    def _clean_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Clean dataframe from non-data columns.
+
+        Always drop the last column.
+
+        Args:
+            df: dataframe
+        """
+        df = df.iloc[:, :-1]
+        columns = df.columns
+        remove_columns = [col for col in columns if "unnamed" in col.lower()]
+        df.drop(columns=remove_columns, inplace=True)
+
+        return df
+
+    def _has_datetime_columns(self, df: pd.DataFrame) -> bool:
+        """Check if datafram has any datetime column.
+
+        Args:
+            df: dataframe
+        """
+        return any(
+            [
+                c
+                for c in self.metobs_parameter_tim
+                + self.metobs_parameter_dygn
+                + self.metobs_parameter_manad
+                if c in df.columns
+            ]
+        )

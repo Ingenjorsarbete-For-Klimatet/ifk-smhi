@@ -197,7 +197,7 @@ def setup_periods(setup_stations):
 
 @pytest.fixture
 def setup_periods_set(setup_stations):
-    """Read in Periods from stationset response.
+    """Read in Periods for station_set.
 
     Returns:
         mocked response
@@ -206,7 +206,7 @@ def setup_periods_set(setup_stations):
     """
     _, mocked_model_stations, _, _ = setup_stations
 
-    mocked_response = get_response("tests/fixtures/metobs/periods.txt")
+    mocked_response = get_response("tests/fixtures/metobs/periods_set.txt")
     mocked_model = PeriodModel.model_validate_json(mocked_response.content)
     mocked_data = get_data("tests/fixtures/metobs/periods_data.json", "period")
 
@@ -246,6 +246,34 @@ def setup_data(setup_periods):
         mocked_station,
         mocked_parameter,
         mocked_period,
+        mocked_data,
+    )
+
+
+@pytest.fixture
+def setup_data_set(setup_periods):
+    """Read in Data response for station_set.
+
+    Returns:
+        mocked response
+        expected answer as pydantic structure
+        data data
+    """
+    _, mocked_model_periods, _, _ = setup_periods_set
+
+    mocked_response = get_response("tests/fixtures/metobs/data.txt", encode=True)
+    mocked_model = DataModel.model_validate_json(mocked_response.content)
+    mocked_csv_data = get_data("tests/fixtures/metobs/data_csv.csv", "data")
+
+    mocked_parameter = get_data("tests/fixtures/metobs/data_parameter.json")
+    mocked_data = get_data("tests/fixtures/metobs/data_data.json")
+
+    return (
+        mocked_response,
+        mocked_model,
+        mocked_model_periods,
+        mocked_csv_data,
+        mocked_parameter,
         mocked_data,
     )
 
