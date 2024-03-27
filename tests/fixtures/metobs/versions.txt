@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Date: Sun, 24 Mar 2024 10:35:04 GMT
+Cache-Control: max-age=60
+Content-Encoding: gzip
+Vary: Accept-Encoding
+X-Varnish: 432309076 419728710
+Age: 9
+Via: 1.1 varnish (Varnish/6.6)
+X-hits: 3
+Access-Control-Allow-Origin: *
+Last-Modified: Sun, 24 Mar 2024 10:35:13 GMT
+Accept-Ranges: bytes
+Content-Length: 741
+Connection: keep-alive
+
+{"key":"metobs","updated":1711274400000,"title":"Meteorologiska observationer från SMHI: Välj version (sedan parameter, station och tidsutsnitt)","summary":"Nedladdningstjänst för svenska meteorologiska observationsdata från SMHI (enligt krav från INSPIRE-direktivet). Du kan ladda ned data för en parameter och en station i taget. Erbjudna format är Atomflöde, XML och JSON. Nedladdningstjänsten är strukturerad i följande nivåer: (1) Parameter (2) Station (3) Tidsutsnitt enligt URL-strukturen https://opendata-download-metobs-utv.smhi.se/api/version/{version}/parameter/{parameter}/station/{station}/period/{period}/data.csv. Mer information om datamängderna finns i dess metadata, se Utforskaren för Öppna Data: https://opendata-catalog.smhi.se/explore/. Senaste version av tjänsterna är versionen med högst versionsnummer. Äldre versioner behålls en tid för bakåtkompatibilitet. Frågor ställs till: dataleveranser@smhi.se","link":[{"href":"https://opendata-download-metobs.smhi.se/api.json","rel":"category","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api.xml","rel":"category","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api.atom","rel":"category","type":"application/atom+xml"}],"version":[{"key":"latest","updated":1711274400000,"title":"Senaste versionen av nedladdningstjänsten","summary":"","link":[{"href":"https://opendata-download-metobs.smhi.se/api/version/latest.json","rel":"version","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/latest.xml","rel":"version","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/latest.atom","rel":"version","type":"application/atom+xml"}]},{"key":"1.0","updated":1711274400000,"title":"1.0 versionen av nedladdningstjänsten","summary":"","link":[{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0.json","rel":"version","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0.xml","rel":"version","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0.atom","rel":"version","type":"application/atom+xml"}]}]}

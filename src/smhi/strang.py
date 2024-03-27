@@ -4,20 +4,21 @@ See validation of model: https://strang.smhi.se/validation/validation.html
 """
 
 import json
-import arrow
-import requests
 import logging
-import pandas as pd
-from functools import partial
 from collections import defaultdict
-from typing import Optional, Any
+from functools import partial
+from typing import Any, Optional
+
+import arrow
+import pandas as pd
+import requests
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import (
     STRANG,
     STRANG_EMPTY,
-    STRANG_POINT_URL,
-    STRANG_PARAMETERS,
     STRANG_MULTIPOINT_URL,
+    STRANG_PARAMETERS,
+    STRANG_POINT_URL,
     STRANG_TIME_INTERVALS,
 )
 

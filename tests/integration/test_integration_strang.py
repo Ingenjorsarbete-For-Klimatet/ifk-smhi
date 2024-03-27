@@ -1,9 +1,8 @@
 """Strang integration tests."""
 
-import pytest
 import pandas as pd
+import pytest
 from smhi.strang import Strang
-
 
 RESULT_HOURLY_2020_01_01_2020_01_02 = pd.read_csv(
     "tests/fixtures/STRANG_RESULT_HOURLY_2020_01_01_2020_01_02.csv",

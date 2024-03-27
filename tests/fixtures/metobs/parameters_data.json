@@ -1,0 +1,4 @@
+[
+    "{\"key\":\"1\",\"title\":\"Lufttemperatur\",\"summary\":\"momentanv\u00e4rde, 1 g\u00e5ng/tim\",\"unit\":\"celsius\",\"updated\":1711270800000,\"geo_box\":{\"minLatitude\":55.0,\"minLongitude\":10.0,\"maxLatitude\":70.0,\"maxLongitude\":25.0}}",
+    "{\"key\":\"2\",\"title\":\"Lufttemperatur\",\"summary\":\"medelv\u00e4rde 1 dygn, 1 g\u00e5ng/dygn, kl 00\",\"unit\":\"celsius\",\"updated\":1711270800000,\"geo_box\":{\"minLatitude\":55.0,\"minLongitude\":10.0,\"maxLatitude\":70.0,\"maxLongitude\":25.0}}"
+]

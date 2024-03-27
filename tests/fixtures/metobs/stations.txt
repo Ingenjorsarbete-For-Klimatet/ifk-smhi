@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Date: Sun, 24 Mar 2024 10:20:21 GMT
+Cache-Control: max-age=60
+Content-Encoding: gzip
+Vary: Accept-Encoding
+X-Varnish: 427065643 435718505
+Age: 5
+Via: 1.1 varnish (Varnish/6.6)
+X-hits: 1
+Access-Control-Allow-Origin: *
+Last-Modified: Sun, 24 Mar 2024 10:20:27 GMT
+Accept-Ranges: bytes
+Content-Length: 71383
+Connection: keep-alive
+
+{"key":"1","updated":1711274400000,"title":"Lufttemperatur: Välj station (sedan tidsutsnitt)","summary":"momentanvärde, 1 gång/tim","unit":"celsius","valueType":"SAMPLING","link":[{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1.json","rel":"parameter","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1.xml","rel":"parameter","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1.atom","rel":"parameter","type":"application/atom+xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/metadata.json","rel":"metadata","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/metadata.xml","rel":"metadata","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0.atom","rel":"version","type":"application/atom+xml"}],"stationSet":[{"key":"all","updated":1711274400000,"title":"Lufttemperatur - Alla Stationer","summary":"Data från alla aktiva mätstationer för senaste timmen i en fil.","link":[{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.json","rel":"stationSet","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.xml","rel":"stationSet","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.atom","rel":"stationSet","type":"application/atom+xml"}]}],"station":[{"key":"1","updated":1367366399000,"title":"Lufttemperatur - Akalla","summary":"Latitud: 59.5000 Longitud: 17.8000 Höjd: 23.0","link":[{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/1.json","rel":"station","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/1.xml","rel":"station","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/1.atom","rel":"station","type":"application/atom+xml"}],"name":"Akalla","owner":"Icke namngiven ägare","ownerCategory":"NATIONAL","measuringStations":"ADDITIONAL","id":1,"height":23.0,"latitude":59.5,"longitude":17.8,"active":false,"from":1356998400000,"to":1367366399000}]}

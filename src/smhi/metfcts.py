@@ -1,9 +1,10 @@
 """SMHI Metfcts API module."""
 
 from typing import Optional
-from smhi.mesan import Mesan
-from smhi.constants import METFCTS_URL
+
 from requests.structures import CaseInsensitiveDict
+from smhi.constants import METFCTS_URL
+from smhi.mesan import Mesan
 
 
 class Metfcts(Mesan):

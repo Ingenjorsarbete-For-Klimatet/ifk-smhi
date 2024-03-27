@@ -1,12 +1,12 @@
 """SMHI Mesan v1 unit tests."""
 
 import json
-import arrow
-import pytest
-import pandas as pd
-from smhi.mesan import Mesan
 from unittest.mock import patch
 
+import arrow
+import pandas as pd
+import pytest
+from smhi.mesan import Mesan
 
 BASE_URL = (
     "https://opendata-download-metanalys.smhi.se/" + "api/category/mesan2g/version/1/"

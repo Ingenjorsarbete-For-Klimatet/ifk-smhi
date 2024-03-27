@@ -1,13 +1,14 @@
 """SMHI Mesan API module."""
 
 import json
-import arrow
-import requests
-import pandas as pd
 from functools import wraps
-from typing import Any, Callable, Union, Optional
+from typing import Any, Callable, Optional, Union
+
+import arrow
+import pandas as pd
+import requests
 from requests.structures import CaseInsensitiveDict
-from smhi.constants import MESAN_URL, MESAN_LEVELS_UNIT
+from smhi.constants import MESAN_LEVELS_UNIT, MESAN_URL
 
 
 def get_data(key: Optional[str] = None) -> Callable:

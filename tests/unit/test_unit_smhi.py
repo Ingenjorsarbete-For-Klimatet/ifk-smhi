@@ -1,9 +1,10 @@
 """SMHI unit tests."""
 
 from unittest.mock import patch
-from smhi.smhi import SMHI
-import pytest
+
 import pandas as pd
+import pytest
+from smhi.smhi import SMHI
 
 
 class TestUnitSMHI:
@@ -23,44 +24,44 @@ class TestUnitSMHI:
         mock_requests_metobs.return_value.get_parameters.assert_called_once()
 
     @patch("smhi.smhi.Metobs")
-    def test_unit_smhi_parameters(self, mock_Metobs):
+    def test_unit_smhi_parameters(self, mock_metobs):
         """Unit test for SMHI parameters method.
 
         Args:
-            mock_Metobs: mock Metobs object
+            mock_metobs: mock Metobs object
         """
         client = SMHI()
-        assert client.parameters == mock_Metobs.return_value.parameters.data
+        assert client.parameters == mock_metobs.return_value.parameters.data
 
     @pytest.mark.parametrize(
-        "parameter,Metobs_parameters",
+        "parameter,metobs_parameters",
         [(None, None), (1, [(2, 0), (3, 0)]), (2, [(2, 0)])],
     )
     @patch("smhi.smhi.Metobs")
     @patch("smhi.smhi.logging.info")
     def test_unit_smhi_get_stations(
-        self, mock_logging_info, mock_Metobs, parameter, Metobs_parameters
+        self, mock_logging_info, mock_metobs, parameter, metobs_parameters
     ):
         """Unit test for SMHI get_stations method.
 
         Args:
             mock_logging_info: mock logging info object
-            mock_Metobs: mock Metobs object
+            mock_metobs: mock Metobs object
             parameter: parameter (int)
-            Metobs_parameters: Metobs return parameters
+            metobs_parameters: Metobs return parameters
         """
-        mock_Metobs.return_value.parameters = Metobs_parameters
+        mock_metobs.return_value.parameters = metobs_parameters
         client = SMHI()
-        if Metobs_parameters is None:
+        if metobs_parameters is None:
             client.get_stations(parameter)
             mock_logging_info.assert_called_once()
             return
 
         stations = client.get_stations(parameter)
-        assert stations == mock_Metobs.return_value.stations.data
+        assert stations == mock_metobs.return_value.stations.data
 
     @pytest.mark.parametrize(
-        "title,Metobs_stations",
+        "title, metobs_stations",
         [
             (None, None),
             (
@@ -72,25 +73,25 @@ class TestUnitSMHI:
     @patch("smhi.smhi.Metobs")
     @patch("smhi.smhi.logging.info")
     def test_unit_smhi_get_stations_from_title(
-        self, mock_logging_info, mock_Metobs, title, Metobs_stations
+        self, mock_logging_info, mock_metobs, title, metobs_stations
     ):
         """Unit test for SMHI get_stations_from_title method.
 
         Args:
             title: title of station
         """
-        mock_Metobs.return_value.stations = Metobs_stations
+        mock_metobs.return_value.stations = metobs_stations
         client = SMHI()
-        if Metobs_stations is None:
+        if metobs_stations is None:
             client.get_stations_from_title(title)
             mock_logging_info.assert_called_once()
             return
 
         data = client.get_stations_from_title(title)
-        assert (data == mock_Metobs.return_value.stations.data).all()
+        assert (data == mock_metobs.return_value.stations.data).all()
 
     @pytest.mark.parametrize(
-        "parameter,latitude,longitude,dist,Metobs_stations",
+        "parameter,latitude,longitude,dist,metobs_stations",
         [
             (None, None, None, None, None),
             (
@@ -122,27 +123,27 @@ class TestUnitSMHI:
     def test_find_stations_from_gps(
         self,
         mock_logging_info,
-        mock_Metobs,
+        mock_metobs,
         mock_distance,
         parameter,
         latitude,
         longitude,
         dist,
-        Metobs_stations,
+        metobs_stations,
     ):
         """Unit test for SMHI find_stations_from_gps method.
 
         Args:
             mock_logging_info: mock logging info object
-            mock_Metobs: mock Metobs object
+            mock_metobs: mock Metobs object
             mock_distance: mock distance object
             parameter: parameter (int)
             latitude: latitude (int)
             longitude: longitude (int)
             dist: Distance radius in which to look for stations
-            Metobs_stations: Metobs stations
+            metobs_stations: Metobs stations
         """
-        mock_Metobs.return_value.stations = Metobs_stations
+        mock_metobs.return_value.stations = metobs_stations
         client = SMHI()
 
         if parameter is None:
@@ -155,7 +156,7 @@ class TestUnitSMHI:
             assert len(client.nearby_stations[0]) > 0
 
     @pytest.mark.parametrize(
-        "parameter,city,dist,Metobs_stations",
+        "parameter,city,dist,metobs_stations",
         [
             (None, None, None, None),
             (
@@ -185,26 +186,26 @@ class TestUnitSMHI:
     @patch("smhi.smhi.Metobs")
     def test_find_stations_by_city(
         self,
-        mock_Metobs,
-        mock_Nominatim,
+        mock_metobs,
+        mock_nominatim,
         mock_distance,
         parameter,
         city,
         dist,
-        Metobs_stations,
+        metobs_stations,
     ):
         """Unit test for SMHI find_stations_by_city method.
 
         Args:
-            mock_Metobs: mock Metobs object
-            mock_Nominatim: mock Nominatim object
+            mock_metobs: mock Metobs object
+            mock_nominatim: mock Nominatim object
             mock_distance: mock distance object
             parameter: parameter (int)
             city: city name
             dist: Distance radius in which to look for stations
-            Metobs_stations: Metobs stations
+            metobs_stations: Metobs stations
         """
-        mock_Metobs.return_value.stations = Metobs_stations
+        mock_metobs.return_value.stations = metobs_stations
         client = SMHI()
         client.find_stations_by_city(parameter, city, dist)
-        mock_Nominatim.assert_called_once()
+        mock_nominatim.assert_called_once()

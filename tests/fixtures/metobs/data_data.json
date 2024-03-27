@@ -1,0 +1,18 @@
+{
+    "Lufttemperatur": {
+        "1356998400000": 5.3,
+        "1357002000000": 5.3
+    },
+    "Kvalitet": {
+        "1356998400000": "Y",
+        "1357002000000": "Y"
+    },
+    "Unnamed: 4": {
+        "1356998400000": null,
+        "1357002000000": null
+    },
+    "Tidsutsnitt:": {
+        "1356998400000": "Kvalitetskontrollerade historiska data (utom de senaste 3 m\u00e5n)",
+        "1357002000000": "Tidsperiod (fr.o.m.) = 2013-01-01 00:00:00 (UTC)"
+    }
+}
