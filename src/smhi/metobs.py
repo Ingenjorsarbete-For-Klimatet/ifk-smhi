@@ -358,12 +358,9 @@ class Data(BaseMetobs):
         data_model = self._get_data(model.data)
         stationdata = data_model.stationdata
         stationdata = self._clean_columns(stationdata)
-        stationdata = self._drop_nan(data_model.stationdata)
+        stationdata = self._drop_nan(stationdata)
 
-        if (
-            self._has_datetime_columns(data_model.stationdata) is True
-            and not stationdata.empty
-        ):
+        if self._has_datetime_columns(stationdata) is True and not stationdata.empty:
             stationdata = self._set_dataframe_index(stationdata)
 
         self.station = data_model.station
