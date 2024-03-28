@@ -7,20 +7,22 @@ import json
 import logging
 from collections import defaultdict
 from functools import partial
-from typing import Any, Optional
+from typing import Optional
 
 import arrow
 import pandas as pd
 import requests
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import (
-    STRANG,
     STRANG_EMPTY,
     STRANG_MULTIPOINT_URL,
     STRANG_PARAMETERS,
     STRANG_POINT_URL,
     STRANG_TIME_INTERVALS,
 )
+from smhi.models.strang import StrangMultiPoint, StrangParameter, StrangPoint
+
+logger = logging.getLogger(__name__)
 
 
 class Strang:
@@ -31,24 +33,28 @@ class Strang:
         self._category = "strang1g"
         self._version = 1
 
+        self._point_raw_url: partial[str] = partial(
+            STRANG_POINT_URL.format, category=self._category, version=self._version
+        )
+        self._multipoint_raw_url: partial[str] = partial(
+            STRANG_MULTIPOINT_URL.format, category=self._category, version=self._version
+        )
+        self._point_url: Optional[str] = None
+        self._multipoint_url: Optional[str] = None
+
         self.latitude: Optional[float] = None
         self.longitude: Optional[float] = None
-        self.parameter: STRANG = STRANG_EMPTY
+        self.parameter: StrangParameter = STRANG_EMPTY
         self.time_from: Optional[str] = None
         self.time_to: Optional[str] = None
         self.valid_time: Optional[str] = None
         self.time_interval: Optional[str] = None
         self.status: Optional[bool] = None
         self.header: Optional[CaseInsensitiveDict[str]] = None
-        self.available_parameters: defaultdict[int, STRANG] = STRANG_PARAMETERS
-        self.point_raw_url: partial[str] = partial(
-            STRANG_POINT_URL.format, category=self._category, version=self._version
-        )
-        self.multipoint_raw_url: partial[str] = partial(
-            STRANG_MULTIPOINT_URL.format, category=self._category, version=self._version
-        )
-        self.point_url: Optional[str] = None
-        self.multipoint_url: Optional[str] = None
+
+        self._available_parameters: defaultdict[
+            int, StrangParameter
+        ] = STRANG_PARAMETERS
 
     @property
     def parameters(
@@ -59,14 +65,14 @@ class Strang:
         Returns:
             available parameters
         """
-        for key, value in self.available_parameters.items():
-            logging.info(
+        for key, value in self._available_parameters.items():
+            logger.info(
                 "parameter: {parameter}, info: {meaning}".format(
                     parameter=key, meaning=value.meaning
                 )
             )
 
-        return list(self.available_parameters.keys())
+        return list(self._available_parameters.keys())
 
     def get_point(
         self,
@@ -76,7 +82,7 @@ class Strang:
         time_from: Optional[str] = None,
         time_to: Optional[str] = None,
         time_interval: Optional[str] = None,
-    ) -> Any:
+    ) -> StrangPoint:
         """Get data for given lon, lat and parameter.
 
         Args:
@@ -89,13 +95,13 @@ class Strang:
                            [valid values: hourly, daily, monthly] (optional)
 
         Returns:
-            data: data
+            strange point model
 
         Raises:
             TypeError: wrong type of latitude and/or longitude
             NotImplementedError: parameter not supported
         """
-        strang_parameter = self.available_parameters[parameter]
+        strang_parameter = self._available_parameters[parameter]
         if strang_parameter.parameter is None:
             raise NotImplementedError(
                 "Parameter not implemented."
@@ -105,26 +111,32 @@ class Strang:
         if longitude is None or latitude is None:
             raise TypeError("Wrong type of latitude and/or longitude provided.")
 
-        self.longitude = longitude
-        self.latitude = latitude
-        self.parameter = strang_parameter
-        self.time_from = time_from
-        self.time_to = time_to
-        self.time_interval = time_interval
+        time_from = self._parse_datetime(time_from, strang_parameter)
+        time_to = self._parse_datetime(time_to, strang_parameter)
 
-        url = self.point_raw_url
-        url = self._build_base_point_url(url)
-        url = self._build_time_point_url(url)
-        data, header, status = self._get_and_load_data(url)
-        self.header = header
-        self.status = status
-        self.point_url = url
+        url = self._point_raw_url
+        url = self._build_base_point_url(url, strang_parameter, longitude, latitude)
+        url = self._build_time_point_url(url, time_from, time_to, time_interval)
+        data, header, status = self._get_and_load_data(url, strang_parameter)
 
-        return data
+        point_model = StrangPoint(
+            longitude=longitude,
+            latitude=latitude,
+            parameter=strang_parameter,
+            time_from=time_from,
+            time_to=time_to,
+            time_interval=time_interval,
+            status=status,
+            headers=header,
+            url=url,
+            data=data,
+        )
+
+        return point_model
 
     def get_multipoint(
         self, parameter: int, valid_time: str, time_interval: Optional[str] = None
-    ) -> Any:
+    ) -> StrangMultiPoint:
         """Get full spatial data for given parameter and time.
 
         Args:
@@ -135,14 +147,14 @@ class Strang:
                             daily, monthly] (optional)
 
         Returns:
-            data: data
+            strange multipoint model
 
         Raises:
             TypeError: wrong type of valid time
             NotImplementedError: parameter not supported
         """
-        parameter = self.available_parameters[parameter]
-        if parameter.parameter is None:
+        strang_parameter = self._available_parameters[parameter]
+        if strang_parameter.parameter is None:
             raise NotImplementedError(
                 "Parameter not implemented."
                 + " Try client.parameters to list available parameters."
@@ -153,55 +165,76 @@ class Strang:
         except TypeError:
             raise TypeError("Wrong type of valid time provided. Check valid time.")
 
-        self.parameter = parameter
-        self.valid_time = arrow.get(valid_time).isoformat()
-        self.time_interval = time_interval
+        url = self._multipoint_raw_url
+        url = self._build_base_multipoint_url(url, strang_parameter, valid_time)
+        url = self._build_time_multipoint_url(url, time_interval)
+        data, header, status = self._get_and_load_data(url, strang_parameter)
 
-        url = self.multipoint_raw_url
-        url = self._build_base_multipoint_url(url)
-        url = self._build_time_multipoint_url(url)
-        data, header, status = self._get_and_load_data(url)
-        self.header = header
-        self.status = status
-        self.multipoint_url = url
+        multipoint_model = StrangMultiPoint(
+            parameter=strang_parameter,
+            valid_time=arrow.get(valid_time).isoformat(),
+            time_interval=time_interval,
+            url=url,
+            status=status,
+            headers=header,
+            data=data,
+        )
 
-        return data
+        return multipoint_model
 
-    def _build_base_point_url(self, url: partial[str]) -> str:
+    def _build_base_point_url(
+        self,
+        url: partial[str],
+        parameter: StrangParameter,
+        longitude: float,
+        latitude: float,
+    ) -> str:
         """Build base point url.
 
         Args:
             url: url to format
+            parameter: strang parameter
+            longitude: longitude
+            latitude: latitude
 
         Returns:
             formatted url string
         """
         return url(
-            lon=self.longitude,
-            lat=self.latitude,
-            parameter=self.parameter.parameter,
+            lon=longitude,
+            lat=latitude,
+            parameter=parameter.parameter,
         )
 
-    def _build_base_multipoint_url(self, url: partial[str]) -> str:
+    def _build_base_multipoint_url(
+        self, url: partial[str], parameter: StrangParameter, valid_time: str
+    ) -> str:
         """
         Build base point url.
 
         Args:
             url: url to format
+            parameter: strang parameter
+            valid_time: valid time for call
 
         Returns:
             formatted url string
         """
         return url(
-            validtime=self.valid_time,
-            parameter=self.parameter.parameter,
+            validtime=valid_time,
+            parameter=parameter.parameter,
         )
 
-    def _build_time_point_url(self, url: str) -> str:
+    def _build_time_point_url(
+        self, url: str, time_from: str, time_to: str, time_interval: str
+    ) -> str:
         """Build date part of the API url.
 
         Args:
             url: formatted url string
+            time_from: from time
+            time_to: to time
+            time_interval: interval
 
         Returns:
             url string
@@ -210,10 +243,6 @@ class Strang:
             ValueError: time_interval not valid
             NotImplementedError: date out of bounds
         """
-        time_from = self._parse_datetime(self.time_from)
-        time_to = self._parse_datetime(self.time_to)
-        time_interval = self.time_interval
-
         if any([time_from, time_to, time_interval]) is True:
             url += "?"
 
@@ -237,11 +266,12 @@ class Strang:
 
         return url
 
-    def _build_time_multipoint_url(self, url: str) -> str:
+    def _build_time_multipoint_url(self, url: str, time_interval: str) -> str:
         """Build date part of the API url.
 
         Args:
             url: formatted url string
+            time_interval: time interval
 
         Returns:
             url string
@@ -249,8 +279,6 @@ class Strang:
         Raises:
             ValueError
         """
-        time_interval = self.time_interval
-
         if time_interval is not None:
             if time_interval not in STRANG_TIME_INTERVALS:
                 raise ValueError("Time interval must be hourly, daily or monthly.")
@@ -259,12 +287,13 @@ class Strang:
         return url
 
     def _get_and_load_data(
-        self, url: str
+        self, url: str, parameter: StrangParameter
     ) -> tuple[pd.DataFrame, CaseInsensitiveDict[str], bool]:
         """Fetch requested point data and parse it with datetime.
 
         Args:
             url: url to fetch from
+            parameter: strang parameter
 
         Returns:
             data
@@ -279,9 +308,9 @@ class Strang:
             data = json.loads(response.content)
 
             if "date_time" in data[0]:
-                data = self._parse_point_data(data)
+                data = self._parse_point_data(data, parameter)
             else:
-                data = self._parse_multipoint_data(data)
+                data = self._parse_multipoint_data(data, parameter)
 
             return data, header, status
         else:
@@ -289,11 +318,14 @@ class Strang:
 
             return pd.DataFrame(), header, status
 
-    def _parse_datetime(self, date_time: Optional[str]) -> Optional[str]:
+    def _parse_datetime(
+        self, date_time: Optional[str], parameter: StrangParameter
+    ) -> Optional[str]:
         """Parse date into a datetime format given as string and check bounds.
 
         Args:
             date_time: date as string
+            parameter: strang parameter
 
         Returns:
             parsed date
@@ -309,20 +341,21 @@ class Strang:
         except ValueError:
             raise ValueError("Wrong format of date.")
 
-        if self.parameter.time_from < date_time_arrow < self.parameter.time_to():
+        if parameter.time_from < date_time_arrow < parameter.time_to():
             return date_time_arrow.isoformat()
         else:
             raise ValueError(
                 "Time not in allowed interval: {time_from} to {time_to}.".format(
-                    time_from=self.parameter.time_from, time_to=self.parameter.time_to()
+                    time_from=parameter.time_from, time_to=parameter.time_to()
                 )
             )
 
-    def _parse_point_data(self, data: list) -> pd.DataFrame:
+    def _parse_point_data(self, data: list, parameter: StrangParameter) -> pd.DataFrame:
         """Parse point data into a pandas DataFrame.
 
         Args:
             data: data as a list
+            parameter: strang parameter
 
         Returns
             data_pd: pandas dataframe
@@ -332,15 +365,18 @@ class Strang:
 
         data_pd = pd.DataFrame(data)
         data_pd.set_index("date_time", inplace=True)
-        data_pd.rename(columns={"value": self.parameter[1]}, inplace=True)
+        data_pd.rename(columns={"value": parameter.meaning}, inplace=True)
 
         return data_pd
 
-    def _parse_multipoint_data(self, data: list) -> pd.DataFrame:
+    def _parse_multipoint_data(
+        self, data: list, parameter: StrangParameter
+    ) -> pd.DataFrame:
         """Parse multipoint data into a pandas DataFrame.
 
         Args:
             data: data as a list
+            parameter: strang parameter
 
         Returns
             data_pd: pandas dataframe
@@ -348,7 +384,7 @@ class Strang:
         data_pd = pd.DataFrame(data)
         data_pd.rename(
             columns={
-                "value": str(self.parameter[1])
+                "value": str(parameter.meaning)
                 + " {0} {1}".format(self.valid_time, self.time_interval)
             },
             inplace=True,
