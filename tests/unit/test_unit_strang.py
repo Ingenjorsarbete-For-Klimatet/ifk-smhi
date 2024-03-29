@@ -104,9 +104,17 @@ class TestUnitStrang:
     )
     @patch(
         "smhi.strang.Strang._get_and_load_data",
-        return_value=[None, None, None],
+        return_value=[
+            pd.DataFrame(
+                [2.0],
+                columns=["value"],
+                index=pd.Series([arrow.get("2020-01-01").datetime], name="date_time"),
+            ),
+            {"head": "head"},
+            200,
+        ],
     )
-    @patch("smhi.strang.Strang._build_time_point_url")
+    @patch("smhi.strang.Strang._build_time_point_url", return_value="URL")
     def test_unit_strang_get_point(
         self,
         mock_build_time_point_url,
@@ -132,12 +140,12 @@ class TestUnitStrang:
         """
         client = Strang()
 
-        if parameter.parameter is None:
+        if parameter.key is None:
             with pytest.raises(NotImplementedError):
                 client.get_point(
                     lat,
                     lon,
-                    parameter.parameter,
+                    parameter.key,
                     time_from,
                     time_to,
                     time_interval,
@@ -151,34 +159,31 @@ class TestUnitStrang:
                 client.get_point(
                     lat,
                     lon,
-                    parameter.parameter,
+                    parameter.key,
                     time_from,
                     time_to,
                     time_interval,
                 )
 
             return None
-        mock_get_and_load_data.return_value = (
-            {"date_time": ["2020-01-01 12:00CET"], "value": 2},
-            False,
-            False,
-        )
-        client.get_point(
+
+        point_model = client.get_point(
             lat,
             lon,
-            parameter.parameter,
+            parameter.key,
             time_from,
             time_to,
             time_interval,
         )
 
-        assert client.longitude == lon
-        assert client.latitude == lat
-        assert client.parameter == parameter
-        assert client.time_interval == time_interval
-        assert client.point_url == mock_build_time_point_url.return_value
-        assert client.status is False
-        assert client.header is False
+        assert point_model.parameter_key == parameter.key
+        assert point_model.parameter_meaning == parameter.meaning
+        assert point_model.longitude == lon
+        assert point_model.latitude == lat
+        assert point_model.time_interval == time_interval
+        assert point_model.url == mock_build_time_point_url.return_value
+        assert point_model.status == 200
+        assert point_model.headers == {"head": "head"}
 
         mock_build_time_point_url.assert_called_once()
         mock_get_and_load_data.assert_called_once()
@@ -199,9 +204,13 @@ class TestUnitStrang:
     )
     @patch(
         "smhi.strang.Strang._get_and_load_data",
-        return_value=[None, None, None],
+        return_value=[
+            pd.DataFrame({"lat": [71.0], "lon": [-9.0], "value": [2.0]}),
+            {"head": "head"},
+            200,
+        ],
     )
-    @patch("smhi.strang.Strang._build_time_multipoint_url")
+    @patch("smhi.strang.Strang._build_time_multipoint_url", return_value="URL")
     def test_unit_strang_get_multipoint(
         self,
         mock_build_time_multipoint_url,
@@ -240,23 +249,20 @@ class TestUnitStrang:
                 )
 
             return None
-        mock_get_and_load_data.return_value = (
-            {"lat": [71], "lon": [-9], "value": [2]},
-            False,
-            False,
-        )
-        client.get_multipoint(
+
+        multipoint_model = client.get_multipoint(
             parameter.key,
             valid_time,
             time_interval,
         )
 
-        assert client.parameter == parameter
-        assert client.valid_time == arrow.get(valid_time).isoformat()
-        assert client.time_interval == time_interval
-        assert client.multipoint_url == mock_build_time_multipoint_url.return_value
-        assert client.status is False
-        assert client.header is False
+        assert multipoint_model.parameter_key == parameter.key
+        assert multipoint_model.parameter_meaning == parameter.meaning
+        assert multipoint_model.valid_time == arrow.get(valid_time).isoformat()
+        assert multipoint_model.time_interval == time_interval
+        assert multipoint_model.url == mock_build_time_multipoint_url.return_value
+        assert multipoint_model.status == 200
+        assert multipoint_model.headers == {"head": "head"}
 
         mock_build_time_multipoint_url.assert_called_once()
         mock_get_and_load_data.assert_called_once()
