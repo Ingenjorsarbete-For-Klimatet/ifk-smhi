@@ -91,7 +91,7 @@ class Strang:
             NotImplementedError: parameter not supported
         """
         strang_parameter = self._available_parameters[parameter]
-        if strang_parameter.parameter is None:
+        if strang_parameter.key is None:
             raise NotImplementedError(
                 "Parameter not implemented."
                 + " Try client.parameters to list available parameters."
@@ -109,7 +109,7 @@ class Strang:
         data, header, status = self._get_and_load_data(url, strang_parameter)
 
         return StrangPoint(
-            parameter_key=strang_parameter.parameter,
+            parameter_key=strang_parameter.key,
             parameter_meaning=strang_parameter.meaning,
             longitude=longitude,
             latitude=latitude,
@@ -142,7 +142,7 @@ class Strang:
             NotImplementedError: parameter not supported
         """
         strang_parameter = self._available_parameters[parameter]
-        if strang_parameter.parameter is None:
+        if strang_parameter.key is None:
             raise NotImplementedError(
                 "Parameter not implemented."
                 + " Try client.parameters to list available parameters."
@@ -159,7 +159,7 @@ class Strang:
         data, header, status = self._get_and_load_data(url, strang_parameter)
 
         return StrangMultiPoint(
-            parameter_key=strang_parameter.parameter,
+            parameter_key=strang_parameter.key,
             parameter_meaning=strang_parameter.meaning,
             valid_time=valid_time,
             time_interval=time_interval,
@@ -190,7 +190,7 @@ class Strang:
         return url(
             lon=longitude,
             lat=latitude,
-            parameter=parameter.parameter,
+            parameter=parameter.key,
         )
 
     def _build_base_multipoint_url(
@@ -209,7 +209,7 @@ class Strang:
         """
         return url(
             validtime=valid_time,
-            parameter=parameter.parameter,
+            parameter=parameter.key,
         )
 
     def _build_time_point_url(

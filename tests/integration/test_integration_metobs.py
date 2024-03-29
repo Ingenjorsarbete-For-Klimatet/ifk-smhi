@@ -10,7 +10,9 @@ from smhi.models.metobs_parameters import ParameterItem
 
 METOBS_INTEGRATION = {}
 for i in [1, 2, 22]:
-    with open(f"tests/fixtures/metobs_integration_{i}.json", encoding="utf-8") as f:
+    with open(
+        f"tests/fixtures/metobs/metobs_integration_{i}.json", encoding="utf-8"
+    ) as f:
         METOBS_INTEGRATION[i] = []
         all_headers = json.load(f)
         for header in all_headers:

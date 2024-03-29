@@ -4,24 +4,21 @@ import pandas as pd
 import pytest
 from smhi.strang import Strang
 
-RESULT_HOURLY_2020_01_01_2020_01_02 = pd.read_csv(
-    "tests/fixtures/STRANG_RESULT_HOURLY_2020_01_01_2020_01_02.csv",
-    parse_dates=[0],
-    index_col=0,
-)
-RESULT_DAILY_2020_01_01_2020_01_02 = pd.read_csv(
-    "tests/fixtures/STRANG_RESULT_DAILY_2020_01_01_2020_01_02.csv",
-    parse_dates=[0],
-    index_col=0,
-)
-RESULT_MONTHLY_2020_01_01_2020_02_01 = pd.read_csv(
-    "tests/fixtures/STRANG_RESULT_MONTHLY_2020_01_01_2020_02_01.csv",
-    parse_dates=[0],
-    index_col=0,
-)
-RESULT_MULTIPOINT_2020_01_01_MONTHLY_10 = pd.read_csv(
-    "tests/fixtures/STRANG_RESULT_MULTIPOINT_2020_01_01_MONTHLY_10.csv", index_col=0
-)
+
+def get_point(file=None):
+    return (
+        "date_time" if file is None else pd.read_csv(file, parse_dates=[0], index_col=0)
+    )
+
+
+@pytest.fixture
+def get_multipoint():
+    df = pd.read_csv(
+        "tests/fixtures/strang/STRANG_RESULT_MULTIPOINT_2020_01_01_MONTHLY_10.csv",
+        index_col=0,
+    )
+
+    return df
 
 
 class TestIntegrationStrang:
@@ -37,7 +34,9 @@ class TestIntegrationStrang:
                 "2020-01-01",
                 "2020-01-02",
                 "hourly",
-                RESULT_HOURLY_2020_01_01_2020_01_02,
+                get_point(
+                    "tests/fixtures/strang/STRANG_RESULT_HOURLY_2020_01_01_2020_01_02.csv"
+                ),
             ),
             (
                 58,
@@ -46,7 +45,9 @@ class TestIntegrationStrang:
                 "2020-01-01",
                 "2020-01-02",
                 "daily",
-                RESULT_DAILY_2020_01_01_2020_01_02,
+                get_point(
+                    "tests/fixtures/strang/STRANG_RESULT_DAILY_2020_01_01_2020_01_02.csv"
+                ),
             ),
             (
                 58,
@@ -55,7 +56,9 @@ class TestIntegrationStrang:
                 "2020-01-01",
                 "2020-02-01",
                 "monthly",
-                RESULT_MONTHLY_2020_01_01_2020_02_01,
+                get_point(
+                    "tests/fixtures/strang/STRANG_RESULT_MONTHLY_2020_01_01_2020_02_01.csv"
+                ),
             ),
             (
                 58,
@@ -64,7 +67,7 @@ class TestIntegrationStrang:
                 None,
                 None,
                 None,
-                "date_time",
+                get_point(),
             ),
         ],
     )
@@ -78,7 +81,6 @@ class TestIntegrationStrang:
         Args:
             lat: longitude
             lon: latitude
-
             parameter: parameter
             time_from: from
             time_to: to
@@ -86,14 +88,21 @@ class TestIntegrationStrang:
             expected_result: expected result
         """
         client = Strang()
-        data = client.get_point(lat, lon, parameter, time_from, time_to, time_interval)
+        point_model = client.get_point(
+            lat, lon, parameter, time_from, time_to, time_interval
+        )
+
+        assert point_model.parameter_key == parameter
+        assert point_model.latitude == lat
+        assert point_model.longitude == lon
+        assert point_model.time_interval == time_interval
 
         if time_from is not None:
-            pd.testing.assert_frame_equal(expected_result, data)
+            pd.testing.assert_frame_equal(expected_result, point_model.data)
         else:
-            assert expected_result == data.index.name
+            assert expected_result == point_model.data.index.name
 
-    def test_integration_strang_multipoint(self):
+    def test_integration_strang_multipoint(self, get_multipoint):
         """Strang MultiPoint integration tests.
 
         These tests require internet connectivity.
@@ -102,7 +111,12 @@ class TestIntegrationStrang:
         parameter = 116
         valid_time = "2020-01-01"
         time_interval = "monthly"
-        data = client.get_multipoint(parameter, valid_time, time_interval)
+        multipoint_model = client.get_multipoint(parameter, valid_time, time_interval)
+
+        multipoint_model.parameter_key = parameter
+        multipoint_model.valid_time = valid_time
+        multipoint_model.time_interval = time_interval
         pd.testing.assert_frame_equal(
-            RESULT_MULTIPOINT_2020_01_01_MONTHLY_10, data.iloc[:10, :]
+            get_multipoint,
+            multipoint_model.data.iloc[:10, :],
         )
