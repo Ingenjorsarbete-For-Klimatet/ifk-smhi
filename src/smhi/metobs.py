@@ -105,6 +105,8 @@ class BaseMetobs:
 class Versions(BaseMetobs):
     """Get available versions of Metobs API."""
 
+    _base_url = "https://opendata-download-metobs.smhi.se/api.{data_type}"
+
     def __init__(
         self,
         data_type: str = "json",
@@ -124,9 +126,9 @@ class Versions(BaseMetobs):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        self.base_url = f"https://opendata-download-metobs.smhi.se/api.{data_type}"
-
-        model = self._get_and_parse_request(self.base_url, VersionModel)
+        model = self._get_and_parse_request(
+            self._base_url.format(data_type=data_type), VersionModel
+        )
 
         self.data = model.version
 
@@ -301,10 +303,10 @@ class Periods(BaseMetobs):
 class Data(BaseMetobs):
     """Get data from period for version 1 of Metobs API."""
 
-    metobs_available_periods = METOBS_AVAILABLE_PERIODS
-    metobs_parameter_tim = ["Datum", "Tid (UTC)"]
-    metobs_parameter_dygn = ["Representativt dygn"]
-    metobs_parameter_manad = ["Representativ månad"]
+    _metobs_available_periods = METOBS_AVAILABLE_PERIODS
+    _metobs_parameter_tim = ["Datum", "Tid (UTC)"]
+    _metobs_parameter_dygn = ["Representativt dygn"]
+    _metobs_parameter_manad = ["Representativ månad"]
 
     def __init__(
         self,
@@ -329,21 +331,17 @@ class Data(BaseMetobs):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        if (
-            len(periods_in_station.data) == 1
-            and periods_in_station.data[0] != period
-            and period in self.metobs_available_periods
-        ):
+        if self._check_available_periods(periods_in_station, period):
             logger.info(
                 "Found only one period to download. "
                 + f"Overriding the user selected {period} with the found {periods_in_station.data[0]}."
             )
             period = periods_in_station.data[0]
 
-        if period not in self.metobs_available_periods:
+        if period not in self._metobs_available_periods:
             raise NotImplementedError(
                 "Select a supported periods: }"
-                + ", ".join([p for p in self.metobs_available_periods])
+                + ", ".join([p for p in self._metobs_available_periods])
             )
 
         self.periods_in_station = periods_in_station
@@ -367,6 +365,25 @@ class Data(BaseMetobs):
         self.parameter = data_model.parameter
         self.period = data_model.period
         self.data = stationdata
+
+    def _check_available_periods(
+        self, periods_in_station: Periods, period: str
+    ) -> bool:
+        """Check available periods.
+
+        Args:
+            periods_in_station: periods object
+            period: select period from:
+                    latest-hour, latest-day, latest-months or corrected-archive
+
+        Returns
+            boolean
+        """
+        return (
+            len(periods_in_station.data) == 1
+            and periods_in_station.data[0] != period
+            and period in self._metobs_available_periods
+        )
 
     def _get_data(self, raw_data: list[Datum], type: str = "text/plain") -> MetobsData:
         """Get the selected data file.
@@ -442,12 +459,12 @@ class Data(BaseMetobs):
             TypeError
         """
         columns = stationdata.columns
-        if any([c for c in self.metobs_parameter_tim if c in columns]):
-            datetime_columns = self.metobs_parameter_tim
-        elif any([c for c in self.metobs_parameter_dygn if c in columns]):
-            datetime_columns = self.metobs_parameter_dygn
-        elif any([c for c in self.metobs_parameter_manad if c in columns]):
-            datetime_columns = self.metobs_parameter_manad
+        if any([c for c in self._metobs_parameter_tim if c in columns]):
+            datetime_columns = self._metobs_parameter_tim
+        elif any([c for c in self._metobs_parameter_dygn if c in columns]):
+            datetime_columns = self._metobs_parameter_dygn
+        elif any([c for c in self._metobs_parameter_manad if c in columns]):
+            datetime_columns = self._metobs_parameter_manad
         else:
             raise TypeError("Can't parse type.")
 
@@ -496,9 +513,9 @@ class Data(BaseMetobs):
         return any(
             [
                 c
-                for c in self.metobs_parameter_tim
-                + self.metobs_parameter_dygn
-                + self.metobs_parameter_manad
+                for c in self._metobs_parameter_tim
+                + self._metobs_parameter_dygn
+                + self._metobs_parameter_manad
                 if c in df.columns
             ]
         )
