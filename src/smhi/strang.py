@@ -14,7 +14,7 @@ import pandas as pd
 import requests
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import (
-    STRANG_EMPTY,
+    STATUS_OK,
     STRANG_MULTIPOINT_URL,
     STRANG_PARAMETERS,
     STRANG_POINT_URL,
@@ -41,17 +41,6 @@ class Strang:
         )
         self._point_url: Optional[str] = None
         self._multipoint_url: Optional[str] = None
-
-        self.latitude: Optional[float] = None
-        self.longitude: Optional[float] = None
-        self.parameter: StrangParameter = STRANG_EMPTY
-        self.time_from: Optional[str] = None
-        self.time_to: Optional[str] = None
-        self.valid_time: Optional[str] = None
-        self.time_interval: Optional[str] = None
-        self.status: Optional[bool] = None
-        self.header: Optional[CaseInsensitiveDict[str]] = None
-
         self._available_parameters: defaultdict[
             int, StrangParameter
         ] = STRANG_PARAMETERS
@@ -119,10 +108,11 @@ class Strang:
         url = self._build_time_point_url(url, time_from, time_to, time_interval)
         data, header, status = self._get_and_load_data(url, strang_parameter)
 
-        point_model = StrangPoint(
+        return StrangPoint(
+            parameter_key=strang_parameter.parameter,
+            parameter_meaning=strang_parameter.meaning,
             longitude=longitude,
             latitude=latitude,
-            parameter=strang_parameter,
             time_from=time_from,
             time_to=time_to,
             time_interval=time_interval,
@@ -131,8 +121,6 @@ class Strang:
             url=url,
             data=data,
         )
-
-        return point_model
 
     def get_multipoint(
         self, parameter: int, valid_time: str, time_interval: Optional[str] = None
@@ -170,17 +158,16 @@ class Strang:
         url = self._build_time_multipoint_url(url, time_interval)
         data, header, status = self._get_and_load_data(url, strang_parameter)
 
-        multipoint_model = StrangMultiPoint(
-            parameter=strang_parameter,
-            valid_time=arrow.get(valid_time).isoformat(),
+        return StrangMultiPoint(
+            parameter_key=strang_parameter.parameter,
+            parameter_meaning=strang_parameter.meaning,
+            valid_time=valid_time,
             time_interval=time_interval,
             url=url,
             status=status,
             headers=header,
             data=data,
         )
-
-        return multipoint_model
 
     def _build_base_point_url(
         self,
@@ -288,7 +275,7 @@ class Strang:
 
     def _get_and_load_data(
         self, url: str, parameter: StrangParameter
-    ) -> tuple[pd.DataFrame, CaseInsensitiveDict[str], bool]:
+    ) -> tuple[pd.DataFrame, CaseInsensitiveDict[str], int]:
         """Fetch requested point data and parse it with datetime.
 
         Args:
@@ -298,13 +285,13 @@ class Strang:
         Returns:
             data
             header
-            status
+            status code
         """
         response = requests.get(url)
-        status = response.ok
+        status = response.status_code
         header = response.headers
 
-        if status is True:
+        if status == STATUS_OK:
             data = json.loads(response.content)
 
             if "date_time" in data[0]:
@@ -365,7 +352,7 @@ class Strang:
 
         data_pd = pd.DataFrame(data)
         data_pd.set_index("date_time", inplace=True)
-        data_pd.rename(columns={"value": parameter.meaning}, inplace=True)
+        # data_pd.rename(columns={"value": parameter.meaning}, inplace=True)
 
         return data_pd
 
@@ -382,12 +369,12 @@ class Strang:
             data_pd: pandas dataframe
         """
         data_pd = pd.DataFrame(data)
-        data_pd.rename(
-            columns={
-                "value": str(parameter.meaning)
-                + " {0} {1}".format(self.valid_time, self.time_interval)
-            },
-            inplace=True,
-        )
+        # data_pd.rename(
+        #     columns={
+        #         "value": str(parameter.meaning)
+        #         + " {0} {1}".format(self.valid_time, self.time_interval)
+        #     },
+        #     inplace=True,
+        # )
 
         return data_pd

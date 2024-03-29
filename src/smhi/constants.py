@@ -40,42 +40,42 @@ MESAN_URL = (
 MESAN_LEVELS_UNIT = "m"
 
 STRANG_EMPTY = StrangParameter(
-    parameter=None, meaning="Missing", time_from=None, time_to=lambda: None
+    key=None, meaning="Missing", time_from=None, time_to=lambda: None
 )
 STRANG_PARAMETERS: defaultdict[int, StrangParameter] = defaultdict(lambda: STRANG_EMPTY)
 STRANG_PARAMETERS[116] = StrangParameter(
-    parameter=116,
+    key=116,
     meaning="CIE UV irradiance [mW/m²]",
     time_from=arrow.get("1999-01-01").datetime,
     time_to=get_now,
 )
 
 STRANG_PARAMETERS[117] = StrangParameter(
-    parameter=117,
+    key=117,
     meaning="Global irradiance [W/m²]",
     time_from=arrow.get("1999-01-01").datetime,
     time_to=get_now,
 )
 STRANG_PARAMETERS[118] = StrangParameter(
-    parameter=118,
+    key=118,
     meaning="Direct normal irradiance [W/m²]",
     time_from=arrow.get("1999-01-01").datetime,
     time_to=get_now,
 )
 STRANG_PARAMETERS[120] = StrangParameter(
-    parameter=120,
+    key=120,
     meaning="PAR [W/m²]",
     time_from=arrow.get("1999-01-01").datetime,
     time_to=get_now,
 )
 STRANG_PARAMETERS[121] = StrangParameter(
-    parameter=121,
+    key=121,
     meaning="Direct horizontal irradiance [W/m²]",
     time_from=arrow.get("2017-04-18").datetime,
     time_to=get_now,
 )
 STRANG_PARAMETERS[122] = StrangParameter(
-    parameter=122,
+    key=122,
     meaning="Diffuse irradiance [W/m²]",
     time_from=arrow.get("2017-04-18").datetime,
     time_to=get_now,
@@ -96,3 +96,5 @@ STRANG_MULTIPOINT_URL = urljoin(
 )
 
 STRANG_TIME_INTERVALS = ["hourly", "daily", "monthly"]
+
+STATUS_OK = 200
