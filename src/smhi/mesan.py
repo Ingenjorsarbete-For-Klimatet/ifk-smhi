@@ -8,50 +8,16 @@ import arrow
 import pandas as pd
 import requests
 from requests.structures import CaseInsensitiveDict
-from smhi.constants import MESAN_LEVELS_UNIT, MESAN_URL
+from smhi.constants import MESAN_LEVELS_UNIT, MESAN_URL, STATUS_OK
 
-
-def get_data(key: Optional[str] = None) -> Callable:
-    """Get data from url wrapper.
-
-    Args:
-        key: key to index returned dict
-
-    Returns:
-        function get_data_inner
-    """
-
-    def get_data_inner(func: Callable) -> Callable:
-        """Get data from url inner.
-
-        Args:
-            function func
-
-        Returns:
-            function inner
-        """
-
-        @wraps(func)
-        def inner(self, *args: Any) -> Optional[Union[list, pd.DataFrame]]:
-            url = func(self, *args)
-            data, header, status = self._get_data(url)
-            self.status = status
-            self.header = header
-
-            if key == "approvedTime" or key == "validTime":
-                return data[key]
-            elif key == "coordinates":
-                return data[key]
-            elif key == "parameter":
-                return data[key]
-            elif key == "point":
-                return self._format_data_point(data)
-            else:
-                return self._format_data_multipoint(data)
-
-        return inner
-
-    return get_data_inner
+from smhi.models.mesan import (
+    MesanParameters,
+    MesanApprovedTime,
+    MesanValidTime,
+    MesanPolygon,
+    MesanPointData,
+    MesanMultiPointData,
+)
 
 
 class Mesan:
@@ -61,47 +27,77 @@ class Mesan:
         """Initialise Mesan."""
         self._category: str = "mesan2g"
         self._version: int = 1
-
-        self.latitude: Optional[float] = None
-        self.longitude: Optional[float] = None
-        self.status: Optional[bool] = None
-        self.header: Optional[CaseInsensitiveDict[str]] = None
-        self.base_url: str = MESAN_URL.format(
+        self._base_url: str = MESAN_URL.format(
             category=self._category, version=self._version
         )
-        self.url: Optional[str] = None
+        self._parameters = self._get_parameters()
 
     @property
-    @get_data("approvedTime")
-    def approved_time(self) -> str:
+    def parameters(self) -> MesanParameters:
+        """Get parameters from object state.
+
+        Returns:
+            mesan parameter model
+        """
+        return self._parameters.parameter
+
+    def _get_parameters(self) -> MesanParameters:
+        """Get parameters from SMHI.
+
+        Returns:
+            mesan parameter model
+        """
+        data, headers, status = self._get_data(self._base_url + "parameter.json")
+
+        return MesanParameters(
+            status=status, headers=headers, parameter=data["parameter"]
+        )
+
+    @property
+    def approved_time(self) -> MesanApprovedTime:
         """Get approved time.
 
         Returns:
             approved times
         """
-        return self.base_url + "approvedtime.json"
+        data, headers, status = self._get_data(self._base_url + "approvedtime.json")
+
+        return MesanApprovedTime(
+            status=status,
+            headers=headers,
+            approved_time=data["approvedTime"],
+            reference_time=data["referenceTime"],
+        )
 
     @property
-    @get_data("validTime")
-    def valid_time(self) -> str:
+    def valid_time(self) -> MesanValidTime:
         """Get valid time.
 
         Returns:
-            valid times
+            mesan valid time
         """
-        return self.base_url + "validtime.json"
+        data, headers, status = self._get_data(self._base_url + "validtime.json")
+
+        return MesanValidTime(
+            status=status, headers=headers, valid_time=data["validTime"]
+        )
 
     @property
-    @get_data("coordinates")
-    def geo_polygon(self) -> str:
+    def geo_polygon(self) -> MesanPolygon:
         """Get geographic area polygon.
 
         Returns:
-            polygon data
+            mesan polygon model
         """
-        return self.base_url + "geotype/polygon.json"
+        data, headers, status = self._get_data(self._base_url + "geotype/polygon.json")
 
-    @get_data("coordinates")
+        return MesanPolygon(
+            status=status,
+            headers=headers,
+            type=data["type"],
+            coordinates=data["coordinates"],
+        )
+
     def get_geo_multipoint(self, downsample: int = 2) -> str:
         """Get geographic area multipoint.
 
@@ -120,19 +116,15 @@ class Mesan:
                 downsample=downsample
             )
 
-        return self.base_url + multipoint_url
+        data, headers, status = self._get_data(self._base_url + multipoint_url)
 
-    @property
-    @get_data("parameter")
-    def parameters(self) -> str:
-        """Get parameters.
+        return MesanPolygon(
+            status=status,
+            headers=headers,
+            type=data["type"],
+            coordinates=data["coordinates"],
+        )
 
-        Returns:
-            available parameters
-        """
-        return self.base_url + "parameter.json"
-
-    @get_data("point")
     def get_point(
         self,
         latitude: float,
@@ -147,14 +139,26 @@ class Mesan:
         Returns:
             data
         """
-        return (
-            self.base_url
+        data, headers, status = self._get_data(
+            self._base_url
             + "geotype/point/lon/{longitude}/lat/{latitude}/data.json".format(
                 longitude=longitude, latitude=latitude
             )
         )
 
-    @get_data("multipoint")
+        dataframes = self._format_data_point(data)
+
+        return MesanPointData(
+            status=status,
+            headers=headers,
+            approved_time=data["approvedTime"],
+            reference_time=data["referenceTime"],
+            geometry=data["geometry"],
+            valid_time=data["timeSeries"][0]["validTime"],
+            level_unit=MESAN_LEVELS_UNIT,
+            df=dataframes,
+        )
+
     def get_multipoint(
         self,
         validtime: str,
@@ -162,6 +166,7 @@ class Mesan:
         leveltype: str,
         level: int,
         downsample: int = 2,
+        geo: bool = True,
     ) -> str:
         """Get multipoint data.
 
@@ -171,23 +176,37 @@ class Mesan:
             leveltype: level type
             level: level
             downsample: downsample
+            geo: fetch geography data
 
         Returns:
             data
         """
         validtime = arrow.get(validtime).format("YYYYMMDDThhmmss") + "Z"
-        return (
-            self.base_url
+
+        data, headers, status = self._get_data(
+            self._base_url
             + "geotype/multipoint/"
             + "validtime/{YYMMDDThhmmssZ}/parameter/{p}/leveltype/".format(
                 YYMMDDThhmmssZ=validtime,
                 p=parameter,
             )
-            + "{lt}/level/{l}/data.json?with-geo=false&downsample={downsample}".format(
+            + "{lt}/level/{l}/data.json?with-geo={geo}&downsample={downsample}".format(
                 lt=leveltype,
                 l=level,
+                geo={"true" if geo is True else "false"},
                 downsample=downsample,
             )
+        )
+
+        dataframe = self._format_data_multipoint(data)
+
+        return MesanMultiPointData(
+            status=status,
+            headers=headers,
+            approved_time=data["approvedTime"],
+            reference_time=data["referenceTime"],
+            valid_time=data["timeSeries"][0]["validTime"],
+            df=dataframe,
         )
 
     def _get_data(
@@ -200,23 +219,22 @@ class Mesan:
 
         Returns:
             data of response
-            header of response
+            headers of response
             status of response
         """
         response = requests.get(url)
-        status = response.ok
-        header = response.headers
+        status = response.status_code
+        headers = response.headers
 
-        if status:
-            return json.loads(response.content), header, status
+        if status == STATUS_OK:
+            return json.loads(response.content), headers, status
         else:
-            return None, header, status
+            return None, headers, status
 
     def _format_data_point(self, data: dict) -> Optional[pd.DataFrame]:
         """Format data for point request.
 
         Args:
-            key: key in dictionary holding data
             data: data in dictionary
 
         Returns:
@@ -225,37 +243,23 @@ class Mesan:
         data_table = None
 
         if "geometry" in data:
-            data0 = pd.DataFrame(data["timeSeries"]).explode("parameters")
-            data0 = pd.concat(
+            df = pd.DataFrame(data["timeSeries"]).explode("parameters")
+            df_exploded = pd.concat(
                 [
-                    data0.drop("parameters", axis=1),
-                    data0["parameters"].apply(pd.Series).explode("values"),
+                    df.drop("parameters", axis=1),
+                    df["parameters"].apply(pd.Series).explode("values"),
                 ],
                 axis=1,
             )
-            data0["validTime"] = data0["validTime"].apply(
+            df_exploded["validTime"] = df_exploded["validTime"].apply(
                 lambda x: arrow.get(x).datetime
             )
-
-            data2 = data0.pivot_table(
+            data_table = df_exploded.pivot_table(
                 index="validTime",
-                columns=["levelType"],
-                values="level",
-                aggfunc="first",
-            )
-            data2.columns = pd.MultiIndex.from_arrays(
-                [data2.columns, [MESAN_LEVELS_UNIT] * len(data2.columns)]
-            )
-            data2.columns.names = ["levelType", "unit"]
-
-            data1 = data0.pivot_table(
-                index="validTime",
-                columns=["name", "unit"],
+                columns=["name", "levelType", "level", "unit"],
                 values="values",
                 aggfunc="first",
             )
-
-            data_table = data1.join(data2)
 
         return data_table
 
@@ -269,22 +273,19 @@ class Mesan:
         Returns:
             data_table: pandas DataFrame
         """
-        data_table = None
-
-        if "approvedTime" in data:
-            data0 = pd.DataFrame(data["timeSeries"]).explode("parameters")
-            data0["approvedTime"] = data["approvedTime"]
-            data0["referenceTime"] = data["referenceTime"]
-            for date in ["validTime", "approvedTime", "referenceTime"]:
-                data0[date] = data0[date].apply(lambda x: arrow.get(x).datetime)
-            data0 = pd.concat(
-                [
-                    data0.drop("parameters", axis=1),
-                    data0["parameters"].apply(pd.Series).explode("values"),
-                ],
-                axis=1,
+        if "geometry" in data:
+            df = pd.DataFrame(
+                {
+                    "lat": [x[1] for x in data["geometry"]["coordinates"]],
+                    "lon": [x[0] for x in data["geometry"]["coordinates"]],
+                    "value": data["timeSeries"][0]["parameters"][0]["values"],
+                }
             )
-            data0["values"] = data0["values"].apply(pd.to_numeric)
-            data_table = data0.reset_index(drop=True)
+        else:
+            df = pd.DataFrame(
+                {
+                    "value": data["timeSeries"][0]["parameters"][0]["values"],
+                }
+            )
 
-        return data_table
+        return df
