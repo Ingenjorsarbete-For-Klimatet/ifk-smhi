@@ -41,9 +41,9 @@ class Strang:
         )
         self._point_url: Optional[str] = None
         self._multipoint_url: Optional[str] = None
-        self._available_parameters: defaultdict[
-            int, StrangParameter
-        ] = STRANG_PARAMETERS
+        self._available_parameters: defaultdict[int, StrangParameter] = (
+            STRANG_PARAMETERS
+        )
 
     @property
     def parameters(
