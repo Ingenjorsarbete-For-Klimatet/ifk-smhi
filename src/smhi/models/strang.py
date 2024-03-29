@@ -26,7 +26,7 @@ class StrangParameter(BaseModel):
     key: Optional[int]
     meaning: Optional[str]
     time_from: Optional[datetime]
-    time_to: Callable
+    time_to: Optional[Callable]
 
 
 class StrangMultiPointItem(BaseModel):

@@ -93,9 +93,14 @@ class TestIntegrationStrang:
         )
 
         assert point_model.parameter_key == parameter
+        assert (
+            point_model.parameter_meaning
+            == client._available_parameters[parameter].meaning
+        )
         assert point_model.latitude == lat
         assert point_model.longitude == lon
         assert point_model.time_interval == time_interval
+        assert point_model.status == 200
 
         if time_from is not None:
             pd.testing.assert_frame_equal(expected_result, point_model.data)
@@ -113,9 +118,14 @@ class TestIntegrationStrang:
         time_interval = "monthly"
         multipoint_model = client.get_multipoint(parameter, valid_time, time_interval)
 
-        multipoint_model.parameter_key = parameter
-        multipoint_model.valid_time = valid_time
-        multipoint_model.time_interval = time_interval
+        assert multipoint_model.parameter_key == parameter
+        assert (
+            multipoint_model.parameter_meaning
+            == client._available_parameters[parameter].meaning
+        )
+        assert multipoint_model.time_interval == time_interval
+        assert multipoint_model.status == 200
+
         pd.testing.assert_frame_equal(
             get_multipoint,
             multipoint_model.data.iloc[:10, :],

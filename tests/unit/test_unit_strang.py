@@ -9,12 +9,11 @@ import pandas as pd
 import pytest
 from dateutil.tz import tzutc
 from smhi.constants import (
-    STRANG,
-    STRANG_EMPTY,
     STRANG_MULTIPOINT_URL,
     STRANG_PARAMETERS,
     STRANG_POINT_URL,
 )
+from smhi.models.strang import StrangParameter
 from smhi.strang import Strang
 
 INPUT_DAILY_2020_01_01_2020_01_02 = [
@@ -34,12 +33,13 @@ INPUT_MULTIPOINT_2020_01_01_MONTHLY_10 = [
     {"lat": 71.219406, "lon": -9.025805, "value": 4.3},
 ]
 RESULT_DAILY_2020_01_01_2020_01_02 = pd.read_csv(
-    "tests/fixtures/STRANG_RESULT_DAILY_2020_01_01_2020_01_02.csv",
+    "tests/fixtures/strang/STRANG_RESULT_DAILY_2020_01_01_2020_01_02.csv",
     parse_dates=[0],
     index_col=0,
 )
 RESULT_MULTIPOINT_2020_01_01_MONTHLY_10 = pd.read_csv(
-    "tests/fixtures/STRANG_RESULT_MULTIPOINT_2020_01_01_MONTHLY_10.csv", index_col=0
+    "tests/fixtures/strang/STRANG_RESULT_MULTIPOINT_2020_01_01_MONTHLY_10.csv",
+    index_col=0,
 )
 
 
@@ -56,33 +56,24 @@ class TestUnitStrang:
 
         assert client._category == CATEGORY
         assert client._version == VERSION
-
-        assert client.latitude is None
-        assert client.longitude is None
-        assert client.parameter is STRANG_EMPTY
-        assert client.status is None
-        assert client.header is None
-        assert client.available_parameters == STRANG_PARAMETERS
+        assert client._available_parameters == STRANG_PARAMETERS
 
         raw_url_dict = {"category": CATEGORY, "version": VERSION}
         for k1, k2 in zip(
-            sorted(raw_url_dict.keys()), sorted(client.point_raw_url.keywords.keys())
+            sorted(raw_url_dict.keys()), sorted(client._point_raw_url.keywords.keys())
         ):
             assert k1 == k2
-            assert raw_url_dict[k1] == client.point_raw_url.keywords[k2]
+            assert raw_url_dict[k1] == client._point_raw_url.keywords[k2]
 
         raw_url_dict = {"category": CATEGORY, "version": VERSION}
         for k1, k2 in zip(
             sorted(raw_url_dict.keys()),
-            sorted(client.multipoint_raw_url.keywords.keys()),
+            sorted(client._multipoint_raw_url.keywords.keys()),
         ):
             assert k1 == k2
-            assert raw_url_dict[k1] == client.multipoint_raw_url.keywords[k2]
+            assert raw_url_dict[k1] == client._multipoint_raw_url.keywords[k2]
 
-        assert client.point_url is None
-        assert client.multipoint_url is None
-
-    @patch("smhi.strang.logging.info")
+    @patch("smhi.strang.logger.info")
     def test_unit_strang_parameters(self, mock_logging):
         """Unit test for Strang parameters get property.
 
@@ -99,56 +90,16 @@ class TestUnitStrang:
             (
                 0,
                 0,
-                STRANG(
-                    None,
-                    None,
-                    None,
-                    None,
-                ),
+                StrangParameter(key=None, meaning=None, time_from=None, time_to=None),
                 "2020-01-01",
                 "2020-01-01",
                 "hourly",
             ),
-            (
-                0,
-                0,
-                STRANG_PARAMETERS[116],
-                None,
-                None,
-                None,
-            ),
-            (
-                0,
-                0,
-                STRANG_PARAMETERS[116],
-                "2020-01-01",
-                "2020-01-01",
-                "hourly",
-            ),
-            (
-                0,
-                None,
-                STRANG_PARAMETERS[116],
-                "2020-01-01",
-                "2020-01-01",
-                "hourly",
-            ),
-            (
-                None,
-                0,
-                STRANG_PARAMETERS[116],
-                "2020-01-01",
-                "2020-01-01",
-                "hourly",
-            ),
-            (
-                None,
-                None,
-                STRANG_PARAMETERS[116],
-                "2020-01-01",
-                "2020-01-01",
-                "hourly",
-            ),
+            (0, 0, STRANG_PARAMETERS[116], None, None, None),
+            (0, 0, STRANG_PARAMETERS[116], "2020-01-01", "2020-01-01", "hourly"),
+            (0, None, STRANG_PARAMETERS[116], "2020-01-01", "2020-01-01", "hourly"),
+            (None, 0, STRANG_PARAMETERS[116], "2020-01-01", "2020-01-01", "hourly"),
+            (None, None, STRANG_PARAMETERS[116], "2020-01-01", "2020-01-01", "hourly"),
         ],
     )
     @patch(
@@ -236,35 +187,14 @@ class TestUnitStrang:
         "parameter, valid_time, time_interval",
         [
             (
-                STRANG(
-                    None,
-                    None,
-                    None,
-                    None,
-                ),
+                StrangParameter(key=None, meaning=None, time_from=None, time_to=None),
                 "2020-01-01",
                 "hourly",
             ),
-            (
-                STRANG_PARAMETERS[116],
-                "2020-01-01",
-                "hourly",
-            ),
-            (
-                STRANG_PARAMETERS[116],
-                "2020-01-01",
-                "hourly",
-            ),
-            (
-                STRANG_PARAMETERS[116],
-                None,
-                None,
-            ),
-            (
-                STRANG_PARAMETERS[116],
-                None,
-                None,
-            ),
+            (STRANG_PARAMETERS[116], "2020-01-01", "hourly"),
+            (STRANG_PARAMETERS[116], "2020-01-01", "hourly"),
+            (STRANG_PARAMETERS[116], None, None),
+            (STRANG_PARAMETERS[116], None, None),
         ],
     )
     @patch(
@@ -291,10 +221,10 @@ class TestUnitStrang:
         """
         client = Strang()
 
-        if parameter.parameter is None:
+        if parameter.key is None:
             with pytest.raises(NotImplementedError):
                 client.get_multipoint(
-                    parameter.parameter,
+                    parameter.key,
                     valid_time,
                     time_interval,
                 )
@@ -304,7 +234,7 @@ class TestUnitStrang:
         if valid_time is None:
             with pytest.raises(TypeError):
                 client.get_multipoint(
-                    parameter.parameter,
+                    parameter.key,
                     valid_time,
                     time_interval,
                 )
@@ -316,7 +246,7 @@ class TestUnitStrang:
             False,
         )
         client.get_multipoint(
-            parameter.parameter,
+            parameter.key,
             valid_time,
             time_interval,
         )
@@ -337,18 +267,9 @@ class TestUnitStrang:
             (
                 None,
                 None,
-                STRANG(
-                    None,
-                    None,
-                    None,
-                    None,
-                ),
+                StrangParameter(key=None, meaning=None, time_from=None, time_to=None),
             ),
-            (
-                "16",
-                "50",
-                STRANG_PARAMETERS[116],
-            ),
+            ("16", "50", STRANG_PARAMETERS[116]),
         ],
     )
     def test_unit_strang_build_base_point_url(self, lat, lon, parameter):
@@ -360,14 +281,13 @@ class TestUnitStrang:
             parameter: parmeter
         """
         client = Strang()
-        client.longitude = lon
-        client.latitude = lat
-        client.parameter = parameter
 
         url = partial(STRANG_POINT_URL.format, category=CATEGORY, version=VERSION)
-        url = url(lon=lon, lat=lat, parameter=parameter.parameter)
+        url = url(lon=lon, lat=lat, parameter=parameter.key)
 
-        base_url = client._build_base_point_url(client.point_raw_url)
+        base_url = client._build_base_point_url(
+            client._point_raw_url, parameter, lon, lat
+        )
 
         assert base_url == url
 
@@ -375,12 +295,7 @@ class TestUnitStrang:
         "parameter, valid_time",
         [
             (
-                STRANG(
-                    None,
-                    None,
-                    None,
-                    None,
-                ),
+                StrangParameter(key=None, meaning=None, time_from=None, time_to=None),
                 None,
             ),
             (STRANG_PARAMETERS[116], "2020-01-01"),
@@ -394,13 +309,13 @@ class TestUnitStrang:
             valid_time: valid time
         """
         client = Strang()
-        client.parameter = parameter
-        client.valid_time = valid_time
 
         url = partial(STRANG_MULTIPOINT_URL.format, category=CATEGORY, version=VERSION)
-        url = url(parameter=parameter.parameter, validtime=valid_time)
+        url = url(parameter=parameter.key, validtime=valid_time)
 
-        base_url = client._build_base_multipoint_url(client.multipoint_raw_url)
+        base_url = client._build_base_multipoint_url(
+            client._multipoint_raw_url, parameter, valid_time
+        )
 
         assert base_url == url
 
@@ -437,30 +352,26 @@ class TestUnitStrang:
         client = Strang()
         mock_parse_datetime.side_effect = [time_from, time_to]
 
-        client.time_from = time_from
-        client.time_to = time_to
-        client.time_interval = time_interval
         client.url = "URL"
 
         if time_interval == "bad":
             with pytest.raises(ValueError):
-                client._build_time_point_url(client.url)
+                client._build_time_point_url(
+                    client.url, time_from, time_to, time_interval
+                )
         elif time_interval == "notimplemented":
             with pytest.raises(NotImplementedError):
-                client._build_time_point_url(client.url)
+                client._build_time_point_url(
+                    client.url, time_from, time_to, time_interval
+                )
         else:
-            assert expected_url == client._build_time_point_url(client.url)
+            assert expected_url == client._build_time_point_url(
+                client.url, time_from, time_to, time_interval
+            )
 
     @pytest.mark.parametrize(
         "time_interval, expected_url",
-        [
-            (None, "URL"),
-            (
-                "hourly",
-                "URL?interval=hourly",
-            ),
-            ("notimplemented", None),
-        ],
+        [(None, "URL"), ("hourly", "URL?interval=hourly"), ("notimplemented", None)],
     )
     def test_unit_strang_build_time_multipoint_url(self, time_interval, expected_url):
         """Unit test for Strang _build_time_multipoint_url method.
@@ -471,21 +382,22 @@ class TestUnitStrang:
         """
         client = Strang()
 
-        client.time_interval = time_interval
         client.url = "URL"
 
         if time_interval == "notimplemented":
             with pytest.raises(ValueError):
-                client._build_time_multipoint_url(client.url)
+                client._build_time_multipoint_url(client.url, time_interval)
         else:
-            assert expected_url == client._build_time_multipoint_url(client.url)
+            assert expected_url == client._build_time_multipoint_url(
+                client.url, time_interval
+            )
 
     @pytest.mark.parametrize(
-        "ok, data",
+        "status_expected, data",
         [
-            (True, [{"date_time": "2020-01-01T00:00:00Z"}]),
-            (True, [{"lat": 0, "lon": 0, "value": 0}]),
-            (False, [{"date_time": "2020-01-01T00:00:00Z"}]),
+            (200, [{"date_time": "2020-01-01T00:00:00Z"}]),
+            (200, [{"lat": 0, "lon": 0, "value": 0}]),
+            (400, [{"date_time": "2020-01-01T00:00:00Z"}]),
         ],
     )
     @patch("smhi.strang.Strang._parse_multipoint_data")
@@ -496,7 +408,7 @@ class TestUnitStrang:
         return_value=type(
             "MyClass",
             (object,),
-            {"ok": True, "headers": "header", "content": "content"},
+            {"status": True, "headers": "header", "content": "content"},
         )(),
     )
     @patch(
@@ -509,7 +421,7 @@ class TestUnitStrang:
         mock_logging,
         mock_parse_point_data,
         mock_parse_multipoint_data,
-        ok,
+        status_expected,
         data,
     ):
         """Unit test for Strang Point get_and_load_strang_data method.
@@ -520,21 +432,22 @@ class TestUnitStrang:
             mock_logging: mock of logging warning method
             mock_parse_point_data: mock of _parse_point_data
             mock_parse_multipoint_data: mock of _parse_multipoint_data
-            ok: request status
+            status: request status
             data: date
         """
         client = Strang()
         client.url = "URL"
         mock_json_loads.return_value = data
-        mock_requests_get.return_value.ok = ok
-        data, headers, status = client._get_and_load_data(client.url)
+        mock_requests_get.return_value.status_code = status_expected
+
+        data, headers, status = client._get_and_load_data(client.url, "parameter")
         mock_requests_get.assert_called_once_with(client.url)
 
-        if ok is True:
+        if status == 200:
             mock_json_loads.assert_called_once_with(
                 mock_requests_get.return_value.content
             )
-            assert status is ok
+            assert status == status_expected
             assert headers == "header"
 
             if "date_time" in data[0]:
@@ -545,7 +458,7 @@ class TestUnitStrang:
             mock_logging.assert_not_called()
 
         else:
-            assert status is ok
+            assert status is status_expected
             assert headers == "header"
             pd.testing.assert_frame_equal(data, pd.DataFrame())
             mock_logging.assert_called_once()
@@ -568,13 +481,12 @@ class TestUnitStrang:
             expected: expected result
         """
         client = Strang()
-        client.parameter = parameter
 
         if date_time == "Q" or date_time == "1900":
             with pytest.raises(ValueError):
-                client._parse_datetime(date_time)
+                client._parse_datetime(date_time, parameter)
         else:
-            assert client._parse_datetime(date_time) == expected
+            assert client._parse_datetime(date_time, parameter) == expected
 
     @pytest.mark.parametrize(
         "parameter, valid_time, time_interval, input, output",
@@ -601,8 +513,9 @@ class TestUnitStrang:
             output: output data
         """
         client = Strang()
-        client.parameter = STRANG_PARAMETERS[parameter]
-        data = client._parse_point_data(input)
+        parameter_model = STRANG_PARAMETERS[parameter]
+
+        data = client._parse_point_data(input, parameter_model)
 
         pd.testing.assert_frame_equal(data, output)
 
@@ -631,9 +544,8 @@ class TestUnitStrang:
             output: output data
         """
         client = Strang()
-        client.parameter = STRANG_PARAMETERS[parameter]
-        client.valid_time = arrow.get(valid_time).isoformat()
-        client.time_interval = time_interval
-        data = client._parse_multipoint_data(input)
+        parameter_model = STRANG_PARAMETERS[parameter]
+
+        data = client._parse_multipoint_data(input, parameter_model)
 
         pd.testing.assert_frame_equal(data, output)

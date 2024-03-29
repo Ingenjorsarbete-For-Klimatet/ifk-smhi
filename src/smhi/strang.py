@@ -116,9 +116,9 @@ class Strang:
             time_from=time_from,
             time_to=time_to,
             time_interval=time_interval,
+            url=url,
             status=status,
             headers=header,
-            url=url,
             data=data,
         )
 
