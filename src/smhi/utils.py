@@ -21,11 +21,12 @@ def get_request(url: str) -> requests.Response:
         requests.exceptions.HTTPError
     """
     logger.debug(f"Fetching from {url}.")
+
     response = requests.get(url, timeout=200)
 
     if response.status_code != STATUS_OK:
-        logger.warning(f"Request failed for {url}.")
-    else:
-        logger.debug(f"Successful request from {url}.")
+        raise requests.exceptions.HTTPError(f"Could request from {url}.")
+
+    logger.debug(f"Successful request from {url}.")
 
     return response

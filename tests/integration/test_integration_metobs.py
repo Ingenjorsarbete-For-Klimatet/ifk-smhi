@@ -6,7 +6,7 @@ import time
 import pandas as pd
 import pytest
 from smhi.metobs import Data, Parameters, Periods, Stations
-from smhi.models.metobs_parameters import ParameterItem
+from smhi.models.metobs_parameters import MetobsParameterItem
 
 METOBS_INTEGRATION = {}
 for i in [1, 2, 22]:
@@ -34,7 +34,7 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ParameterItem(
+                MetobsParameterItem(
                     key="1",
                     title="Lufttemperatur",
                     summary="momentanvärde, 1 gång/tim",
@@ -56,7 +56,7 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ParameterItem(
+                MetobsParameterItem(
                     key="1",
                     title="Lufttemperatur",
                     summary="momentanvärde, 1 gång/tim",
@@ -78,7 +78,7 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ParameterItem(
+                MetobsParameterItem(
                     key="2",
                     title="Lufttemperatur",
                     summary="medelvärde 1 dygn, 1 gång/dygn, kl 00",
@@ -100,7 +100,7 @@ class TestIntegrationMetobs:
                 "metobs",
                 "Meteorologiska observationer från SMHI: Välj "
                 + "version (sedan parameter, station och tidsutsnitt)",
-                ParameterItem(
+                MetobsParameterItem(
                     key="22",
                     title="Lufttemperatur",
                     summary="medel, 1 gång per månad",

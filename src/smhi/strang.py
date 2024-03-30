@@ -110,8 +110,8 @@ class Strang:
 
         raw_url = self._point_raw_url
         url = self._build_base_point_url(raw_url, strang_parameter, longitude, latitude)
-        url = self._build_time_point_url(url + "1", time_from, time_to, time_interval)
-        data, header, status = self._get_and_load_data(url, RequestType["POINT"])
+        url = self._build_time_point_url(url, time_from, time_to, time_interval)
+        data, header, status = self._get_and_load_data(url + "1", RequestType["POINT"])
 
         return StrangPoint(
             parameter_key=strang_parameter.key,
@@ -277,7 +277,7 @@ class Strang:
 
     def _get_and_load_data(
         self, url: str, request: RequestType
-    ) -> tuple[Optional[pd.DataFrame], CaseInsensitiveDict[str], int]:
+    ) -> tuple[pd.DataFrame, CaseInsensitiveDict[str], int]:
         """Fetch requested point data and parse it with datetime.
 
         Args:
@@ -289,11 +289,8 @@ class Strang:
             status code
         """
         response = get_request(url)
-
-        if response.ok is not True:
-            return None, response.headers, response.status_code
-
         data = df = json.loads(response.content)
+
         if request == RequestType.POINT:
             df = self._parse_point_data(data)
         else:
