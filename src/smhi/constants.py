@@ -6,7 +6,7 @@ from datetime import datetime
 from posixpath import join as urljoin
 
 import arrow
-from smhi.models.strang import StrangParameter
+from smhi.models.strang_model import StrangParameter
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 

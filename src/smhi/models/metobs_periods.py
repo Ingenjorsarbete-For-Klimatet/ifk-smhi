@@ -52,5 +52,5 @@ class PeriodModel(BaseModel):
         return sorted(period, key=lambda x: x.key)
 
     @property
-    def data(self) -> Tuple[str, ...]:
+    def data(self) -> Tuple[Optional[str], ...]:
         return tuple(x.key for x in self.period)

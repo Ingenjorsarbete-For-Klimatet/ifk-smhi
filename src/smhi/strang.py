@@ -18,7 +18,7 @@ from smhi.constants import (
     STRANG_POINT_URL,
     STRANG_TIME_INTERVALS,
 )
-from smhi.models.strang import StrangMultiPoint, StrangParameter, StrangPoint
+from smhi.models.strang_model import StrangMultiPoint, StrangParameter, StrangPoint
 from smhi.utils import get_request
 
 logger = logging.getLogger(__name__)
@@ -102,8 +102,8 @@ class Strang:
         time_from = self._parse_datetime(time_from, strang_parameter)
         time_to = self._parse_datetime(time_to, strang_parameter)
 
-        url = self._point_raw_url
-        url = self._build_base_point_url(url, strang_parameter, longitude, latitude)
+        raw_url = self._point_raw_url
+        url = self._build_base_point_url(raw_url, strang_parameter, longitude, latitude)
         url = self._build_time_point_url(url, time_from, time_to, time_interval)
         data, header, status = self._get_and_load_data(url, strang_parameter)
 
@@ -152,8 +152,8 @@ class Strang:
         except TypeError:
             raise TypeError("Wrong type of valid time provided. Check valid time.")
 
-        url = self._multipoint_raw_url
-        url = self._build_base_multipoint_url(url, strang_parameter, valid_time)
+        raw_url = self._multipoint_raw_url
+        url = self._build_base_multipoint_url(raw_url, strang_parameter, valid_time)
         url = self._build_time_multipoint_url(url, time_interval)
         data, header, status = self._get_and_load_data(url, strang_parameter)
 
@@ -212,7 +212,11 @@ class Strang:
         )
 
     def _build_time_point_url(
-        self, url: str, time_from: str, time_to: str, time_interval: str
+        self,
+        url: str,
+        time_from: Optional[str],
+        time_to: Optional[str],
+        time_interval: Optional[str],
     ) -> str:
         """Build date part of the API url.
 
@@ -252,7 +256,7 @@ class Strang:
 
         return url
 
-    def _build_time_multipoint_url(self, url: str, time_interval: str) -> str:
+    def _build_time_multipoint_url(self, url: str, time_interval: Optional[str]) -> str:
         """Build date part of the API url.
 
         Args:

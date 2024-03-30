@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class ParameterItem(BaseModel):
-    key: str
+    key: Optional[str]
     title: str
     summary: str
     unit: str

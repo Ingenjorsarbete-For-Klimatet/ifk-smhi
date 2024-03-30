@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import arrow
 import pandas as pd
@@ -12,7 +12,7 @@ from smhi.constants import (
     MESAN_PARAMETER_DESCRIPTIONS,
     MESAN_URL,
 )
-from smhi.models.mesan import (
+from smhi.models.mesan_model import (
     MesanApprovedTime,
     MesanMultiPointData,
     MesanParameters,
@@ -20,7 +20,7 @@ from smhi.models.mesan import (
     MesanPolygon,
     MesanValidTime,
 )
-from smhi.models.variable import (
+from smhi.models.variable_model import (
     ApprovedTime,
     MultiPointData,
     Parameters,
@@ -234,9 +234,7 @@ class Mesan:
         else:
             return downsample
 
-    def _get_data(
-        self, url
-    ) -> tuple[Optional[dict[str, Any]], CaseInsensitiveDict[str], bool]:
+    def _get_data(self, url) -> tuple[dict[str, Any], CaseInsensitiveDict[str], bool]:
         """Get requested data.
 
         Args:
@@ -251,7 +249,7 @@ class Mesan:
 
         return json.loads(response.content), response.headers, response.status_code
 
-    def _format_data_point(self, data: dict) -> Optional[pd.DataFrame]:
+    def _format_data_point(self, data: dict) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Format data for point request.
 
         Args:
@@ -260,35 +258,34 @@ class Mesan:
         Returns:
             data_table: pandas DataFrame
         """
-        data_table = None
-        info_table = None
+        df = pd.DataFrame(data["timeSeries"]).explode("parameters")
+        df_exploded = pd.concat(
+            [
+                df.drop("parameters", axis=1),
+                df["parameters"].apply(pd.Series).explode("values"),
+            ],
+            axis=1,
+        )
+        df_exploded["validTime"] = df_exploded["validTime"].apply(
+            lambda x: arrow.get(x).datetime
+        )
+        df_exploded = df_exploded.rename(
+            columns={
+                "values": "value",
+                "validTime": "valid_time",
+                "levelType": "level_type",
+            }
+        )
 
-        if "geometry" in data:
-            df = pd.DataFrame(data["timeSeries"]).explode("parameters")
-            df_exploded = pd.concat(
-                [
-                    df.drop("parameters", axis=1),
-                    df["parameters"].apply(pd.Series).explode("values"),
-                ],
-                axis=1,
-            )
-            df_exploded["validTime"] = df_exploded["validTime"].apply(
-                lambda x: arrow.get(x).datetime
-            )
-            df_exploded = df_exploded.rename(
-                columns={
-                    "values": "value",
-                    "validTime": "valid_time",
-                    "levelType": "level_type",
-                }
-            )
-
-            data_table = df_exploded.pivot_table(
-                index="valid_time", columns="name", values="value", aggfunc="first"
-            )
-            info_table = df_exploded.pivot_table(
-                index="name", values=["level_type", "level", "unit"], aggfunc="first"
-            )
+        data_table = df_exploded.pivot_table(
+            index="valid_time", columns="name", values="value", aggfunc="first"
+        )
+        # https://github.com/pandas-dev/pandas-stubs/issues/885
+        info_table = df_exploded.pivot_table(
+            index="name",
+            values=["level_type", "level", "unit"],  # type: ignore
+            aggfunc="first",
+        )
 
         return data_table, info_table
 
@@ -326,19 +323,19 @@ class Mesan:
         validtime: str,
         parameter: str,
         leveltype: str,
-        level: str,
+        level: int,
         geo: bool,
         downsample: int,
     ) -> str:
         """Build multipoint url.
 
         Args:
-            validtime:
-            parameter:
-            leveltype:
-            level:
-            geo:
-            downsample:
+            validtime: valid time
+            parameter: parameter
+            leveltype: level type
+            level: level
+            geo: geo
+            downsample downsample
 
         Returns:
             valid multipoint url

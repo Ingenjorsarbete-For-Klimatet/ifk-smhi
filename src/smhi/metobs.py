@@ -13,7 +13,7 @@ from smhi.models.metobs_parameters import ParameterModel
 from smhi.models.metobs_periods import PeriodModel
 from smhi.models.metobs_stations import StationModel
 from smhi.models.metobs_versions import VersionModel
-from smhi.models.variable import MetobsModels
+from smhi.models.variable_model import MetobsModels
 from smhi.utils import get_request
 
 logger = logging.getLogger(__name__)
