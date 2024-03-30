@@ -15,14 +15,14 @@ from pydantic import BaseModel, ConfigDict, Field
 class MetfctsValidTime(BaseModel):
     status: int
     headers: Dict[str, str]
-    valid_time: str = Field(..., alias="validTime")
+    valid_time: List[str]
 
 
 class MetfctsApprovedTime(BaseModel):
     status: int
     headers: Dict[str, str]
-    approved_time: str = Field(..., alias="approvedTime")
-    reference_time: str = Field(..., alias="referenceTime")
+    approved_time: str
+    reference_time: str
 
 
 class MetfctsPolygon(BaseModel):

@@ -80,6 +80,7 @@ class Mesan:
             parameter model
         """
         data, headers, status = self._get_data(self._base_url + "parameter.json")
+
         return self.__parameters_model(
             status=status, headers=headers, parameter=data["parameter"]
         )
@@ -199,7 +200,14 @@ class Mesan:
 
         Returns:
             multipoint data model
+
+        Raises:
+            ValueError
         """
+        if self._check_valid_time(validtime) is False:
+            print(validtime)
+            raise ValueError(f"Invalid time {validtime}.")
+
         url = self._build_multipoint_url(
             validtime, parameter, leveltype, level, geo, downsample
         )
@@ -299,7 +307,7 @@ class Mesan:
         Returns:
             data_table: pandas DataFrame
         """
-        formatted_data = {"values": data["timeSeries"][0]["parameters"][0]["values"]}
+        formatted_data = {"value": data["timeSeries"][0]["parameters"][0]["values"]}
         if "geometry" in data:
             formatted_data["lat"] = [x[1] for x in data["geometry"]["coordinates"]]
             formatted_data["lon"] = [x[0] for x in data["geometry"]["coordinates"]]
@@ -340,7 +348,7 @@ class Mesan:
         Returns:
             valid multipoint url
         """
-        validtime = arrow.get(validtime).format("YYYYMMDDThhmmss") + "Z"
+        validtime = self._format_datetime(validtime)
         downsample = self._check_downsample(downsample)
         geo_url = "true" if geo is True else "false"
 
@@ -350,3 +358,28 @@ class Mesan:
             + f"validtime/{validtime}/parameter/{parameter}/leveltype/"
             + f"{leveltype}/level/{level}/data.json?with-geo={geo_url}&downsample={downsample}"
         )
+
+    def _format_datetime(self, test_time: str) -> str:
+        """Format user input time.
+
+        Args:
+            test_time: input time
+
+        Returns:
+            formatted time
+        """
+        return arrow.get(test_time).format("YYYYMMDDTHHmmss") + "Z"
+
+    def _check_valid_time(self, test_time: str) -> bool:
+        """Check if time is valid, that is within a day window.
+
+        This might be overly restrictive but avoids an extra API call for each get_multipoint.
+
+        Args:
+            test_time: time to check
+
+        Returns
+            true if valid and false if not valid
+        """
+        valid_time = self._format_datetime(test_time)
+        return -1 < (arrow.now().shift(hours=-1) - arrow.get(valid_time)).days < 1

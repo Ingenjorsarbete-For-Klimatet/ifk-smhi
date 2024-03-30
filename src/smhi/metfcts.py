@@ -2,6 +2,7 @@
 
 from typing import Dict
 
+import arrow
 from smhi.constants import METFCTS_PARAMETER_DESCRIPTIONS, METFCTS_URL
 from smhi.mesan import Mesan
 from smhi.models.metfcts_model import (
@@ -36,3 +37,17 @@ class Metfcts(Mesan):
     _version: int = 2
     _base_url: str = METFCTS_URL
     _parameter_descriptions: Dict[str, str] = METFCTS_PARAMETER_DESCRIPTIONS
+
+    def _check_valid_time(self, test_time: str) -> bool:
+        """Check if time is valid, that is within a day window.
+
+        This might be overly restrictive but avoids an extra API call for each get_multipoint.
+
+        Args:
+            test_time: time to check
+
+        Returns
+            true if valid and false if not valid
+        """
+        valid_time = self._format_datetime(test_time)
+        return -1 < (arrow.get(valid_time) - arrow.now()).days < 10
