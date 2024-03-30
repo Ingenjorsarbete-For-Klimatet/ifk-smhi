@@ -9,52 +9,54 @@ from typing import List, Optional, Tuple
 from pydantic import BaseModel, Field, field_validator
 
 
-class ParameterItem(BaseModel):
+class MetobsParameterItem(BaseModel):
     key: Optional[str]
     title: str
     summary: str
     unit: str
 
 
-class LinkItem(BaseModel):
+class MetobsParameterLinkItem(BaseModel):
     href: str
     rel: str
     type: str
 
 
-class GeoBox(BaseModel):
+class MetobsParameterGeoBox(BaseModel):
     min_latitude: float = Field(..., alias="minLatitude")
     min_longitude: float = Field(..., alias="minLongitude")
     max_latitude: float = Field(..., alias="maxLatitude")
     max_longitude: float = Field(..., alias="maxLongitude")
 
 
-class ResourceItem(BaseModel):
+class MetobsParameterResourceItem(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
     summary: str
-    link: List[LinkItem]
+    link: List[MetobsParameterLinkItem]
     unit: str
-    geo_box: GeoBox = Field(..., alias="geoBox")
+    geo_box: MetobsParameterGeoBox = Field(..., alias="geoBox")
 
 
-class ParameterModel(BaseModel):
+class MetobsParameterModel(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
     summary: str
-    link: List[LinkItem]
-    resource: List[ResourceItem]
+    link: List[MetobsParameterLinkItem]
+    resource: List[MetobsParameterResourceItem]
 
     @field_validator("resource")
     @classmethod
-    def serialise_resource_in_order(cls, resource: List[ResourceItem]):
+    def serialise_resource_in_order(cls, resource: List[MetobsParameterResourceItem]):
         return sorted(resource, key=lambda x: int(x.key))
 
     @property
-    def data(self) -> Tuple[ParameterItem, ...]:
+    def data(self) -> Tuple[MetobsParameterItem, ...]:
         return tuple(
-            ParameterItem(key=x.key, title=x.title, summary=x.summary, unit=x.unit)
+            MetobsParameterItem(
+                key=x.key, title=x.title, summary=x.summary, unit=x.unit
+            )
             for x in self.resource
         )

@@ -6,8 +6,9 @@ See validation of model: https://strang.smhi.se/validation/validation.html
 import json
 import logging
 from collections import defaultdict
+from enum import Enum
 from functools import partial
-from typing import Optional
+from typing import Any, Optional
 
 import arrow
 import pandas as pd
@@ -22,6 +23,11 @@ from smhi.models.strang_model import StrangMultiPoint, StrangParameter, StrangPo
 from smhi.utils import get_request
 
 logger = logging.getLogger(__name__)
+
+
+class RequestType(Enum):
+    POINT = 1
+    MULTIPOINT = 2
 
 
 class Strang:
@@ -104,8 +110,8 @@ class Strang:
 
         raw_url = self._point_raw_url
         url = self._build_base_point_url(raw_url, strang_parameter, longitude, latitude)
-        url = self._build_time_point_url(url, time_from, time_to, time_interval)
-        data, header, status = self._get_and_load_data(url, strang_parameter)
+        url = self._build_time_point_url(url + "1", time_from, time_to, time_interval)
+        data, header, status = self._get_and_load_data(url, RequestType["POINT"])
 
         return StrangPoint(
             parameter_key=strang_parameter.key,
@@ -155,7 +161,7 @@ class Strang:
         raw_url = self._multipoint_raw_url
         url = self._build_base_multipoint_url(raw_url, strang_parameter, valid_time)
         url = self._build_time_multipoint_url(url, time_interval)
-        data, header, status = self._get_and_load_data(url, strang_parameter)
+        data, header, status = self._get_and_load_data(url, RequestType["MULTIPOINT"])
 
         return StrangMultiPoint(
             parameter_key=strang_parameter.key,
@@ -186,11 +192,7 @@ class Strang:
         Returns:
             formatted url string
         """
-        return url(
-            lon=longitude,
-            lat=latitude,
-            parameter=parameter.key,
-        )
+        return url(lon=longitude, lat=latitude, parameter=parameter.key)
 
     def _build_base_multipoint_url(
         self, url: partial[str], parameter: StrangParameter, valid_time: str
@@ -206,10 +208,7 @@ class Strang:
         Returns:
             formatted url string
         """
-        return url(
-            validtime=valid_time,
-            parameter=parameter.key,
-        )
+        return url(validtime=valid_time, parameter=parameter.key)
 
     def _build_time_point_url(
         self,
@@ -277,13 +276,12 @@ class Strang:
         return url
 
     def _get_and_load_data(
-        self, url: str, parameter: StrangParameter
-    ) -> tuple[pd.DataFrame, CaseInsensitiveDict[str], int]:
+        self, url: str, request: RequestType
+    ) -> tuple[Optional[pd.DataFrame], CaseInsensitiveDict[str], int]:
         """Fetch requested point data and parse it with datetime.
 
         Args:
             url: url to fetch from
-            parameter: strang parameter
 
         Returns:
             data
@@ -291,14 +289,17 @@ class Strang:
             status code
         """
         response = get_request(url)
-        data = json.loads(response.content)
 
-        if "date_time" in data[0]:
-            data = self._parse_point_data(data, parameter)
+        if response.ok is not True:
+            return None, response.headers, response.status_code
+
+        data = df = json.loads(response.content)
+        if request == RequestType.POINT:
+            df = self._parse_point_data(data)
         else:
-            data = self._parse_multipoint_data(data, parameter)
+            df = self._parse_multipoint_data(data)
 
-        return data, response.headers, response.status_code
+        return df, response.headers, response.status_code
 
     def _parse_datetime(
         self, date_time: Optional[str], parameter: StrangParameter
@@ -332,15 +333,16 @@ class Strang:
                 )
             )
 
-    def _parse_point_data(self, data: list, parameter: StrangParameter) -> pd.DataFrame:
+    def _parse_point_data(
+        self, data: list[CaseInsensitiveDict[Any]]
+    ) -> Optional[pd.DataFrame]:
         """Parse point data into a pandas DataFrame.
 
         Args:
-            data: data as a list
-            parameter: strang parameter
+            url: url of request
 
         Returns
-            data_pd: pandas dataframe
+            pandas dataframe
         """
         for entry in data:
             entry["date_time"] = arrow.get(entry["date_time"]).datetime
@@ -351,13 +353,12 @@ class Strang:
         return data_pd
 
     def _parse_multipoint_data(
-        self, data: list, parameter: StrangParameter
+        self, data: list[CaseInsensitiveDict[Any]]
     ) -> pd.DataFrame:
         """Parse multipoint data into a pandas DataFrame.
 
         Args:
             data: data as a list
-            parameter: strang parameter
 
         Returns
             data_pd: pandas dataframe

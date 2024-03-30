@@ -10,32 +10,32 @@ import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class LinkItem(BaseModel):
+class MetobsLinkItem(BaseModel):
     href: str
     rel: str
     type: str
 
 
-class Datum(BaseModel):
+class MetobsDatum(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
     summary: str
-    link: List[LinkItem]
+    link: List[MetobsLinkItem]
 
 
-class DataModel(BaseModel):
+class MetobsData(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
     summary: str
     from_: int = Field(..., alias="from")
     to: int
-    link: List[LinkItem]
-    data: List[Datum]
+    link: List[MetobsLinkItem]
+    data: List[MetobsDatum]
 
 
-class MetobsData(BaseModel):
+class MetobsDataModel(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     station: Optional[pd.DataFrame] = None

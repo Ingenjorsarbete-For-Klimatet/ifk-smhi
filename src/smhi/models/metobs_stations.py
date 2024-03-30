@@ -9,26 +9,26 @@ from typing import List, Optional, Tuple
 from pydantic import BaseModel, Field, field_validator
 
 
-class LinkItem(BaseModel):
+class MetobsStationLinkItem(BaseModel):
     href: str
     rel: str
     type: str
 
 
-class StationSetItem(BaseModel):
+class MetobsStationSetItem(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
     summary: str
-    link: List[LinkItem]
+    link: List[MetobsStationLinkItem]
 
 
-class StationItem(BaseModel):
+class MetobsStationItem(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
     summary: str
-    link: List[LinkItem]
+    link: List[MetobsStationLinkItem]
     name: str
     owner: str
     owner_category: str = Field(..., alias="ownerCategory")
@@ -42,20 +42,20 @@ class StationItem(BaseModel):
     to: int
 
 
-class StationModel(BaseModel):
+class MetobsStationModel(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
     summary: str
     unit: str
     value_type: str = Field(..., alias="valueType")
-    link: List[LinkItem]
-    station_set: List[StationSetItem] = Field(..., alias="stationSet")
-    station: List[StationItem]
+    link: List[MetobsStationLinkItem]
+    station_set: List[MetobsStationSetItem] = Field(..., alias="stationSet")
+    station: List[MetobsStationItem]
 
     @field_validator("station")
     @classmethod
-    def serialise_station_in_order(cls, station: List[StationItem]):
+    def serialise_station_in_order(cls, station: List[MetobsStationItem]):
         return sorted(station, key=lambda x: int(x.id))
 
     @property

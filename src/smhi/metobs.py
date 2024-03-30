@@ -3,16 +3,16 @@
 import io
 import logging
 from collections import defaultdict
-from typing import Any, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import METOBS_AVAILABLE_PERIODS
-from smhi.models.metobs_data import DataModel, Datum, MetobsData
-from smhi.models.metobs_parameters import ParameterModel
-from smhi.models.metobs_periods import PeriodModel
-from smhi.models.metobs_stations import StationModel
-from smhi.models.metobs_versions import VersionModel
+from smhi.models.metobs_data import MetobsData, MetobsDataModel, MetobsDatum
+from smhi.models.metobs_parameters import MetobsParameterModel
+from smhi.models.metobs_periods import MetobsPeriodModel
+from smhi.models.metobs_stations import MetobsStationModel
+from smhi.models.metobs_versions import MetobsVersionModel
 from smhi.models.variable_model import MetobsModels
 from smhi.utils import get_request
 
@@ -31,7 +31,9 @@ class BaseMetobs:
         self.summary: Optional[str] = None
         self.link: Optional[str] = None
 
-    def _get_and_parse_request(self, url: str, model: MetobsModels) -> MetobsModels:
+    def _get_and_parse_request(
+        self, url: str, model: MetobsModels
+    ) -> Optional[MetobsModels]:
         """Get and parse API request. Only JSON supported.
 
         Args:
@@ -40,14 +42,16 @@ class BaseMetobs:
 
         Returns:
             pydantic model
-
-        Raise:
-            requests.exceptions.HTTPError
         """
         response = get_request(url)
-        model = model.model_validate_json(response.content)
 
         self.headers = response.headers
+
+        if response.ok is not True:
+            return None
+
+        model = model.model_validate_json(response.content)
+
         self.key = model.key
         self.updated = model.updated
         self.title = model.title
@@ -58,7 +62,7 @@ class BaseMetobs:
 
     def _get_url(
         self,
-        data: list[Any],
+        data: Optional[list[Any]],
         key: str,
         parameter: Union[str, int],
         data_type: str = "json",
@@ -81,6 +85,10 @@ class BaseMetobs:
         self.data_type = defaultdict(
             lambda: "application/json", json="application/json"
         )[data_type]
+
+        if data is None:
+            raise ValueError("No data to iterate over.")
+
         try:
             requested_data = [x for x in data if getattr(x, key) == str(parameter)][0]
             url = [x.href for x in requested_data.link if x.type == self.data_type][0]
@@ -95,7 +103,8 @@ class BaseMetobs:
 class Versions(BaseMetobs):
     """Get available versions of Metobs API."""
 
-    _base_url = "https://opendata-download-metobs.smhi.se/api.{data_type}"
+    _base_url: str = "https://opendata-download-metobs.smhi.se/api.{data_type}"
+    data = None
 
     def __init__(
         self,
@@ -117,14 +126,18 @@ class Versions(BaseMetobs):
             raise TypeError("Only json supported.")
 
         model = self._get_and_parse_request(
-            self._base_url.format(data_type=data_type), VersionModel
+            self._base_url.format(data_type=data_type), MetobsVersionModel
         )
 
-        self.data = model.version
+        if model is not None:
+            self.data = model.data
 
 
 class Parameters(BaseMetobs):
     """Get parameters for version 1 of Metobs API."""
+
+    resource = None
+    data = None
 
     def __init__(
         self,
@@ -142,6 +155,7 @@ class Parameters(BaseMetobs):
         Raises:
             TypeError: data_type not supported
             NotImplementedError: version not implemented
+            ValueError
         """
         super().__init__()
 
@@ -155,18 +169,27 @@ class Parameters(BaseMetobs):
         if versions_object is None:
             versions_object = Versions()
 
+        if versions_object.data is None:
+            raise ValueError("No data to iterate over.")
+
         url, _ = self._get_url(versions_object.data, "key", version, data_type)
-        model = self._get_and_parse_request(url, ParameterModel)
+        model = self._get_and_parse_request(url, MetobsParameterModel)
 
         self.versions_object = versions_object
         self.selected_version = version
 
-        self.resource = model.resource
-        self.data = model.data
+        if model is not None:
+            self.resource = model.resource
+            self.data = model.data
 
 
 class Stations(BaseMetobs):
     """Get stations from parameter for version 1 of Metobs API."""
+
+    value_type = None
+    station_set = None
+    station = None
+    data = None
 
     def __init__(
         self,
@@ -186,9 +209,13 @@ class Stations(BaseMetobs):
         Raises:
             TypeError: data_type not supported
             NotImplementedError: parameter not implemented
+            ValueError
         """
         super().__init__()
         self.selected_parameter: Optional[Union[int, str]] = None
+
+        if parameters_in_version.data is None:
+            raise ValueError("No data to iterate over.")
 
         if data_type != "json":
             raise TypeError("Only json supported.")
@@ -210,14 +237,15 @@ class Stations(BaseMetobs):
                 parameters_in_version.resource, "title", parameter_title, data_type
             )
 
-        model = self._get_and_parse_request(url, StationModel)
+        model = self._get_and_parse_request(url, MetobsStationModel)
 
         self.parameters_in_version = parameters_in_version
 
-        self.value_type = model.value_type
-        self.station_set = model.station_set
-        self.station = model.station
-        self.data = model.data
+        if model is not None:
+            self.value_type = model.value_type
+            self.station_set = model.station_set
+            self.station = model.station
+            self.data = model.data
 
 
 class Periods(BaseMetobs):
@@ -225,6 +253,16 @@ class Periods(BaseMetobs):
 
     Note that stationset_title is not supported
     """
+
+    owner = None
+    owner_category = None
+    measuring_stations = None
+    active = None
+    from_ = None
+    to = None
+    position = None
+    period = None
+    data = None
 
     def __init__(
         self,
@@ -249,6 +287,9 @@ class Periods(BaseMetobs):
         """
         super().__init__()
         self.selected_station: Optional[Union[int, str]] = None
+
+        if stations_in_parameter.data is None:
+            raise ValueError("No data to iterate over.")
 
         if data_type != "json":
             raise TypeError("Only json supported.")
@@ -275,28 +316,36 @@ class Periods(BaseMetobs):
                 stations_in_parameter.station_set, "key", station_set, data_type
             )
 
-        model = self._get_and_parse_request(url, PeriodModel)
+        model = self._get_and_parse_request(url, MetobsPeriodModel)
 
         self.stations_in_parameter = stations_in_parameter
 
-        self.owner = model.owner
-        self.owner_category = model.owner_category
-        self.measuring_stations = model.measuring_stations
-        self.active = model.active
-        self.from_ = model.from_
-        self.to = model.to
-        self.position = model.position
-        self.period = model.period
-        self.data = model.data
+        if model is not None:
+            self.owner = model.owner
+            self.owner_category = model.owner_category
+            self.measuring_stations = model.measuring_stations
+            self.active = model.active
+            self.from_ = model.from_
+            self.to = model.to
+            self.position = model.position
+            self.period = model.period
+            self.data = model.data
 
 
 class Data(BaseMetobs):
     """Get data from period for version 1 of Metobs API."""
 
-    _metobs_available_periods = METOBS_AVAILABLE_PERIODS
-    _metobs_parameter_tim = ["Datum", "Tid (UTC)"]
-    _metobs_parameter_dygn = ["Representativt dygn"]
-    _metobs_parameter_manad = ["Representativ månad"]
+    _metobs_available_periods: Dict[str, str] = METOBS_AVAILABLE_PERIODS
+    _metobs_parameter_tim: List[str] = ["Datum", "Tid (UTC)"]
+    _metobs_parameter_dygn: List[str] = ["Representativt dygn"]
+    _metobs_parameter_manad: List[str] = ["Representativ månad"]
+
+    from_ = None
+    to = None
+    station = None
+    parameter = None
+    period = None
+    data = None
 
     def __init__(
         self,
@@ -315,13 +364,17 @@ class Data(BaseMetobs):
         Raises:
             TypeError: data_type not supported
             NotImplementedError: period not implemented
+            ValueError: No data to iterate over
         """
         super().__init__()
+
+        if periods_in_station.data is None:
+            raise ValueError("No data to iterate over.")
 
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        if self._check_available_periods(periods_in_station, period):
+        if self._check_available_periods(periods_in_station.data, period):
             logger.info(
                 "Found only one period to download. "
                 + f"Overriding the user selected {period} with the found {periods_in_station.data[0]}."
@@ -338,27 +391,28 @@ class Data(BaseMetobs):
         self.selected_period = period
 
         url, _ = self._get_url(periods_in_station.period, "key", period, data_type)
-        model = self._get_and_parse_request(url, DataModel)
+        model = self._get_and_parse_request(url, MetobsData)
 
-        self.from_ = model.from_
-        self.to = model.to
+        if model is not None:
+            data_model = self._get_data(model.data)
+            stationdata = data_model.stationdata
+            stationdata = self._clean_columns(stationdata)
+            stationdata = self._drop_nan(stationdata)
 
-        data_model = self._get_data(model.data)
-        stationdata = data_model.stationdata
-        stationdata = self._clean_columns(stationdata)
-        stationdata = self._drop_nan(stationdata)
+            if (
+                self._has_datetime_columns(stationdata) is True
+                and not stationdata.empty
+            ):
+                stationdata = self._set_dataframe_index(stationdata)
 
-        if self._has_datetime_columns(stationdata) is True and not stationdata.empty:
-            stationdata = self._set_dataframe_index(stationdata)
+            self.from_ = model.from_
+            self.to = model.to
+            self.station = data_model.station
+            self.parameter = data_model.parameter
+            self.period = data_model.period
+            self.data = stationdata
 
-        self.station = data_model.station
-        self.parameter = data_model.parameter
-        self.period = data_model.period
-        self.data = stationdata
-
-    def _check_available_periods(
-        self, periods_in_station: Periods, period: str
-    ) -> bool:
+    def _check_available_periods(self, data: Tuple[Optional[str]], period: str) -> bool:
         """Check available periods.
 
         Args:
@@ -366,16 +420,18 @@ class Data(BaseMetobs):
             period: select period from:
                     latest-hour, latest-day, latest-months or corrected-archive
 
-        Returns
+        Returns:
             boolean
         """
         return (
-            len(periods_in_station.data) == 1
-            and periods_in_station.data[0] != period
+            len(data) == 1
+            and data[0] != period
             and period in self._metobs_available_periods
         )
 
-    def _get_data(self, raw_data: list[Datum], type: str = "text/plain") -> MetobsData:
+    def _get_data(
+        self, raw_data: list[MetobsDatum], type: str = "text/plain"
+    ) -> MetobsDataModel:
         """Get the selected data file.
 
         Args:
@@ -400,12 +456,12 @@ class Data(BaseMetobs):
 
         # these are the two cases I've found. Generalise if there are others
         if len(csv_content) == 2:
-            data_model = MetobsData(
+            data_model = MetobsDataModel(
                 parameter=self._parse_csv(csv_content[0]),
                 stationdata=self._parse_csv(csv_content[1]),
             )
         else:
-            data_model = MetobsData(
+            data_model = MetobsDataModel(
                 station=self._parse_csv(csv_content[0]),
                 parameter=self._parse_csv(csv_content[1]),
                 period=self._parse_csv(csv_content[2]),

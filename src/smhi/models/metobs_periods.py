@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple
 from pydantic import BaseModel, Field, field_validator
 
 
-class PositionItem(BaseModel):
+class MetobsPositionItem(BaseModel):
     from_: int = Field(..., alias="from")
     to: int
     height: float
@@ -17,21 +17,21 @@ class PositionItem(BaseModel):
     longitude: float
 
 
-class LinkItem(BaseModel):
+class MetobsLinkItem(BaseModel):
     href: str
     rel: str
     type: str
 
 
-class PeriodItem(BaseModel):
+class MetobsPeriodItem(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
     summary: str
-    link: List[LinkItem]
+    link: List[MetobsLinkItem]
 
 
-class PeriodModel(BaseModel):
+class MetobsPeriodModel(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
@@ -42,13 +42,13 @@ class PeriodModel(BaseModel):
     summary: str
     from_: Optional[int] = Field(default=None, alias="from")
     to: Optional[int] = None
-    position: Optional[List[PositionItem]] = None
-    link: List[LinkItem]
-    period: List[PeriodItem]
+    position: Optional[List[MetobsPositionItem]] = None
+    link: List[MetobsLinkItem]
+    period: List[MetobsPeriodItem]
 
     @field_validator("period")
     @classmethod
-    def serialise_period_in_order(cls, period: List[PeriodItem]):
+    def serialise_period_in_order(cls, period: List[MetobsPeriodItem]):
         return sorted(period, key=lambda x: x.key)
 
     @property

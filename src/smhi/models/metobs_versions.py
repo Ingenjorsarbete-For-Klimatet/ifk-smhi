@@ -9,28 +9,28 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
-class LinkItem(BaseModel):
+class MetobsVersionLinkItem(BaseModel):
     href: str
     rel: str
     type: str
 
 
-class VersionItem(BaseModel):
+class MetobsVersionItem(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
     summary: str
-    link: List[LinkItem]
+    link: List[MetobsVersionLinkItem]
 
 
-class VersionModel(BaseModel):
+class MetobsVersionModel(BaseModel):
     key: Optional[str] = None
     updated: Optional[int] = None
     title: str
     summary: str
-    link: List[LinkItem]
-    version: List[VersionItem]
+    link: List[MetobsVersionLinkItem]
+    version: List[MetobsVersionItem]
 
     @property
-    def data(self) -> List[VersionItem]:
+    def data(self) -> List[MetobsVersionItem]:
         return self.version

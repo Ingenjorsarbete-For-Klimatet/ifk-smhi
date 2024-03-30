@@ -18,14 +18,19 @@ from smhi.models.metfcts_model import (
     MetfctsPolygon,
     MetfctsValidTime,
 )
-from smhi.models.metobs_data import DataModel
-from smhi.models.metobs_parameters import ParameterModel
-from smhi.models.metobs_periods import PeriodModel
-from smhi.models.metobs_stations import StationModel
-from smhi.models.metobs_versions import VersionModel
+from smhi.models.metobs_data import MetobsDataModel
+from smhi.models.metobs_parameters import MetobsParameterModel
+from smhi.models.metobs_periods import MetobsPeriodModel
+from smhi.models.metobs_stations import MetobsStationModel
+from smhi.models.metobs_versions import MetobsVersionModel
 
 MetobsModels = TypeVar(
-    "MetobsModels", VersionModel, ParameterModel, StationModel, PeriodModel, DataModel
+    "MetobsModels",
+    MetobsVersionModel,
+    MetobsParameterModel,
+    MetobsStationModel,
+    MetobsPeriodModel,
+    MetobsDataModel,
 )
 
 Parameters = TypeVar("Parameters", MesanParameters, MetfctsParameters)

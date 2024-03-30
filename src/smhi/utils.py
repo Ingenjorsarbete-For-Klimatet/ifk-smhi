@@ -20,13 +20,12 @@ def get_request(url: str) -> requests.Response:
     Raises:
         requests.exceptions.HTTPError
     """
-    logger.info(f"Fetching from {url}.")
-
+    logger.debug(f"Fetching from {url}.")
     response = requests.get(url, timeout=200)
 
     if response.status_code != STATUS_OK:
-        raise requests.exceptions.HTTPError(f"Could not load from given URL: {url}.")
-
-    logger.info(f"Sucessfully downloaded from {url}.")
+        logger.warning(f"Request failed for {url}.")
+    else:
+        logger.debug(f"Successful request from {url}.")
 
     return response
