@@ -3,10 +3,9 @@
 import io
 import logging
 from collections import defaultdict
-from typing import Any, Optional, TypeAlias, Union
+from typing import Any, Optional, Union
 
 import pandas as pd
-import requests
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import METOBS_AVAILABLE_PERIODS
 from smhi.models.metobs_data import DataModel, Datum, MetobsData
@@ -14,10 +13,8 @@ from smhi.models.metobs_parameters import ParameterModel
 from smhi.models.metobs_periods import PeriodModel
 from smhi.models.metobs_stations import StationModel
 from smhi.models.metobs_versions import VersionModel
-
-MetobsModels: TypeAlias = (
-    VersionModel | ParameterModel | StationModel | PeriodModel | DataModel
-)
+from smhi.models.variable import MetobsModels
+from smhi.utils import get_request
 
 logger = logging.getLogger(__name__)
 
@@ -47,14 +44,7 @@ class BaseMetobs:
         Raise:
             requests.exceptions.HTTPError
         """
-        logger.info(f"Fetching from {url} for model {model}.")
-
-        response = requests.get(url, timeout=200)
-        if response.status_code != 200:
-            raise requests.exceptions.HTTPError(
-                f"Could not find or load from given URL: {url}."
-            )
-
+        response = get_request(url)
         model = model.model_validate_json(response.content)
 
         self.headers = response.headers
@@ -444,7 +434,8 @@ class Data(BaseMetobs):
         Returns:
             decoded list of csv files
         """
-        return requests.get(link).content.decode("utf-8").split("\n\n")
+        response = get_request(link)
+        return response.content.decode("utf-8").split("\n\n")
 
     def _set_dataframe_index(self, stationdata: pd.DataFrame) -> pd.DataFrame:
         """Set dataframe index based on datetime column.

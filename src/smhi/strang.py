@@ -11,16 +11,15 @@ from typing import Optional
 
 import arrow
 import pandas as pd
-import requests
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import (
-    STATUS_OK,
     STRANG_MULTIPOINT_URL,
     STRANG_PARAMETERS,
     STRANG_POINT_URL,
     STRANG_TIME_INTERVALS,
 )
 from smhi.models.strang import StrangMultiPoint, StrangParameter, StrangPoint
+from smhi.utils import get_request
 
 logger = logging.getLogger(__name__)
 
@@ -287,23 +286,15 @@ class Strang:
             header
             status code
         """
-        response = requests.get(url)
-        status = response.status_code
-        header = response.headers
+        response = get_request(url)
+        data = json.loads(response.content)
 
-        if status == STATUS_OK:
-            data = json.loads(response.content)
-
-            if "date_time" in data[0]:
-                data = self._parse_point_data(data, parameter)
-            else:
-                data = self._parse_multipoint_data(data, parameter)
-
-            return data, header, status
+        if "date_time" in data[0]:
+            data = self._parse_point_data(data, parameter)
         else:
-            logging.info("No data returned.")
+            data = self._parse_multipoint_data(data, parameter)
 
-            return pd.DataFrame(), header, status
+        return data, response.headers, response.status_code
 
     def _parse_datetime(
         self, date_time: Optional[str], parameter: StrangParameter
@@ -352,7 +343,6 @@ class Strang:
 
         data_pd = pd.DataFrame(data)
         data_pd.set_index("date_time", inplace=True)
-        # data_pd.rename(columns={"value": parameter.meaning}, inplace=True)
 
         return data_pd
 
@@ -368,13 +358,4 @@ class Strang:
         Returns
             data_pd: pandas dataframe
         """
-        data_pd = pd.DataFrame(data)
-        # data_pd.rename(
-        #     columns={
-        #         "value": str(parameter.meaning)
-        #         + " {0} {1}".format(self.valid_time, self.time_interval)
-        #     },
-        #     inplace=True,
-        # )
-
-        return data_pd
+        return pd.DataFrame(data)
