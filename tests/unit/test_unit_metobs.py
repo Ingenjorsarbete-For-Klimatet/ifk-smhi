@@ -282,7 +282,7 @@ class TestUnitBaseMetobs:
         assert base.summary is None
         assert base.link is None
 
-    @patch("smhi.metobs.requests.get", return_value=MockResponse(200, None, None))
+    @patch("smhi.utils.requests.get", return_value=MockResponse(200, None, None))
     def test_unit_basemetobs_get_and_parse_request(self, mock_requests_get):
         """Unit test for BaseMetobs _get_and_parse_request method.
 
@@ -346,7 +346,7 @@ class TestUnitVersions:
     """Unit tests for Versionss class."""
 
     @pytest.mark.parametrize("data_type", [("json"), ("yaml"), ("xml"), (None)])
-    @patch("smhi.metobs.requests.get")
+    @patch("smhi.utils.requests.get")
     def test_unit_versions_init(self, mock_requests_get, data_type, setup_versions):
         """Unit test for Parameters init method.
 
@@ -391,7 +391,7 @@ class TestUnitParameters:
         ],
     )
     @patch("smhi.metobs.Versions")
-    @patch("smhi.metobs.requests.get")
+    @patch("smhi.utils.requests.get")
     def test_unit_parameters_init(
         self,
         mock_requests_get,
@@ -451,7 +451,7 @@ class TestUnitStations:
             ("1", "Lufttemperatur", None),
         ],
     )
-    @patch("smhi.metobs.requests.get")
+    @patch("smhi.utils.requests.get")
     def test_unit_stations_init(
         self,
         mock_requests_get,
@@ -516,7 +516,7 @@ class TestUnitPeriods:
             (1, "Akalla", "all", "json"),
         ],
     )
-    @patch("smhi.metobs.requests.get")
+    @patch("smhi.utils.requests.get")
     def test_unit_periods_init(
         self,
         mock_requests_get,
@@ -595,7 +595,7 @@ class TestUnitData:
             ("corrected-archive", "json"),
         ],
     )
-    @patch("smhi.metobs.requests.get")
+    @patch("smhi.utils.requests.get")
     def test_unit_data_init(
         self,
         mock_requests_get,

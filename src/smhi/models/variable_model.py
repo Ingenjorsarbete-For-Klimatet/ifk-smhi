@@ -2,7 +2,7 @@
 
 from typing import TypeVar
 
-from smhi.models.mesan import (
+from smhi.models.mesan_model import (
     MesanApprovedTime,
     MesanMultiPointData,
     MesanParameters,
@@ -10,7 +10,7 @@ from smhi.models.mesan import (
     MesanPolygon,
     MesanValidTime,
 )
-from smhi.models.metfcts import (
+from smhi.models.metfcts_model import (
     MetfctsApprovedTime,
     MetfctsMultiPointData,
     MetfctsParameters,

@@ -13,7 +13,7 @@ from smhi.constants import (
     STRANG_PARAMETERS,
     STRANG_POINT_URL,
 )
-from smhi.models.strang import StrangParameter
+from smhi.models.strang_model import StrangParameter
 from smhi.strang import Strang
 
 INPUT_DAILY_2020_01_01_2020_01_02 = [
@@ -410,11 +410,11 @@ class TestUnitStrang:
     @patch("smhi.strang.Strang._parse_point_data")
     @patch("smhi.strang.logging.info")
     @patch(
-        "smhi.strang.requests.get",
+        "smhi.utils.requests.get",
         return_value=type(
             "MyClass",
             (object,),
-            {"status": True, "headers": "header", "content": "content"},
+            {"status_code": 200, "headers": "header", "content": "content"},
         )(),
     )
     @patch(
@@ -447,7 +447,7 @@ class TestUnitStrang:
         mock_requests_get.return_value.status_code = status_expected
 
         data, headers, status = client._get_and_load_data(client.url, "parameter")
-        mock_requests_get.assert_called_once_with(client.url)
+        mock_requests_get.assert_called_once_with(client.url, timeout=200)
 
         if status == 200:
             mock_json_loads.assert_called_once_with(

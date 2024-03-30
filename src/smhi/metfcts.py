@@ -4,7 +4,7 @@ from typing import Dict
 
 from smhi.constants import METFCTS_PARAMETER_DESCRIPTIONS, METFCTS_URL
 from smhi.mesan import Mesan
-from smhi.models.metfcts import (
+from smhi.models.metfcts_model import (
     MetfctsApprovedTime,
     MetfctsMultiPointData,
     MetfctsParameters,
@@ -12,7 +12,7 @@ from smhi.models.metfcts import (
     MetfctsPolygon,
     MetfctsValidTime,
 )
-from smhi.models.variable import (
+from smhi.models.variable_model import (
     ApprovedTime,
     MultiPointData,
     Parameters,
