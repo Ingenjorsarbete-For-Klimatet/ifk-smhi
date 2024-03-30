@@ -32,12 +32,71 @@ METFCTS_URL = (
     "https://opendata-download-metfcst.smhi.se/"
     + "api/category/{category}/version/{version}/"
 )
+
+METFCTS_PARAMETER_DESCRIPTIONS = {
+    "msl": "Air pressure",
+    "t": "Air temperature",
+    "vis": "Horizontal visibility",
+    "wd": "Wind direction",
+    "ws": "Wind speed",
+    "r": "Relative humidity",
+    "tstm": "Thunder probability",
+    "tcc_mean": "Mean value of total cloud cover",
+    "lcc_mean": "Mean value of low level cloud cover",
+    "mcc_mean": "Mean value of medium level cloud cover",
+    "hcc_mean": "Mean value of high level cloud cover",
+    "gust": "Wind gust speed",
+    "pmin": "Minimum precipitation intensity",
+    "pmax": "Maximum precipitation intensity",
+    "spp": "Percent of precipitation in frozen form",
+    "pmean": "Mean precipitation intensity",
+    "pmedian": "Median precipitation intensity",
+    "Wsymb2": "Weather Symbol",
+}
+
 MESAN_URL = (
     "https://opendata-download-metanalys.smhi.se/"
     + "api/category/{category}/version/{version}/"
 )
 
 MESAN_LEVELS_UNIT = "m"
+
+MESAN_PARAMETER_DESCRIPTIONS = {
+    "t": "Air temperature",
+    "tmin": "Minimum air temperature",
+    "tmax": "Maximum air temperature",
+    "Tiw": "Wet bulb temperature",
+    "gust": "Wind gust speed",
+    "wd": "Wind direction",
+    "ws": "Wind speed",
+    "r": "Relative humidity",
+    "prec1h": "Precipitation last hour",
+    "prec3h": "Precipitation last three hours",
+    "prec12h": "Precipitation last 12 hours",
+    "prec24h": "Precipitation last 24 hours",
+    "frsn1h": "Snow precipitation last hour ",
+    "frsn3h": "Snow precipitation last three hours",
+    "frsn12h": "Snow precipitation last 12 hours",
+    "frsn24h": "Snow precipitation last 24 hours",
+    "vis": "Horizontal visibility",
+    "msl": "Pressure reduced to medium sea level",
+    "tcc": "Total cloud cover",
+    "lcc": "Low level cloud cover",
+    "mcc": "Medium level cloud cover",
+    "hcc": "High level cloud cover",
+    "c_sigfr": "Fraction of significant clouds",
+    "cb_sig": "Cloud base of significant clouds",
+    "ct_sig": "Cloud top of significant clouds",
+    "prtype": "Type of precipitation",
+    "pmax": "Maximum precipitation",
+    "pmin": "Minimum precipitation",
+    "pmedian": "Median precipitation",
+    "pmean": "Mean precipitation",
+    "prsort": "Sort of precipitation",
+    "spp": "Frozen part of total precipitation",
+    "Wsymb2": "Weather Symbol",
+}
+
 
 STRANG_EMPTY = StrangParameter(
     key=None, meaning="Missing", time_from=None, time_to=lambda: None

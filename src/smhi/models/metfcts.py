@@ -12,27 +12,27 @@ from pandera.typing import DataFrame, Index, Series
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class MesanValidTime(BaseModel):
+class MetfctsValidTime(BaseModel):
     status: int
     headers: Dict[str, str]
     valid_time: str = Field(..., alias="validTime")
 
 
-class MesanApprovedTime(BaseModel):
+class MetfctsApprovedTime(BaseModel):
     status: int
     headers: Dict[str, str]
     approved_time: str = Field(..., alias="approvedTime")
     reference_time: str = Field(..., alias="referenceTime")
 
 
-class MesanPolygon(BaseModel):
+class MetfctsPolygon(BaseModel):
     status: int
     headers: Dict[str, str]
     type_: str = Field(..., alias="type")
     coordinates: List[List[List[float]]]
 
 
-class MesanParameterItem(BaseModel):
+class MetfctsParameterItem(BaseModel):
     name: str
     key: str
     level_type: str = Field(..., alias="levelType")
@@ -41,26 +41,26 @@ class MesanParameterItem(BaseModel):
     missing_value: int = Field(..., alias="missingValue")
 
 
-class MesanParameters(BaseModel):
+class MetfctsParameters(BaseModel):
     status: int
     headers: Dict[str, str]
-    parameter: List[MesanParameterItem]
+    parameter: List[MetfctsParameterItem]
 
 
-class MesanPointDataInfoSchema(pa.DataFrameModel):
+class MetfctsPointDataInfoSchema(pa.DataFrameModel):
     name: Index[str] = pa.Field(check_name=True, unique=True)
     level: Series[int]
     level_type: Series[str]
     unit: Series[str]
 
 
-class MesanMultiPointDataSchema(pa.DataFrameModel):
+class MetfctsMultiPointDataSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
     value: Series[float]
 
 
-class MesanPointData(BaseModel):
+class MetfctsPointData(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     status: int
@@ -70,14 +70,14 @@ class MesanPointData(BaseModel):
     level_unit: str
 
     df: pd.DataFrame
-    df_info: DataFrame[MesanPointDataInfoSchema]
+    df_info: DataFrame[MetfctsPointDataInfoSchema]
 
 
-class MesanMultiPointData(BaseModel):
+class MetfctsMultiPointData(BaseModel):
     status: int
     headers: Dict[str, str]
     parameter: str
     approved_time: str
     reference_time: str
     valid_time: str
-    df: DataFrame[MesanMultiPointDataSchema]
+    df: DataFrame[MetfctsMultiPointDataSchema]
