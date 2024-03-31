@@ -403,7 +403,7 @@ class TestUnitStrang:
         [
             (200, [{"date_time": "2020-01-01T00:00:00Z"}]),
             (200, [{"lat": 0, "lon": 0, "value": 0}]),
-            (400, [{"date_time": "2020-01-01T00:00:00Z"}]),
+            (200, [{"date_time": "2020-01-01T00:00:00Z"}]),
         ],
     )
     @patch("smhi.strang.Strang._parse_multipoint_data")
@@ -430,17 +430,7 @@ class TestUnitStrang:
         status_expected,
         data,
     ):
-        """Unit test for Strang Point get_and_load_strang_data method.
-
-        Args:
-            mock_requests_get: mock requests get method
-            mock_json_loads: mock json loads method
-            mock_logging: mock of logging warning method
-            mock_parse_point_data: mock of _parse_point_data
-            mock_parse_multipoint_data: mock of _parse_multipoint_data
-            status: request status
-            data: date
-        """
+        """Unit test for Strang Point get_and_load_strang_data method."""
         client = Strang()
         client.url = "URL"
         mock_json_loads.return_value = data
@@ -519,9 +509,7 @@ class TestUnitStrang:
             output: output data
         """
         client = Strang()
-        parameter_model = STRANG_PARAMETERS[parameter]
-
-        data = client._parse_point_data(input, parameter_model)
+        data = client._parse_point_data(input)
 
         pd.testing.assert_frame_equal(data, output)
 
@@ -550,8 +538,6 @@ class TestUnitStrang:
             output: output data
         """
         client = Strang()
-        parameter_model = STRANG_PARAMETERS[parameter]
-
-        data = client._parse_multipoint_data(input, parameter_model)
+        data = client._parse_multipoint_data(input)
 
         pd.testing.assert_frame_equal(data, output)
