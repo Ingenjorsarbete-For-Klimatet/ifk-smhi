@@ -46,9 +46,9 @@ class Strang:
         )
         self._point_url: Optional[str] = None
         self._multipoint_url: Optional[str] = None
-        self._available_parameters: defaultdict[int, StrangParameter] = (
-            STRANG_PARAMETERS
-        )
+        self._available_parameters: defaultdict[
+            int, StrangParameter
+        ] = STRANG_PARAMETERS
 
     @property
     def parameters(
@@ -111,7 +111,7 @@ class Strang:
         raw_url = self._point_raw_url
         url = self._build_base_point_url(raw_url, strang_parameter, longitude, latitude)
         url = self._build_time_point_url(url, time_from, time_to, time_interval)
-        data, header, status = self._get_and_load_data(url + "1", RequestType["POINT"])
+        data, header, status = self._get_and_load_data(url, RequestType["POINT"])
 
         return StrangPoint(
             parameter_key=strang_parameter.key,
