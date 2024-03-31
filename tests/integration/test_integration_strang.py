@@ -77,15 +77,6 @@ class TestIntegrationStrang:
         """Strang Point class integration tests.
 
         These tests require internet connectivity.
-
-        Args:
-            lat: longitude
-            lon: latitude
-            parameter: parameter
-            time_from: from
-            time_to: to
-            time_interval: interval
-            expected_result: expected result
         """
         client = Strang()
         point_model = client.get_point(

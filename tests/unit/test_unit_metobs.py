@@ -1,6 +1,5 @@
 """SMHI Metobs v1 unit tests."""
 
-import json
 from typing import Optional
 from unittest.mock import MagicMock, patch
 
@@ -21,6 +20,7 @@ from smhi.models.metobs_parameters import MetobsParameterItem, MetobsParameterMo
 from smhi.models.metobs_periods import MetobsPeriodModel
 from smhi.models.metobs_stations import MetobsStationModel
 from smhi.models.metobs_versions import MetobsVersionModel
+from utils import MockResponse, get_data, get_response
 
 
 class MockModelInner(BaseModel):
@@ -33,13 +33,6 @@ class MockModel(BaseModel):
     title: Optional[str] = None
     summary: Optional[str] = None
     link: list[MockModelInner]
-
-
-class MockResponse:
-    def __init__(self, status, header, content):
-        self.status_code = status
-        self.headers = header
-        self.content = content
 
 
 class MockVersions:
@@ -66,53 +59,9 @@ class MockPeriods:
         self.data = data
 
 
-def get_response(file, encode=False):
-    """Read in response.
-
-    Args:
-        file: file to load
-
-    Returns:
-        mocked response
-    """
-    with open(file) as f:
-        mocked_response = f.read()
-
-    headers, content = mocked_response.split("\n\n")
-
-    if encode is True:
-        content = content.encode("utf-8")
-
-    mocked_get = MockResponse(200, headers, content)
-
-    return mocked_get
-
-
-def get_data(file, load_type=None):
-    """Read in expected data structure.
-
-    Args:
-        file: file to load
-        model
-
-    Returns:
-        expected pydantic model
-    """
-    with open(file) as f:
-        if load_type == "data":
-            return f.read().encode("utf-8")
-
-        return json.load(f)
-
-
 @pytest.fixture
 def setup_versions():
-    """Read in Versions response.
-
-    Returns:
-        mocked response
-        expected answer as pydantic structure
-    """
+    """Read in Versions response."""
     mocked_response = get_response("tests/fixtures/metobs/versions.txt")
     mocked_model = MetobsVersionModel.model_validate_json(mocked_response.content)
 
@@ -121,13 +70,7 @@ def setup_versions():
 
 @pytest.fixture
 def setup_parameters(setup_versions):
-    """Read in Parameters response.
-
-    Returns:
-        mocked response
-        expected answer as pydantic structure
-        parameters data
-    """
+    """Read in Parameters response."""
     _, mocked_model_versions = setup_versions
 
     mocked_response = get_response("tests/fixtures/metobs/parameters.txt")
@@ -147,13 +90,7 @@ def setup_parameters(setup_versions):
 
 @pytest.fixture
 def setup_stations(setup_parameters):
-    """Read in Stations response.
-
-    Returns:
-        mocked response
-        expected answer as pydantic structure
-        stations data
-    """
+    """Read in Stations response."""
     _, mocked_model_parameters, _, _ = setup_parameters
 
     mocked_response = get_response("tests/fixtures/metobs/stations.txt")
@@ -172,13 +109,7 @@ def setup_stations(setup_parameters):
 
 @pytest.fixture
 def setup_periods(setup_stations):
-    """Read in Periods response.
-
-    Returns:
-        mocked response
-        expected answer as pydantic structure
-        periods data
-    """
+    """Read in Periods response."""
     _, mocked_model_stations, _, _ = setup_stations
 
     mocked_response = get_response("tests/fixtures/metobs/periods.txt")
@@ -195,13 +126,7 @@ def setup_periods(setup_stations):
 
 @pytest.fixture
 def setup_periods_set(setup_stations):
-    """Read in Periods for station_set.
-
-    Returns:
-        mocked response
-        expected answer as pydantic structure
-        periods data
-    """
+    """Read in Periods for station_set."""
     _, mocked_model_stations, _, _ = setup_stations
 
     mocked_response = get_response("tests/fixtures/metobs/periods_set.txt")
@@ -218,13 +143,7 @@ def setup_periods_set(setup_stations):
 
 @pytest.fixture
 def setup_data(setup_periods):
-    """Read in Data response.
-
-    Returns:
-        mocked response
-        expected answer as pydantic structure
-        data data
-    """
+    """Read in Data response."""
     _, mocked_model_periods, _, _ = setup_periods
 
     mocked_response = get_response("tests/fixtures/metobs/data.txt", encode=True)
@@ -287,11 +206,7 @@ class TestUnitBaseMetobs:
 
     @patch("smhi.utils.requests.get", return_value=MockResponse(200, None, None))
     def test_unit_basemetobs_get_and_parse_request(self, mock_requests_get):
-        """Unit test for BaseMetobs _get_and_parse_request method.
-
-        Args:
-            mock_requests_get: mock requests get method
-        """
+        """Unit test for BaseMetobs _get_and_parse_request method."""
         base = BaseMetobs()
         url = "URL"
 
@@ -321,16 +236,7 @@ class TestUnitBaseMetobs:
     def test_unit_basemetobs_get_url(
         self, data, key, parameters, data_type, expected_url, expected_summary
     ):
-        """Unit test for BaseMetobs _get_url method.
-
-        Args:
-            data: list of data
-            key: key
-            parameters: parameters
-            data_type: format of api data
-            expected_url: expected result
-            expected_summary: expected summary
-        """
+        """Unit test for BaseMetobs _get_url method."""
         base = BaseMetobs()
 
         if type(expected_url) != str:  # noqa: E721
@@ -351,13 +257,7 @@ class TestUnitVersions:
     @pytest.mark.parametrize("data_type", [("json"), ("yaml"), ("xml"), (None)])
     @patch("smhi.utils.requests.get")
     def test_unit_versions_init(self, mock_requests_get, data_type, setup_versions):
-        """Unit test for Parameters init method.
-
-        Args:
-            mock_get_and_parse_request: mock _get_and_parse_request get method
-            mock_tuple: mock of tuple call
-            data_type: format of api data
-        """
+        """Unit test for Parameters init method."""
         mock_response, expected_answer = setup_versions
         mock_requests_get.return_value = mock_response
 
@@ -404,13 +304,7 @@ class TestUnitParameters:
         data_type,
         setup_parameters,
     ):
-        """Unit test for Parameters init method.
-
-        Args:
-            mock_get_and_parse_request: mock _get_and_parse_request get method
-            mock_tuple: mock of tuple call
-            data_type: format of api data
-        """
+        """Unit test for Parameters init method."""
         mock_response, expected_answer, mock_versions, expected_data = setup_parameters
         mock_requests_get.return_value = mock_response
 
@@ -463,13 +357,7 @@ class TestUnitStations:
         data_type,
         setup_stations,
     ):
-        """Unit test for Stations init method.
-
-        Args:
-            mock_get_and_parse_request: mock _get_and_parse_request get method
-            mock_tuple: mock of tuple call
-            data_type: format of api data
-        """
+        """Unit test for Stations init method."""
         mock_response, expected_answer, mock_parameters, expected_data = setup_stations
         mock_requests_get.return_value = mock_response
 
@@ -530,13 +418,7 @@ class TestUnitPeriods:
         setup_periods,
         setup_periods_set,
     ):
-        """Unit test for Periods init method.
-
-        Args:
-            mock_get_and_parse_request: mock _get_and_parse_request get method
-            mock_tuple: mock of tuple call
-            data_type: format of api data
-        """
+        """Unit test for Periods init method."""
         if stationset is None:
             mock_response, expected_answer, mock_stations, expected_data = setup_periods
             mock_requests_get.return_value = mock_response
@@ -606,13 +488,7 @@ class TestUnitData:
         data_type,
         setup_data,
     ):
-        """Unit test for Data init method.
-
-        Args:
-            mock_get_and_parse_request: mock _get_and_parse_request get method
-            mock_tuple: mock of tuple call
-            data_type: format of api data
-        """
+        """Unit test for Data init method."""
         (
             mock_response,
             expected_answer,

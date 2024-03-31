@@ -75,11 +75,7 @@ class TestUnitStrang:
 
     @patch("smhi.strang.logger.info")
     def test_unit_strang_parameters(self, mock_logging):
-        """Unit test for Strang parameters get property.
-
-        Args:
-            mock_logging: mock of logging info
-        """
+        """Unit test for Strang parameters get property."""
         client = Strang()
         assert client.parameters == list(STRANG_PARAMETERS.keys())
         assert mock_logging.call_count == len(STRANG_PARAMETERS)
@@ -126,18 +122,7 @@ class TestUnitStrang:
         time_to,
         time_interval,
     ):
-        """Unit test for Strang get_point method.
-
-        Args:
-            mock_build_time_point_url: mock _build_time_point_url method
-            mock_get_and_load_data: mock _get_and_load_data method
-            lat: latitude
-            lon: longitude
-            parameter: parameter
-            time_from: from time
-            time_to: to time
-            time_interval: time interval
-        """
+        """Unit test for Strang get_point method."""
         client = Strang()
 
         if parameter.key is None:
@@ -219,15 +204,7 @@ class TestUnitStrang:
         valid_time,
         time_interval,
     ):
-        """Unit test for Strang get_multipoint method.
-
-        Args:
-            mock_build_time_multipoint_url: mock _build_time_multipoint_url method
-            mock_get_and_load_data: mock _get_and_load_data method
-            parameter: parameter
-            valid_time: valid time to query
-            time_interval: time interval
-        """
+        """Unit test for Strang get_multipoint method."""
         client = Strang()
 
         if parameter.key is None:
@@ -279,13 +256,7 @@ class TestUnitStrang:
         ],
     )
     def test_unit_strang_build_base_point_url(self, lat, lon, parameter):
-        """Unit test for Strang _build_base_point_url method.
-
-        Args:
-            lat: latitude
-            lon: longitude
-            parameter: parmeter
-        """
+        """Unit test for Strang _build_base_point_url method."""
         client = Strang()
 
         url = partial(STRANG_POINT_URL.format, category=CATEGORY, version=VERSION)
@@ -308,12 +279,7 @@ class TestUnitStrang:
         ],
     )
     def test_unit_strang_build_base_multipoint_url(self, parameter, valid_time):
-        """Unit test for Strang _build_base_point_url method.
-
-        Args:
-            parameter: parmeter
-            valid_time: valid time
-        """
+        """Unit test for Strang _build_base_point_url method."""
         client = Strang()
 
         url = partial(STRANG_MULTIPOINT_URL.format, category=CATEGORY, version=VERSION)
@@ -346,15 +312,7 @@ class TestUnitStrang:
     def test_unit_strang_build_time_point_url(
         self, mock_parse_datetime, time_from, time_to, time_interval, expected_url
     ):
-        """Unit test for Strang _build_time_point_url method.
-
-        Args:
-            mock_parse_datetime: mock of _parse_datetime method
-            time_from: from date
-            time_to: to date
-            time_interval: interval of date
-            expected_url: expected URL
-        """
+        """Unit test for Strang _build_time_point_url method."""
         client = Strang()
         mock_parse_datetime.side_effect = [time_from, time_to]
 
@@ -380,12 +338,7 @@ class TestUnitStrang:
         [(None, "URL"), ("hourly", "URL?interval=hourly"), ("notimplemented", None)],
     )
     def test_unit_strang_build_time_multipoint_url(self, time_interval, expected_url):
-        """Unit test for Strang _build_time_multipoint_url method.
-
-        Args:
-            time_interval: interval of date
-            expected_url: expected URL
-        """
+        """Unit test for Strang _build_time_multipoint_url method."""
         client = Strang()
 
         client.url = "URL"
@@ -469,13 +422,7 @@ class TestUnitStrang:
         ],
     )
     def test_unit_strang_parse_datetime(self, parameter, date_time, expected):
-        """Unit test for Strang _parse_datetime method.
-
-        Args:
-            parameter: selected parameter
-            date: input data to parse
-            expected: expected result
-        """
+        """Unit test for Strang _parse_datetime method."""
         client = Strang()
 
         if date_time == "Q" or date_time == "1900":
@@ -499,15 +446,7 @@ class TestUnitStrang:
     def test_unit_strang_parse_point_data(
         self, parameter, valid_time, time_interval, input, output
     ):
-        """Unit test for Strang _parse_point_data.
-
-        Args:
-            parameter: data parameter
-            valid_time: valid_time for multipoint
-            time_interval: time_interval for multipoint
-            input: input data
-            output: output data
-        """
+        """Unit test for Strang _parse_point_data."""
         client = Strang()
         data = client._parse_point_data(input)
 
@@ -528,15 +467,7 @@ class TestUnitStrang:
     def test_unit_strang_parse_multipoint_data(
         self, parameter, valid_time, time_interval, input, output
     ):
-        """Unit test for Strang _parse_multipoint_data.
-
-        Args:
-            parameter: data parameter
-            valid_time: valid_time for multipoint
-            time_interval: time_interval for multipoint
-            input: input data
-            output: output data
-        """
+        """Unit test for Strang _parse_multipoint_data."""
         client = Strang()
         data = client._parse_multipoint_data(input)
 

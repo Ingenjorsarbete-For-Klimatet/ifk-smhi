@@ -66,12 +66,7 @@ class TestIntegrationMesan:
         ],
     )
     def test_integration_mesan_get_geo_multipoint(self, downsample, result):
-        """Integration test for get_geo_multipoint method.
-
-        Args:
-            downsample: downsample parameter
-            result: expected result
-        """
+        """Integration test for get_geo_multipoint method."""
         client = Mesan()
         assert client.get_geo_multipoint(downsample) == result["coordinates"]
 
@@ -140,15 +135,7 @@ class TestIntegrationMesan:
     def test_integration_mesan_get_multipoint(
         self, validtime, parameter, level_type, level, downsample
     ):
-        """Integration test for get_multipoint method.
-
-        Args:
-            validtime: valid time
-            parameter: parameter
-            level_type: level type
-            level: level
-            downsample: downsample
-        """
+        """Integration test for get_multipoint method."""
         client = Mesan()
         data = client.get_multipoint(
             validtime, parameter, level_type, level, downsample
