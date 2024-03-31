@@ -60,15 +60,7 @@ class TestIntegrationStrang:
                     "tests/fixtures/strang/STRANG_RESULT_MONTHLY_2020_01_01_2020_02_01.csv"
                 ),
             ),
-            (
-                58,
-                16,
-                118,
-                None,
-                None,
-                None,
-                get_point(),
-            ),
+            (58, 16, 118, None, None, None, get_point()),
         ],
     )
     def test_integration_strang_point(
