@@ -7,18 +7,20 @@ from smhi.constants import METFCTS_PARAMETER_DESCRIPTIONS, METFCTS_URL
 from smhi.mesan import Mesan
 from smhi.models.metfcts_model import (
     MetfctsApprovedTime,
+    MetfctsGeoMultiPoint,
+    MetfctsGeoPolygon,
     MetfctsMultiPointData,
     MetfctsParameters,
     MetfctsPointData,
-    MetfctsPolygon,
     MetfctsValidTime,
 )
 from smhi.models.variable_model import (
     ApprovedTime,
+    GeoMultiPoint,
+    GeoPolygon,
     MultiPointData,
     Parameters,
     PointData,
-    Polygon,
     ValidTime,
 )
 
@@ -29,7 +31,8 @@ class Metfcts(Mesan):
     __parameters_model: Parameters = MetfctsParameters
     __approved_time_model: ApprovedTime = MetfctsApprovedTime
     __valid_time_model: ValidTime = MetfctsValidTime
-    __polygon_model: Polygon = MetfctsPolygon
+    __geo_polygon_model: GeoPolygon = MetfctsGeoPolygon
+    __geo_multipoint_model: GeoMultiPoint = MetfctsGeoMultiPoint
     __point_data_model: PointData = MetfctsPointData
     __multipoint_data_model: MultiPointData = MetfctsMultiPointData
 

@@ -14,18 +14,20 @@ from smhi.constants import (
 )
 from smhi.models.mesan_model import (
     MesanApprovedTime,
+    MesanGeoMultiPoint,
+    MesanGeoPolygon,
     MesanMultiPointData,
     MesanParameters,
     MesanPointData,
-    MesanPolygon,
     MesanValidTime,
 )
 from smhi.models.variable_model import (
     ApprovedTime,
+    GeoMultiPoint,
+    GeoPolygon,
     MultiPointData,
     Parameters,
     PointData,
-    Polygon,
     ValidTime,
 )
 from smhi.utils import get_request
@@ -39,7 +41,8 @@ class Mesan:
     __parameters_model: Parameters = MesanParameters
     __approved_time_model: ApprovedTime = MesanApprovedTime
     __valid_time_model: ValidTime = MesanValidTime
-    __polygon_model: Polygon = MesanPolygon
+    __geo_polygon_model: GeoPolygon = MesanGeoPolygon
+    __geo_multipoint_model: GeoMultiPoint = MesanGeoMultiPoint
     __point_data_model: PointData = MesanPointData
     __multipoint_data_model: MultiPointData = MesanMultiPointData
 
@@ -115,7 +118,7 @@ class Mesan:
         )
 
     @property
-    def geo_polygon(self) -> Polygon:
+    def geo_polygon(self) -> GeoPolygon:
         """Get geographic area polygon.
 
         Returns:
@@ -123,14 +126,14 @@ class Mesan:
         """
         data, headers, status = self._get_data(self._base_url + "geotype/polygon.json")
 
-        return self.__polygon_model(
+        return self.__geo_polygon_model(
             status=status,
             headers=headers,
             type=data["type"],
             coordinates=data["coordinates"],
         )
 
-    def get_geo_multipoint(self, downsample: int = 2) -> Polygon:
+    def get_geo_multipoint(self, downsample: int = 2) -> GeoMultiPoint:
         """Get geographic area multipoint.
 
         Args:
@@ -144,7 +147,7 @@ class Mesan:
             self._base_url + f"geotype/multipoint.json?downsample={downsample}"
         )
 
-        return self.__polygon_model(
+        return self.__geo_multipoint_model(
             status=status,
             headers=headers,
             type=data["type"],

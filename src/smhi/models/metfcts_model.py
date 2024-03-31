@@ -25,11 +25,18 @@ class MetfctsApprovedTime(BaseModel):
     reference_time: str
 
 
-class MetfctsPolygon(BaseModel):
+class MetfctsGeoPolygon(BaseModel):
     status: int
     headers: Dict[str, str]
     type_: str = Field(..., alias="type")
     coordinates: List[List[List[float]]]
+
+
+class MetfctsGeoMultiPoint(BaseModel):
+    status: int
+    headers: Dict[str, str]
+    type_: str = Field(..., alias="type")
+    coordinates: List[List[float]]
 
 
 class MetfctsParameterItem(BaseModel):

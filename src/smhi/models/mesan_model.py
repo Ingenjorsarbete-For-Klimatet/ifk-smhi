@@ -25,11 +25,18 @@ class MesanApprovedTime(BaseModel):
     reference_time: str
 
 
-class MesanPolygon(BaseModel):
+class MesanGeoPolygon(BaseModel):
     status: int
     headers: Dict[str, str]
     type_: str = Field(..., alias="type")
     coordinates: List[List[List[float]]]
+
+
+class MesanGeoMultiPoint(BaseModel):
+    status: int
+    headers: Dict[str, str]
+    type_: str = Field(..., alias="type")
+    coordinates: List[List[float]]
 
 
 class MesanParameterItem(BaseModel):

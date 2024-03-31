@@ -202,7 +202,7 @@ class TestUnitMesan:
     @patch(
         "smhi.mesan.Mesan._get_data",
         return_value=(
-            {"type": "MultiPoint", "coordinates": [[[1.0, 2.0]]]},
+            {"type": "MultiPoint", "coordinates": [[1.0, 2.0]]},
             {"head": "head"},
             200,
         ),
