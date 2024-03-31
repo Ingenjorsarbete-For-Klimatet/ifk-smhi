@@ -4,6 +4,7 @@ import json
 from typing import Optional
 from unittest.mock import MagicMock, patch
 
+import pandas as pd
 import pytest
 from pydantic import BaseModel
 from smhi.constants import METOBS_AVAILABLE_PERIODS
@@ -98,18 +99,10 @@ def get_data(file, load_type=None):
         expected pydantic model
     """
     with open(file) as f:
-        if load_type is None:
-            file_contents = tuple([tuple(x) for x in json.load(f)])
-        elif load_type == "parameters":
-            file_contents = tuple(
-                MetobsParameterItem.model_validate_json(x) for x in json.load(f)
-            )
-        elif load_type == "data":
-            file_contents = MockResponse(200, None, f.read().encode("utf-8"))
-        else:
-            file_contents = tuple(json.load(f))
+        if load_type == "data":
+            return f.read().encode("utf-8")
 
-    return file_contents
+        return json.load(f)
 
 
 @pytest.fixture
@@ -139,7 +132,10 @@ def setup_parameters(setup_versions):
 
     mocked_response = get_response("tests/fixtures/metobs/parameters.txt")
     mocked_model = MetobsParameterModel.model_validate_json(mocked_response.content)
-    mocked_data = get_data("tests/fixtures/metobs/parameters_data.json", "parameters")
+    mocked_data = tuple(
+        MetobsParameterItem.model_validate_json(x)
+        for x in get_data("tests/fixtures/metobs/parameters_data.json")
+    )
 
     return (
         mocked_response,
@@ -162,7 +158,9 @@ def setup_stations(setup_parameters):
 
     mocked_response = get_response("tests/fixtures/metobs/stations.txt")
     mocked_model = MetobsStationModel.model_validate_json(mocked_response.content)
-    mocked_data = get_data("tests/fixtures/metobs/stations_data.json")
+    mocked_data = tuple(
+        [tuple(x) for x in get_data("tests/fixtures/metobs/stations_data.json")]
+    )
 
     return (
         mocked_response,
@@ -185,7 +183,7 @@ def setup_periods(setup_stations):
 
     mocked_response = get_response("tests/fixtures/metobs/periods.txt")
     mocked_model = MetobsPeriodModel.model_validate_json(mocked_response.content)
-    mocked_data = get_data("tests/fixtures/metobs/periods_data.json", "period")
+    mocked_data = tuple(get_data("tests/fixtures/metobs/periods_data.json"))
 
     return (
         mocked_response,
@@ -208,7 +206,7 @@ def setup_periods_set(setup_stations):
 
     mocked_response = get_response("tests/fixtures/metobs/periods_set.txt")
     mocked_model = MetobsPeriodModel.model_validate_json(mocked_response.content)
-    mocked_data = get_data("tests/fixtures/metobs/periods_data_set.json", "period")
+    mocked_data = tuple(get_data("tests/fixtures/metobs/periods_data_set.json"))
 
     return (
         mocked_response,
@@ -231,12 +229,17 @@ def setup_data(setup_periods):
 
     mocked_response = get_response("tests/fixtures/metobs/data.txt", encode=True)
     mocked_model = MetobsData.model_validate_json(mocked_response.content)
-    mocked_csv_data = get_data("tests/fixtures/metobs/data_csv.csv", "data")
+    mocked_csv_data = MockResponse(
+        200, None, get_data("tests/fixtures/metobs/data_csv.csv", "data")
+    )
 
-    mocked_station = get_data("tests/fixtures/metobs/data_station.json")
-    mocked_parameter = get_data("tests/fixtures/metobs/data_parameter.json")
-    mocked_period = get_data("tests/fixtures/metobs/data_period.json")
-    mocked_data = get_data("tests/fixtures/metobs/data_data.json")
+    mocked_station = pd.read_csv("tests/fixtures/metobs/data_station.csv", index_col=0)
+    mocked_parameter = pd.read_csv(
+        "tests/fixtures/metobs/data_parameter.csv", index_col=0
+    )
+    mocked_period = pd.read_csv("tests/fixtures/metobs/data_period.csv", index_col=0)
+    mocked_data = pd.read_csv("tests/fixtures/metobs/data_data.csv", index_col=0)
+    mocked_data.index = pd.to_datetime(mocked_data.index)
 
     return (
         mocked_response,
@@ -634,9 +637,9 @@ class TestUnitData:
 
         data = Data(mock_periods, period, data_type)
 
-        data.from_ = expected_answer.from_
-        data.to = expected_answer.to
-        data.station = expected_station
-        data.parameter = expected_parameter
-        data.period = expected_period
-        data.data = expected_data
+        assert data.from_ == expected_answer.from_
+        assert data.to == expected_answer.to
+        pd.testing.assert_frame_equal(data.station, expected_station)
+        pd.testing.assert_frame_equal(data.parameter, expected_parameter)
+        pd.testing.assert_frame_equal(data.period, expected_period)
+        pd.testing.assert_frame_equal(data.data, expected_data)
