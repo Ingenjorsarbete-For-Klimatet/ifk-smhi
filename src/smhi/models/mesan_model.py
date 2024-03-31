@@ -60,6 +60,11 @@ class MesanMultiPointDataSchema(pa.DataFrameModel):
     value: Series[float]
 
 
+class MesanGeometry(BaseModel):
+    type_: str = Field(..., alias="type")
+    coordinates: List[List[float]]
+
+
 class MesanPointData(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -68,7 +73,7 @@ class MesanPointData(BaseModel):
     approved_time: str
     reference_time: str
     level_unit: str
-
+    geometry: MesanGeometry
     df: pd.DataFrame
     df_info: DataFrame[MesanPointDataInfoSchema]
 

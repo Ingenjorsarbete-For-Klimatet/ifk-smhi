@@ -71,7 +71,7 @@ class Mesan:
         Returns:
             parameter model
         """
-        return self._parameters.parameter
+        return self._parameters
 
     def _get_parameters(self) -> Parameters:
         """Get parameters from SMHI.
@@ -140,8 +140,9 @@ class Mesan:
             multipoint polygon model
         """
         downsample = self._check_downsample(downsample)
-        multipoint_url = f"geotype/multipoint.json?downsample={downsample}"
-        data, headers, status = self._get_data(self._base_url + multipoint_url)
+        data, headers, status = self._get_data(
+            self._base_url + f"geotype/multipoint.json?downsample={downsample}"
+        )
 
         return self.__polygon_model(
             status=status,
@@ -164,8 +165,9 @@ class Mesan:
         Returns:
             point data model
         """
-        url = self._build_point_url(longitude, latitude)
-        data, headers, status = self._get_data(url)
+        data, headers, status = self._get_data(
+            self._base_url + f"geotype/point/lon/{longitude}/lat/{latitude}/data.json"
+        )
         data_table, info_table = self._format_data_point(data)
 
         return self.__point_data_model(
@@ -314,18 +316,6 @@ class Mesan:
 
         return pd.DataFrame(formatted_data)
 
-    def _build_point_url(self, lon: float, lat: float) -> str:
-        """Build point url.
-
-        Args:
-            lon: longitude
-            lat: latitude
-
-        Returns:
-            valid point url
-        """
-        return self._base_url + f"geotype/point/lon/{lon}/lat/{lat}/data.json"
-
     def _build_multipoint_url(
         self,
         validtime: str,
@@ -382,4 +372,4 @@ class Mesan:
             true if valid and false if not valid
         """
         valid_time = self._format_datetime(test_time)
-        return -1 < (arrow.now().shift(hours=-1) - arrow.get(valid_time)).days < 1
+        return -1 < (arrow.now("Z").shift(hours=-1) - arrow.get(valid_time)).days < 1

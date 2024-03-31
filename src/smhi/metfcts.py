@@ -50,4 +50,4 @@ class Metfcts(Mesan):
             true if valid and false if not valid
         """
         valid_time = self._format_datetime(test_time)
-        return -1 < (arrow.get(valid_time) - arrow.now()).days < 10
+        return -1 < (arrow.get(valid_time) - arrow.now("Z").shift(hours=-1)).days < 10
