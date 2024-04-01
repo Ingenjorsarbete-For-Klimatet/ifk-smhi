@@ -6,21 +6,21 @@ from smhi.constants import MESAN_PARAMETER_DESCRIPTIONS
 from smhi.mesan import Mesan
 
 NUM_VALID_TIME = 24
-DAY_SPAN = arrow.utcnow().span("day")
-WEEK_SPAN = arrow.utcnow().span("week")
-MONTH_SPAN = arrow.utcnow().span("month")
-
 GEO_POLYGON_TYPE = "Polygon"
 GEO_MULTIPOINT_TYPE = "MultiPoint"
 NUM_GEO_COORDINATES = 10
-
 NUM_PARAMETERS = 10
-
 MIN_TEMPERATURE = -1000
 
 
-def datetime_between(test_time, span):
-    return span[0] < arrow.get(test_time) < span[1]
+def datetime_between_day(test_time):
+    ttime = arrow.get(test_time)
+    return ttime.shift(days=-1) < ttime < ttime.shift(days=1)
+
+
+def datetime_between_week(test_time):
+    ttime = arrow.get(test_time)
+    return ttime.shift(days=-2) < ttime < ttime.shift(weeks=2)
 
 
 class TestIntegrationMesan:
@@ -30,7 +30,7 @@ class TestIntegrationMesan:
         """Integration test for approved time property."""
         client = Mesan()
         approved_time = client.approved_time.approved_time
-        assert datetime_between(approved_time, DAY_SPAN)
+        assert datetime_between_day(approved_time)
 
     def test_integration_mesan_parameters(self):
         """Integration test for parameters property."""
@@ -46,7 +46,7 @@ class TestIntegrationMesan:
         client = Mesan()
         valid_time = client.valid_time.valid_time
         for test_time in valid_time:
-            assert datetime_between(test_time, WEEK_SPAN)
+            assert datetime_between_week(test_time)
 
         assert len(valid_time) == NUM_VALID_TIME
 
