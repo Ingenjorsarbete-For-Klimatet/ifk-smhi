@@ -114,10 +114,10 @@ class Versions(BaseMetobs):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
-        model = self._get_and_parse_request(
-            self._base_url.format(data_type=data_type), MetobsVersionModel
-        )
+        url = self._base_url.format(data_type=data_type)
+        model = self._get_and_parse_request(url, MetobsVersionModel)
 
+        self.url = url
         self.data = model.data
 
 
@@ -158,6 +158,7 @@ class Parameters(BaseMetobs):
 
         self.versions_object = versions_object
         self.selected_version = version
+        self.url = url
 
         self.resource = model.resource
         self.data = model.data
@@ -211,6 +212,7 @@ class Stations(BaseMetobs):
         model = self._get_and_parse_request(url, MetobsStationModel)
 
         self.parameters_in_version = parameters_in_version
+        self.url = url
 
         self.value_type = model.value_type
         self.station_set = model.station_set
@@ -276,13 +278,14 @@ class Periods(BaseMetobs):
         model = self._get_and_parse_request(url, MetobsPeriodModel)
 
         self.stations_in_parameter = stations_in_parameter
+        self.url = url
 
         self.owner = model.owner
         self.owner_category = model.owner_category
         self.measuring_stations = model.measuring_stations
         self.active = model.active
-        self.from_ = model.from_
-        self.to = model.to
+        self.time_from = model.from_
+        self.time_to = model.to
         self.position = model.position
         self.period = model.period
         self.data = model.data
@@ -346,13 +349,14 @@ class Data(BaseMetobs):
         if self._has_datetime_columns(stationdata) is True and not stationdata.empty:
             stationdata = self._set_dataframe_index(stationdata)
 
-        self.from_ = model.from_
-        self.to = model.to
+        self.url = url
 
+        self.time_from = model.from_
+        self.time_to = model.to
         self.station = data_model.station
         self.parameter = data_model.parameter
         self.period = data_model.period
-        self.data = stationdata
+        self.df = stationdata
 
     def _check_available_periods(self, data: Tuple[Optional[str]], period: str) -> bool:
         """Check available periods.

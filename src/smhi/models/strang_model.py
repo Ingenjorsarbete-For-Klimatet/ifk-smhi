@@ -29,29 +29,18 @@ class StrangParameter(BaseModel):
     time_to: Optional[Callable]
 
 
+class StrangPointItem(BaseModel):
+    date_time: str
+    value: float
+
+
 class StrangMultiPointItem(BaseModel):
     lat: float
     lon: float
     value: float
 
 
-class StrangMultiPoint(BaseModel):
-    parameter_key: int
-    parameter_meaning: str
-    valid_time: Optional[str]
-    time_interval: Optional[str]
-    url: str
-    status: int
-    headers: Dict[str, str]
-    data: Optional[DataFrame[StrangMultiPointSchema]]
-
-
-class StrangPointItem(BaseModel):
-    date_time: str
-    value: float
-
-
-class StrangPoint(BaseModel):
+class StrangPointModel(BaseModel):
     parameter_key: int
     parameter_meaning: str
     longitude: float
@@ -62,4 +51,15 @@ class StrangPoint(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    data: Optional[DataFrame[StrangPointSchema]]
+    df: Optional[DataFrame[StrangPointSchema]]
+
+
+class StrangMultiPointModel(BaseModel):
+    parameter_key: int
+    parameter_meaning: str
+    valid_time: Optional[str]
+    time_interval: Optional[str]
+    url: str
+    status: int
+    headers: Dict[str, str]
+    df: Optional[DataFrame[StrangMultiPointSchema]]

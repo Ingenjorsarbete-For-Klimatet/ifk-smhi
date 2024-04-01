@@ -131,7 +131,7 @@ class TestIntegrationMetobs:
                 data.period.iloc[:, 2:],
                 data_df[2].iloc[:, 2:],  # skip columns Tidsperiod
             )
-            pd.testing.assert_frame_equal(data.data.iloc[:1, :], data_df[3])
+            pd.testing.assert_frame_equal(data.df.iloc[:1, :], data_df[3])
 
         time.sleep(1)
 

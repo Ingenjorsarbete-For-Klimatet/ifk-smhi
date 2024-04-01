@@ -86,9 +86,9 @@ class TestIntegrationStrang:
         assert point_model.status == 200
 
         if time_from is not None:
-            pd.testing.assert_frame_equal(expected_result, point_model.data)
+            pd.testing.assert_frame_equal(expected_result, point_model.df)
         else:
-            assert expected_result == point_model.data.index.name
+            assert expected_result == point_model.df.index.name
 
     def test_integration_strang_multipoint(self, get_multipoint):
         """Strang MultiPoint integration tests.
@@ -111,5 +111,5 @@ class TestIntegrationStrang:
 
         pd.testing.assert_frame_equal(
             get_multipoint,
-            multipoint_model.data.iloc[:10, :],
+            multipoint_model.df.iloc[:10, :],
         )

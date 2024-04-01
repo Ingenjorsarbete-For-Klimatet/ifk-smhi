@@ -8,14 +8,15 @@ import pandas as pd
 import pytest
 from smhi.constants import MESAN_LEVELS_UNIT, MESAN_PARAMETER_DESCRIPTIONS
 from smhi.mesan import Mesan
-from smhi.models.mesan_model import MesanGeometry, MesanParameterItem, MesanParameters
+from smhi.models.mesan_model import MesanGeometry, MesanParameter, MesanParameterItem
 from utils import get_response
 
 BASE_URL = (
     "https://opendata-download-metanalys.smhi.se/" + "api/category/mesan2g/version/1/"
 )
 
-MOCK_MESAN_PARAMETERS = MesanParameters(
+MOCK_MESAN_PARAMETERS = MesanParameter(
+    url=BASE_URL + "parameter.json",
     status=200,
     headers={"Date": "Sun, 31 Mar 2024 07:37:51 GMT"},
     parameter=[
@@ -138,8 +139,10 @@ class TestUnitMesan:
         """Unit test for Mesan approved_time property."""
         client = Mesan()
         data = client.approved_time
+        url = BASE_URL + "approvedtime.json"
 
-        mock_get_data.assert_called_once_with(BASE_URL + "approvedtime.json")
+        mock_get_data.assert_called_once_with(url)
+        assert data.url == url
         assert data.approved_time == mock_get_data.return_value[0]["approvedTime"]
         assert data.reference_time == mock_get_data.return_value[0]["referenceTime"]
         assert data.headers == mock_get_data.return_value[1]
@@ -154,8 +157,10 @@ class TestUnitMesan:
         """Unit test for Mesan valid_time property."""
         client = Mesan()
         data = client.valid_time
+        url = BASE_URL + "validtime.json"
 
-        mock_get_data.assert_called_once_with(BASE_URL + "validtime.json")
+        mock_get_data.assert_called_once_with(url)
+        assert data.url == url
         assert data.valid_time == mock_get_data.return_value[0]["validTime"]
         assert data.headers == mock_get_data.return_value[1]
         assert data.status == mock_get_data.return_value[2]
@@ -173,8 +178,10 @@ class TestUnitMesan:
         """Unit test for Mesan geo_polygon property."""
         client = Mesan()
         data = client.geo_polygon
+        url = BASE_URL + "geotype/polygon.json"
 
-        mock_get_data.assert_called_once_with(BASE_URL + "geotype/polygon.json")
+        mock_get_data.assert_called_once_with(url)
+        assert data.url == url
         assert data.coordinates == mock_get_data.return_value[0]["coordinates"]
         assert data.type_ == mock_get_data.return_value[0]["type"]
         assert data.headers == mock_get_data.return_value[1]
@@ -198,10 +205,10 @@ class TestUnitMesan:
         """Unit test for Mesan get_geo_multipoint method."""
         client = Mesan()
         data = client.get_geo_multipoint(downsample)
+        url = BASE_URL + f"geotype/multipoint.json?downsample={bounded_downsample}"
 
-        mock_get_data.assert_called_once_with(
-            BASE_URL + f"geotype/multipoint.json?downsample={bounded_downsample}"
-        )
+        mock_get_data.assert_called_once_with(url)
+        assert data.url == url
         assert data.coordinates == mock_get_data.return_value[0]["coordinates"]
         assert data.type_ == mock_get_data.return_value[0]["type"]
         assert data.headers == mock_get_data.return_value[1]
@@ -226,23 +233,25 @@ class TestUnitMesan:
 
         client = Mesan()
         data = client.get_point(lat, lon)
+        url = BASE_URL + f"geotype/point/lon/{lon}/lat/{lat}/data.json"
 
-        mock_requests_get.assert_called_once_with(
-            BASE_URL + f"geotype/point/lon/{lon}/lat/{lat}/data.json", timeout=200
-        )
-        assert data.status == mock_response.status_code
-        assert data.headers == mock_response.headers
+        mock_requests_get.assert_called_once_with(url, timeout=200)
+        assert data.latitude == lat
+        assert data.longitude == lon
+        assert data.url == url
         assert data.approved_time == expected_approved_time
         assert data.reference_time == expected_reference_time
-        assert data.geometry == expected_geometry
         assert data.level_unit == MESAN_LEVELS_UNIT
+        assert data.geometry == expected_geometry
+        assert data.status == mock_response.status_code
+        assert data.headers == mock_response.headers
         pd.testing.assert_frame_equal(
             data.df.astype(float), expected_answer.astype(float)
         )
         pd.testing.assert_frame_equal(data.df_info, expected_answer_info)
 
     @pytest.mark.parametrize(
-        "validtime, parameter, leveltype, level, geo, downsample",
+        "valid_time, parameter, level_type, level, geo, downsample",
         [("2024-03-31T06", "t", "hl", 2, True, 1)],
     )
     @patch("smhi.utils.requests.get")
@@ -253,9 +262,9 @@ class TestUnitMesan:
         mock_arrow_now,
         mock_get_parameters,
         mock_requests_get,
-        validtime,
+        valid_time,
         parameter,
-        leveltype,
+        level_type,
         level,
         geo,
         downsample,
@@ -273,19 +282,24 @@ class TestUnitMesan:
 
         client = Mesan()
         data = client.get_multipoint(
-            validtime, parameter, leveltype, level, geo, downsample
+            valid_time, parameter, level_type, level, geo, downsample
         )
-        validtime = client._format_datetime(validtime)
+        valid_time = client._format_datetime(valid_time)
 
-        assert data.status == mock_response.status_code
-        assert data.headers == mock_response.headers
+        assert data.parameter == parameter
+        assert data.parameter_meaning == MESAN_PARAMETER_DESCRIPTIONS[parameter]
+        assert data.geo == geo
+        assert data.downsample == downsample
+        assert data.url is not None
         assert data.approved_time == expected_approved_time
         assert data.reference_time == expected_reference_time
         assert data.valid_time == expected_valid_time
+        assert data.status == mock_response.status_code
+        assert data.headers == mock_response.headers
         pd.testing.assert_frame_equal(data.df, expected_answer)
 
     @pytest.mark.parametrize(
-        "validtime, parameter, leveltype, level, geo, downsample, expected_answer",
+        "valid_time, parameter, level_type, level, geo, downsample, expected_answer",
         [
             (
                 "2024-03-31T06",
@@ -341,9 +355,9 @@ class TestUnitMesan:
     def test_build_multipoint_url(
         self,
         mock_get_parameters,
-        validtime,
+        valid_time,
         parameter,
-        leveltype,
+        level_type,
         level,
         geo,
         downsample,
@@ -353,9 +367,9 @@ class TestUnitMesan:
         client = Mesan()
         assert (
             client._build_multipoint_url(
-                validtime,
+                valid_time,
                 parameter,
-                leveltype,
+                level_type,
                 level,
                 geo,
                 downsample,

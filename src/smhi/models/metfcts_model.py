@@ -13,12 +13,14 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class MetfctsValidTime(BaseModel):
+    url: str
     status: int
     headers: Dict[str, str]
     valid_time: List[str]
 
 
 class MetfctsApprovedTime(BaseModel):
+    url: str
     status: int
     headers: Dict[str, str]
     approved_time: str
@@ -26,6 +28,7 @@ class MetfctsApprovedTime(BaseModel):
 
 
 class MetfctsGeoPolygon(BaseModel):
+    url: str
     status: int
     headers: Dict[str, str]
     type_: str = Field(..., alias="type")
@@ -33,6 +36,7 @@ class MetfctsGeoPolygon(BaseModel):
 
 
 class MetfctsGeoMultiPoint(BaseModel):
+    url: str
     status: int
     headers: Dict[str, str]
     type_: str = Field(..., alias="type")
@@ -48,43 +52,51 @@ class MetfctsParameterItem(BaseModel):
     missing_value: int = Field(..., alias="missingValue")
 
 
-class MetfctsParameters(BaseModel):
+class MetfctsParameter(BaseModel):
+    url: str
     status: int
     headers: Dict[str, str]
     parameter: List[MetfctsParameterItem]
 
 
-class MetfctsPointDataInfoSchema(pa.DataFrameModel):
+class MetfctsPointModelInfoSchema(pa.DataFrameModel):
     name: Index[str] = pa.Field(check_name=True, unique=True)
     level: Series[int]
     level_type: Series[str]
     unit: Series[str]
 
 
-class MetfctsMultiPointDataSchema(pa.DataFrameModel):
+class MetfctsMultiPointModelSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
     value: Series[float]
 
 
-class MetfctsPointData(BaseModel):
+class MetfctsPointModel(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    status: int
-    headers: Dict[str, str]
+    longitude: float
+    latitude: float
+    url: str
     approved_time: str
     reference_time: str
     level_unit: str
-
-    df: pd.DataFrame
-    df_info: DataFrame[MetfctsPointDataInfoSchema]
-
-
-class MetfctsMultiPointData(BaseModel):
+    geometry: MetfctsGeoPolygon
     status: int
     headers: Dict[str, str]
+    df: pd.DataFrame
+    df_info: DataFrame[MetfctsPointModelInfoSchema]
+
+
+class MetfctsMultiPointModel(BaseModel):
     parameter: str
+    parameter_meaning: str
+    geo: bool
+    downsample: int
+    url: str
     approved_time: str
     reference_time: str
     valid_time: str
-    df: DataFrame[MetfctsMultiPointDataSchema]
+    status: int
+    headers: Dict[str, str]
+    df: DataFrame[MetfctsMultiPointModelSchema]

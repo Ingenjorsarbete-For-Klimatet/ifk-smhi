@@ -19,7 +19,11 @@ from smhi.constants import (
     STRANG_POINT_URL,
     STRANG_TIME_INTERVALS,
 )
-from smhi.models.strang_model import StrangMultiPoint, StrangParameter, StrangPoint
+from smhi.models.strang_model import (
+    StrangMultiPointModel,
+    StrangParameter,
+    StrangPointModel,
+)
 from smhi.utils import get_request
 
 logger = logging.getLogger(__name__)
@@ -76,7 +80,7 @@ class Strang:
         time_from: Optional[str] = None,
         time_to: Optional[str] = None,
         time_interval: Optional[str] = None,
-    ) -> StrangPoint:
+    ) -> StrangPointModel:
         """Get data for given lon, lat and parameter.
 
         Args:
@@ -113,7 +117,7 @@ class Strang:
         url = self._build_time_point_url(url, time_from, time_to, time_interval)
         data, header, status = self._get_and_load_data(url, RequestType["POINT"])
 
-        return StrangPoint(
+        return StrangPointModel(
             parameter_key=strang_parameter.key,
             parameter_meaning=strang_parameter.meaning,
             longitude=longitude,
@@ -124,12 +128,12 @@ class Strang:
             url=url,
             status=status,
             headers=header,
-            data=data,
+            df=data,
         )
 
     def get_multipoint(
         self, parameter: int, valid_time: str, time_interval: Optional[str] = None
-    ) -> StrangMultiPoint:
+    ) -> StrangMultiPointModel:
         """Get full spatial data for given parameter and time.
 
         Args:
@@ -163,7 +167,7 @@ class Strang:
         url = self._build_time_multipoint_url(url, time_interval)
         data, header, status = self._get_and_load_data(url, RequestType["MULTIPOINT"])
 
-        return StrangMultiPoint(
+        return StrangMultiPointModel(
             parameter_key=strang_parameter.key,
             parameter_meaning=strang_parameter.meaning,
             valid_time=valid_time,
@@ -171,7 +175,7 @@ class Strang:
             url=url,
             status=status,
             headers=header,
-            data=data,
+            df=data,
         )
 
     def _build_base_point_url(

@@ -9,18 +9,18 @@ from smhi.models.metfcts_model import (
     MetfctsApprovedTime,
     MetfctsGeoMultiPoint,
     MetfctsGeoPolygon,
-    MetfctsMultiPointData,
-    MetfctsParameters,
-    MetfctsPointData,
+    MetfctsMultiPointModel,
+    MetfctsParameter,
+    MetfctsPointModel,
     MetfctsValidTime,
 )
 from smhi.models.variable_model import (
     ApprovedTime,
     GeoMultiPoint,
     GeoPolygon,
-    MultiPointData,
-    Parameters,
-    PointData,
+    MultiPointModel,
+    Parameter,
+    PointModel,
     ValidTime,
 )
 
@@ -28,13 +28,13 @@ from smhi.models.variable_model import (
 class Metfcts(Mesan):
     """SMHI Metfcts module."""
 
-    __parameters_model: Parameters = MetfctsParameters
+    __parameters_model: Parameter = MetfctsParameter
     __approved_time_model: ApprovedTime = MetfctsApprovedTime
     __valid_time_model: ValidTime = MetfctsValidTime
     __geo_polygon_model: GeoPolygon = MetfctsGeoPolygon
     __geo_multipoint_model: GeoMultiPoint = MetfctsGeoMultiPoint
-    __point_data_model: PointData = MetfctsPointData
-    __multipoint_data_model: MultiPointData = MetfctsMultiPointData
+    __point_data_model: PointModel = MetfctsPointModel
+    __multipoint_data_model: MultiPointModel = MetfctsMultiPointModel
 
     _category: str = "pmp3g"
     _version: int = 2

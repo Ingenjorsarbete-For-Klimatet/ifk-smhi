@@ -135,7 +135,7 @@ class TestUnitStrang:
         assert point.url is not None
         assert point.status == mock_response.status_code
         assert point.headers == mock_response.headers
-        pd.testing.assert_frame_equal(point.data, expected_answer)
+        pd.testing.assert_frame_equal(point.df, expected_answer)
 
     @pytest.mark.parametrize(
         "parameter, valid_time, time_interval",
@@ -182,7 +182,7 @@ class TestUnitStrang:
         assert multipoint.url is not None
         assert multipoint.status == mock_response.status_code
         assert multipoint.headers == mock_response.headers
-        pd.testing.assert_frame_equal(multipoint.data, expected_answer)
+        pd.testing.assert_frame_equal(multipoint.df, expected_answer)
 
     @pytest.mark.parametrize(
         "lat, lon, parameter",

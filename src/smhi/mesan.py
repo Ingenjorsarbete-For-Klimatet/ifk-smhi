@@ -16,18 +16,18 @@ from smhi.models.mesan_model import (
     MesanApprovedTime,
     MesanGeoMultiPoint,
     MesanGeoPolygon,
-    MesanMultiPointData,
-    MesanParameters,
-    MesanPointData,
+    MesanMultiPointModel,
+    MesanParameter,
+    MesanPointModel,
     MesanValidTime,
 )
 from smhi.models.variable_model import (
     ApprovedTime,
     GeoMultiPoint,
     GeoPolygon,
-    MultiPointData,
-    Parameters,
-    PointData,
+    MultiPointModel,
+    Parameter,
+    PointModel,
     ValidTime,
 )
 from smhi.utils import get_request
@@ -38,13 +38,13 @@ logger = logging.getLogger(__name__)
 class Mesan:
     """SMHI Mesan module."""
 
-    __parameters_model: Parameters = MesanParameters
+    __parameters_model: Parameter = MesanParameter
     __approved_time_model: ApprovedTime = MesanApprovedTime
     __valid_time_model: ValidTime = MesanValidTime
     __geo_polygon_model: GeoPolygon = MesanGeoPolygon
     __geo_multipoint_model: GeoMultiPoint = MesanGeoMultiPoint
-    __point_data_model: PointData = MesanPointData
-    __multipoint_data_model: MultiPointData = MesanMultiPointData
+    __point_data_model: PointModel = MesanPointModel
+    __multipoint_data_model: MultiPointModel = MesanMultiPointModel
 
     _category: str = "mesan2g"
     _version: int = 1
@@ -68,7 +68,7 @@ class Mesan:
         return self._parameter_descriptions
 
     @property
-    def parameters(self) -> Parameters:
+    def parameters(self) -> Parameter:
         """Get parameters from object state.
 
         Returns:
@@ -76,16 +76,17 @@ class Mesan:
         """
         return self._parameters
 
-    def _get_parameters(self) -> Parameters:
+    def _get_parameters(self) -> Parameter:
         """Get parameters from SMHI.
 
         Returns:
             parameter model
         """
-        data, headers, status = self._get_data(self._base_url + "parameter.json")
+        url = self._base_url + "parameter.json"
+        data, headers, status = self._get_data(url)
 
         return self.__parameters_model(
-            status=status, headers=headers, parameter=data["parameter"]
+            url=url, status=status, headers=headers, parameter=data["parameter"]
         )
 
     @property
@@ -95,9 +96,11 @@ class Mesan:
         Returns:
             approved time model
         """
-        data, headers, status = self._get_data(self._base_url + "approvedtime.json")
+        url = self._base_url + "approvedtime.json"
+        data, headers, status = self._get_data(url)
 
         return self.__approved_time_model(
+            url=url,
             status=status,
             headers=headers,
             approved_time=data["approvedTime"],
@@ -111,10 +114,11 @@ class Mesan:
         Returns:
             valid time model
         """
-        data, headers, status = self._get_data(self._base_url + "validtime.json")
+        url = self._base_url + "validtime.json"
+        data, headers, status = self._get_data(url)
 
         return self.__valid_time_model(
-            status=status, headers=headers, valid_time=data["validTime"]
+            url=url, status=status, headers=headers, valid_time=data["validTime"]
         )
 
     @property
@@ -124,9 +128,11 @@ class Mesan:
         Returns:
             polygon model
         """
-        data, headers, status = self._get_data(self._base_url + "geotype/polygon.json")
+        url = self._base_url + "geotype/polygon.json"
+        data, headers, status = self._get_data(url)
 
         return self.__geo_polygon_model(
+            url=url,
             status=status,
             headers=headers,
             type=data["type"],
@@ -143,11 +149,11 @@ class Mesan:
             multipoint polygon model
         """
         downsample = self._check_downsample(downsample)
-        data, headers, status = self._get_data(
-            self._base_url + f"geotype/multipoint.json?downsample={downsample}"
-        )
+        url = self._base_url + f"geotype/multipoint.json?downsample={downsample}"
+        data, headers, status = self._get_data(url)
 
         return self.__geo_multipoint_model(
+            url=url,
             status=status,
             headers=headers,
             type=data["type"],
@@ -158,7 +164,7 @@ class Mesan:
         self,
         latitude: float,
         longitude: float,
-    ) -> PointData:
+    ) -> PointModel:
         """Get data for given lon, lat and parameter.
 
         Args:
@@ -168,40 +174,42 @@ class Mesan:
         Returns:
             point data model
         """
-        data, headers, status = self._get_data(
-            self._base_url + f"geotype/point/lon/{longitude}/lat/{latitude}/data.json"
-        )
+        url = self._base_url + f"geotype/point/lon/{longitude}/lat/{latitude}/data.json"
+        data, headers, status = self._get_data(url)
         data_table, info_table = self._format_data_point(data)
 
         return self.__point_data_model(
-            status=status,
-            headers=headers,
+            longitude=longitude,
+            latitude=latitude,
+            url=url,
             approved_time=data["approvedTime"],
             reference_time=data["referenceTime"],
             geometry=data["geometry"],
             level_unit=MESAN_LEVELS_UNIT,
+            status=status,
+            headers=headers,
             df=data_table,
             df_info=info_table,
         )
 
     def get_multipoint(
         self,
-        validtime: str,
+        valid_time: str,
         parameter: str,
-        leveltype: str,
+        level_type: str,
         level: int,
-        downsample: int = 2,
         geo: bool = True,
-    ) -> MultiPointData:
+        downsample: int = 2,
+    ) -> MultiPointModel:
         """Get multipoint data.
 
         Args:
-            validtime: valid time
+            valid_time: valid time
             parameter: parameter
-            leveltype: level type
+            level_type: level type
             level: level
-            downsample: downsample
             geo: fetch geography data
+            downsample: downsample
 
         Returns:
             multipoint data model
@@ -209,23 +217,26 @@ class Mesan:
         Raises:
             ValueError
         """
-        if self._check_valid_time(validtime) is False:
-            print(validtime)
-            raise ValueError(f"Invalid time {validtime}.")
+        if self._check_valid_time(valid_time) is False:
+            raise ValueError(f"Invalid time {valid_time}.")
 
         url = self._build_multipoint_url(
-            validtime, parameter, leveltype, level, geo, downsample
+            valid_time, parameter, level_type, level, geo, downsample
         )
         data, headers, status = self._get_data(url)
         data_table = self._format_data_multipoint(data)
 
         return self.__multipoint_data_model(
-            status=status,
-            headers=headers,
             parameter=parameter,
+            parameter_meaning=self._parameter_descriptions[parameter],
+            geo=geo,
+            downsample=downsample,
+            url=url,
             approved_time=data["approvedTime"],
             reference_time=data["referenceTime"],
             valid_time=data["timeSeries"][0]["validTime"],
+            status=status,
+            headers=headers,
             df=data_table,
         )
 
@@ -321,9 +332,9 @@ class Mesan:
 
     def _build_multipoint_url(
         self,
-        validtime: str,
+        valid_time: str,
         parameter: str,
-        leveltype: str,
+        level_type: str,
         level: int,
         geo: bool,
         downsample: int,
@@ -331,9 +342,9 @@ class Mesan:
         """Build multipoint url.
 
         Args:
-            validtime: valid time
+            valid_time: valid time
             parameter: parameter
-            leveltype: level type
+            level_type: level type
             level: level
             geo: geo
             downsample downsample
@@ -341,15 +352,15 @@ class Mesan:
         Returns:
             valid multipoint url
         """
-        validtime = self._format_datetime(validtime)
+        valid_time = self._format_datetime(valid_time)
         downsample = self._check_downsample(downsample)
         geo_url = "true" if geo is True else "false"
 
         return (
             self._base_url
             + "geotype/multipoint/"
-            + f"validtime/{validtime}/parameter/{parameter}/leveltype/"
-            + f"{leveltype}/level/{level}/data.json?with-geo={geo_url}&downsample={downsample}"
+            + f"validtime/{valid_time}/parameter/{parameter}/leveltype/"
+            + f"{level_type}/level/{level}/data.json?with-geo={geo_url}&downsample={downsample}"
         )
 
     def _format_datetime(self, test_time: str) -> str:

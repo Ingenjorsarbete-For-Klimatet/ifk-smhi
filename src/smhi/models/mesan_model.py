@@ -12,33 +12,6 @@ from pandera.typing import DataFrame, Index, Series
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class MesanValidTime(BaseModel):
-    status: int
-    headers: Dict[str, str]
-    valid_time: List[str]
-
-
-class MesanApprovedTime(BaseModel):
-    status: int
-    headers: Dict[str, str]
-    approved_time: str
-    reference_time: str
-
-
-class MesanGeoPolygon(BaseModel):
-    status: int
-    headers: Dict[str, str]
-    type_: str = Field(..., alias="type")
-    coordinates: List[List[List[float]]]
-
-
-class MesanGeoMultiPoint(BaseModel):
-    status: int
-    headers: Dict[str, str]
-    type_: str = Field(..., alias="type")
-    coordinates: List[List[float]]
-
-
 class MesanParameterItem(BaseModel):
     name: str
     key: str
@@ -48,20 +21,52 @@ class MesanParameterItem(BaseModel):
     missing_value: int = Field(..., alias="missingValue")
 
 
-class MesanParameters(BaseModel):
+class MesanParameter(BaseModel):
+    url: str
     status: int
     headers: Dict[str, str]
     parameter: List[MesanParameterItem]
 
 
-class MesanPointDataInfoSchema(pa.DataFrameModel):
+class MesanApprovedTime(BaseModel):
+    url: str
+    status: int
+    headers: Dict[str, str]
+    approved_time: str
+    reference_time: str
+
+
+class MesanValidTime(BaseModel):
+    url: str
+    status: int
+    headers: Dict[str, str]
+    valid_time: List[str]
+
+
+class MesanGeoPolygon(BaseModel):
+    url: str
+    status: int
+    headers: Dict[str, str]
+    type_: str = Field(..., alias="type")
+    coordinates: List[List[List[float]]]
+
+
+class MesanGeoMultiPoint(BaseModel):
+    url: str
+    status: int
+    headers: Dict[str, str]
+    type_: str = Field(..., alias="type")
+    coordinates: List[List[float]]
+
+
+class MesanPointModelInfoSchema(pa.DataFrameModel):
     name: Index[str] = pa.Field(check_name=True, unique=True)
     level: Series[int]
     level_type: Series[str]
     unit: Series[str]
 
 
-class MesanMultiPointDataSchema(pa.DataFrameModel):
+class MesanMultiPointModelSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
     value: Series[float]
@@ -72,24 +77,31 @@ class MesanGeometry(BaseModel):
     coordinates: List[List[float]]
 
 
-class MesanPointData(BaseModel):
+class MesanPointModel(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    status: int
-    headers: Dict[str, str]
+    longitude: float
+    latitude: float
+    url: str
     approved_time: str
     reference_time: str
     level_unit: str
     geometry: MesanGeometry
-    df: pd.DataFrame
-    df_info: DataFrame[MesanPointDataInfoSchema]
-
-
-class MesanMultiPointData(BaseModel):
     status: int
     headers: Dict[str, str]
+    df: pd.DataFrame
+    df_info: DataFrame[MesanPointModelInfoSchema]
+
+
+class MesanMultiPointModel(BaseModel):
     parameter: str
+    parameter_meaning: str
+    geo: bool
+    downsample: int
+    url: str
     approved_time: str
     reference_time: str
     valid_time: str
-    df: DataFrame[MesanMultiPointDataSchema]
+    status: int
+    headers: Dict[str, str]
+    df: DataFrame[MesanMultiPointModelSchema]
