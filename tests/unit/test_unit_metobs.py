@@ -461,8 +461,8 @@ class TestUnitPeriods:
         assert periods.owner_category == expected_answer.owner_category
         assert periods.measuring_stations == expected_answer.measuring_stations
         assert periods.active == expected_answer.active
-        assert periods.from_ == expected_answer.from_
-        assert periods.to == expected_answer.to
+        assert periods.time_from == expected_answer.from_
+        assert periods.time_to == expected_answer.to
         assert periods.position == expected_answer.position
         assert periods.period == expected_answer.period
         assert periods.data == expected_data
@@ -513,9 +513,9 @@ class TestUnitData:
 
         data = Data(mock_periods, period, data_type)
 
-        assert data.from_ == expected_answer.from_
-        assert data.to == expected_answer.to
+        assert data.time_from == expected_answer.from_
+        assert data.time_to == expected_answer.to
         pd.testing.assert_frame_equal(data.station, expected_station)
         pd.testing.assert_frame_equal(data.parameter, expected_parameter)
         pd.testing.assert_frame_equal(data.period, expected_period)
-        pd.testing.assert_frame_equal(data.data, expected_data)
+        pd.testing.assert_frame_equal(data.df, expected_data)
