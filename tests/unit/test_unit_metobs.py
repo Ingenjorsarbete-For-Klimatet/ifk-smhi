@@ -239,7 +239,7 @@ class TestUnitBaseMetobs:
         """Unit test for BaseMetobs _get_url method."""
         base = BaseMetobs()
 
-        if type(expected_url) != str:  # noqa: E721
+        if not isinstance(expected_url, str):
             with pytest.raises(expected_url):
                 base._get_url(data, key, parameters, data_type)
             return None
