@@ -1,6 +1,10 @@
 # Example of Metfcts direct use
 
-Direct usage of `Metfcts`. To list approved and valid times to
+Direct usage of `Metfcts`. Note that `Mesan` and `Metfcts` have identical interfaces.
+
+## Time listing
+
+To list approved and valid times to
 
 ```python
 from smhi.metfcts import Metfcts
@@ -14,6 +18,8 @@ Notice that `approved_time` is the time when the Metfcts analysis was updated.
 On the other hand, `valid_time` are valid time stamps to fetch data for,
 see below.
 
+## Parameters and geographic area
+
 To list available parameters, geographic area as polygon and points do
 
 ```python
@@ -26,6 +32,8 @@ client.get_geo_multipoint(2)
 ```
 
 where `get_geo_multipoint` accepts a downsample argument.
+
+## Point and multipoint data
 
 To get data, two methods are available.
 `get_point` accepts latitude and longitude arguments.

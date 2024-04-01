@@ -1,8 +1,8 @@
 # Metobs reference
 
-::: smhi.metobs.Metobs
+::: smhi.metobs.BaseMetobs
 
-::: smhi.metobs.BaseLevel
+::: smhi.metobs.Versions
 
 ::: smhi.metobs.Parameters
 
@@ -11,3 +11,15 @@
 ::: smhi.metobs.Periods
 
 ::: smhi.metobs.Data
+
+## Models
+
+::: smhi.models.metobs_versions
+
+::: smhi.models.metobs_parameters
+
+::: smhi.models.metobs_stations
+
+::: smhi.models.metobs_periods
+
+::: smhi.models.metobs_data
