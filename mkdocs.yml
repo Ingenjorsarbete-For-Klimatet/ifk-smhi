@@ -16,6 +16,10 @@ nav:
       - "Metfcts reference": metfcts-reference.md
       - "Mesan reference": mesan-reference.md
       - "Strang reference": strang-reference.md
+      - "Metobs model": metobs-model.md
+      - "Metfcts model": metfcts-model.md
+      - "Mesan model": mesan-model.md
+      - "Strang model": strang-model.md
 
 watch:
   - src/smhi
