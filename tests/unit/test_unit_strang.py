@@ -1,50 +1,53 @@
 """SMHI Strang unit tests."""
 
-import datetime
 from functools import partial
 from unittest.mock import patch
 
 import arrow
 import pandas as pd
 import pytest
-from dateutil.tz import tzutc
 from smhi.constants import (
     STRANG_MULTIPOINT_URL,
     STRANG_PARAMETERS,
     STRANG_POINT_URL,
 )
-from smhi.models.strang_model import StrangParameter
+from smhi.models.strang_model import (
+    StrangParameter,
+)
 from smhi.strang import Strang
+from utils import get_response
 
-INPUT_DAILY_2020_01_01_2020_01_02 = [
-    {"date_time": datetime.datetime(2020, 1, 1, 0, 0, tzinfo=tzutc()), "value": 608.0},
-    {"date_time": datetime.datetime(2020, 1, 2, 0, 0, tzinfo=tzutc()), "value": 12.1},
-]
-INPUT_MULTIPOINT_2020_01_01_MONTHLY_10 = [
-    {"lat": 71.139084, "lon": -9.659227, "value": 4.3},
-    {"lat": 71.1481, "lon": -9.589094, "value": 4.3},
-    {"lat": 71.157104, "lon": -9.5189, "value": 4.3},
-    {"lat": 71.16608, "lon": -9.448643, "value": 4.4},
-    {"lat": 71.175026, "lon": -9.378324, "value": 4.4},
-    {"lat": 71.18395, "lon": -9.307943, "value": 4.4},
-    {"lat": 71.19285, "lon": -9.237501, "value": 4.4},
-    {"lat": 71.20173, "lon": -9.166997, "value": 4.4},
-    {"lat": 71.21058, "lon": -9.096432, "value": 4.3},
-    {"lat": 71.219406, "lon": -9.025805, "value": 4.3},
-]
-RESULT_DAILY_2020_01_01_2020_01_02 = pd.read_csv(
-    "tests/fixtures/strang/STRANG_RESULT_DAILY_2020_01_01_2020_01_02.csv",
-    parse_dates=[0],
-    index_col=0,
-)
-RESULT_MULTIPOINT_2020_01_01_MONTHLY_10 = pd.read_csv(
-    "tests/fixtures/strang/STRANG_RESULT_MULTIPOINT_2020_01_01_MONTHLY_10.csv",
-    index_col=0,
-)
+
+@pytest.fixture
+def setup_point():
+    """Read in Point response."""
+    mocked_response = get_response("tests/fixtures/strang/point.txt")
+    mocked_data = pd.read_csv(
+        "tests/fixtures/strang/point_data.csv", index_col="date_time"
+    )
+    mocked_data.index = pd.to_datetime(mocked_data.index)
+
+    return mocked_response, mocked_data
+
+
+@pytest.fixture
+def setup_multipoint():
+    """Read in MultiPoint response."""
+    mocked_response = get_response("tests/fixtures/strang/multipoint.txt")
+    mocked_data = pd.read_csv("tests/fixtures/strang/multipoint_data.csv", index_col=0)
+
+    return mocked_response, mocked_data
 
 
 CATEGORY = "strang1g"
 VERSION = 1
+
+
+def helper_test_partial_string(raw_url):
+    raw_url_dict = {"category": CATEGORY, "version": VERSION}
+    for k1, k2 in zip(sorted(raw_url_dict.keys()), sorted(raw_url.keywords.keys())):
+        assert k1 == k2
+        assert raw_url_dict[k1] == raw_url.keywords[k2]
 
 
 class TestUnitStrang:
@@ -58,20 +61,8 @@ class TestUnitStrang:
         assert client._version == VERSION
         assert client._available_parameters == STRANG_PARAMETERS
 
-        raw_url_dict = {"category": CATEGORY, "version": VERSION}
-        for k1, k2 in zip(
-            sorted(raw_url_dict.keys()), sorted(client._point_raw_url.keywords.keys())
-        ):
-            assert k1 == k2
-            assert raw_url_dict[k1] == client._point_raw_url.keywords[k2]
-
-        raw_url_dict = {"category": CATEGORY, "version": VERSION}
-        for k1, k2 in zip(
-            sorted(raw_url_dict.keys()),
-            sorted(client._multipoint_raw_url.keywords.keys()),
-        ):
-            assert k1 == k2
-            assert raw_url_dict[k1] == client._multipoint_raw_url.keywords[k2]
+        helper_test_partial_string(client._point_raw_url)
+        helper_test_partial_string(client._multipoint_raw_url)
 
     @patch("smhi.strang.logger.info")
     def test_unit_strang_parameters(self, mock_logging):
@@ -91,87 +82,60 @@ class TestUnitStrang:
                 "2020-01-01",
                 "hourly",
             ),
-            (0, 0, STRANG_PARAMETERS[116], None, None, None),
-            (0, 0, STRANG_PARAMETERS[116], "2020-01-01", "2020-01-01", "hourly"),
             (0, None, STRANG_PARAMETERS[116], "2020-01-01", "2020-01-01", "hourly"),
             (None, 0, STRANG_PARAMETERS[116], "2020-01-01", "2020-01-01", "hourly"),
             (None, None, STRANG_PARAMETERS[116], "2020-01-01", "2020-01-01", "hourly"),
+            (0, 0, STRANG_PARAMETERS[116], None, None, None),
+            (0, 0, STRANG_PARAMETERS[116], "2020-01-01", "2020-01-01", "hourly"),
         ],
     )
-    @patch(
-        "smhi.strang.Strang._get_and_load_data",
-        return_value=[
-            pd.DataFrame(
-                [2.0],
-                columns=["value"],
-                index=pd.Series([arrow.get("2020-01-01").datetime], name="date_time"),
-            ),
-            {"head": "head"},
-            200,
-        ],
-    )
-    @patch("smhi.strang.Strang._build_time_point_url", return_value="URL")
+    @patch("smhi.utils.requests.get")
     def test_unit_strang_get_point(
         self,
-        mock_build_time_point_url,
-        mock_get_and_load_data,
+        mock_requests_get,
         lat,
         lon,
         parameter,
         time_from,
         time_to,
         time_interval,
+        setup_point,
     ):
         """Unit test for Strang get_point method."""
+        (mock_response, expected_answer) = setup_point
+        mock_requests_get.return_value = mock_response
+
         client = Strang()
 
         if parameter.key is None:
             with pytest.raises(NotImplementedError):
                 client.get_point(
-                    lat,
-                    lon,
-                    parameter.key,
-                    time_from,
-                    time_to,
-                    time_interval,
+                    lat, lon, parameter.key, time_from, time_to, time_interval
                 )
 
             return None
 
         if lon is None or lat is None:
-            mock_get_and_load_data.return_value[0] = False
-            with pytest.raises(TypeError):
+            with pytest.raises(ValueError):
                 client.get_point(
-                    lat,
-                    lon,
-                    parameter.key,
-                    time_from,
-                    time_to,
-                    time_interval,
+                    lat, lon, parameter.key, time_from, time_to, time_interval
                 )
 
             return None
 
-        point_model = client.get_point(
-            lat,
-            lon,
-            parameter.key,
-            time_from,
-            time_to,
-            time_interval,
+        point = client.get_point(
+            lat, lon, parameter.key, time_from, time_to, time_interval
         )
 
-        assert point_model.parameter_key == parameter.key
-        assert point_model.parameter_meaning == parameter.meaning
-        assert point_model.longitude == lon
-        assert point_model.latitude == lat
-        assert point_model.time_interval == time_interval
-        assert point_model.url == mock_build_time_point_url.return_value
-        assert point_model.status == 200
-        assert point_model.headers == {"head": "head"}
-
-        mock_build_time_point_url.assert_called_once()
-        mock_get_and_load_data.assert_called_once()
+        assert point.parameter_key == parameter.key
+        assert point.parameter_meaning == parameter.meaning
+        assert point.longitude == lon
+        assert point.latitude == lat
+        assert point.time_interval == time_interval
+        assert point.url is not None
+        assert point.status == mock_response.status_code
+        assert point.headers == mock_response.headers
+        pd.testing.assert_frame_equal(point.data, expected_answer)
 
     @pytest.mark.parametrize(
         "parameter, valid_time, time_interval",
@@ -187,62 +151,38 @@ class TestUnitStrang:
             (STRANG_PARAMETERS[116], None, None),
         ],
     )
-    @patch(
-        "smhi.strang.Strang._get_and_load_data",
-        return_value=[
-            pd.DataFrame({"lat": [71.0], "lon": [-9.0], "value": [2.0]}),
-            {"head": "head"},
-            200,
-        ],
-    )
-    @patch("smhi.strang.Strang._build_time_multipoint_url", return_value="URL")
+    @patch("smhi.utils.requests.get")
     def test_unit_strang_get_multipoint(
-        self,
-        mock_build_time_multipoint_url,
-        mock_get_and_load_data,
-        parameter,
-        valid_time,
-        time_interval,
+        self, mock_requests_get, parameter, valid_time, time_interval, setup_multipoint
     ):
         """Unit test for Strang get_multipoint method."""
+        (mock_response, expected_answer) = setup_multipoint
+        mock_requests_get.return_value = mock_response
+
         client = Strang()
 
         if parameter.key is None:
             with pytest.raises(NotImplementedError):
-                client.get_multipoint(
-                    parameter.key,
-                    valid_time,
-                    time_interval,
-                )
+                client.get_multipoint(parameter.key, valid_time, time_interval)
 
             return None
 
         if valid_time is None:
             with pytest.raises(TypeError):
-                client.get_multipoint(
-                    parameter.key,
-                    valid_time,
-                    time_interval,
-                )
+                client.get_multipoint(parameter.key, valid_time, time_interval)
 
             return None
 
-        multipoint_model = client.get_multipoint(
-            parameter.key,
-            valid_time,
-            time_interval,
-        )
+        multipoint = client.get_multipoint(parameter.key, valid_time, time_interval)
 
-        assert multipoint_model.parameter_key == parameter.key
-        assert multipoint_model.parameter_meaning == parameter.meaning
-        assert multipoint_model.valid_time == arrow.get(valid_time).isoformat()
-        assert multipoint_model.time_interval == time_interval
-        assert multipoint_model.url == mock_build_time_multipoint_url.return_value
-        assert multipoint_model.status == 200
-        assert multipoint_model.headers == {"head": "head"}
-
-        mock_build_time_multipoint_url.assert_called_once()
-        mock_get_and_load_data.assert_called_once()
+        assert multipoint.parameter_key == parameter.key
+        assert multipoint.parameter_meaning == parameter.meaning
+        assert multipoint.valid_time == arrow.get(valid_time).isoformat()
+        assert multipoint.time_interval == time_interval
+        assert multipoint.url is not None
+        assert multipoint.status == mock_response.status_code
+        assert multipoint.headers == mock_response.headers
+        pd.testing.assert_frame_equal(multipoint.data, expected_answer)
 
     @pytest.mark.parametrize(
         "lat, lon, parameter",
@@ -352,67 +292,6 @@ class TestUnitStrang:
             )
 
     @pytest.mark.parametrize(
-        "status_expected, data",
-        [
-            (200, [{"date_time": "2020-01-01T00:00:00Z"}]),
-            (200, [{"lat": 0, "lon": 0, "value": 0}]),
-            (200, [{"date_time": "2020-01-01T00:00:00Z"}]),
-        ],
-    )
-    @patch("smhi.strang.Strang._parse_multipoint_data")
-    @patch("smhi.strang.Strang._parse_point_data")
-    @patch("smhi.strang.logging.info")
-    @patch(
-        "smhi.utils.requests.get",
-        return_value=type(
-            "MyClass",
-            (object,),
-            {"status_code": 200, "headers": "header", "content": "content"},
-        )(),
-    )
-    @patch(
-        "smhi.strang.json.loads", return_value=[{"date_time": "2020-01-01T00:00:00Z"}]
-    )
-    def test_unit_strang_get_and_load_data(
-        self,
-        mock_json_loads,
-        mock_requests_get,
-        mock_logging,
-        mock_parse_point_data,
-        mock_parse_multipoint_data,
-        status_expected,
-        data,
-    ):
-        """Unit test for Strang Point get_and_load_strang_data method."""
-        client = Strang()
-        client.url = "URL"
-        mock_json_loads.return_value = data
-        mock_requests_get.return_value.status_code = status_expected
-
-        data, headers, status = client._get_and_load_data(client.url, "parameter")
-        mock_requests_get.assert_called_once_with(client.url, timeout=200)
-
-        if status == 200:
-            mock_json_loads.assert_called_once_with(
-                mock_requests_get.return_value.content
-            )
-            assert status == status_expected
-            assert headers == "header"
-
-            if "date_time" in data[0]:
-                mock_parse_point_data.assert_called_once()
-            else:
-                mock_parse_point_data.mock_parse_multipoint_data()
-
-            mock_logging.assert_not_called()
-
-        else:
-            assert status is status_expected
-            assert headers == "header"
-            pd.testing.assert_frame_equal(data, pd.DataFrame())
-            mock_logging.assert_called_once()
-
-    @pytest.mark.parametrize(
         "parameter, date_time, expected",
         [
             (STRANG_PARAMETERS[0], None, None),
@@ -430,45 +309,3 @@ class TestUnitStrang:
                 client._parse_datetime(date_time, parameter)
         else:
             assert client._parse_datetime(date_time, parameter) == expected
-
-    @pytest.mark.parametrize(
-        "parameter, valid_time, time_interval, input, output",
-        [
-            (
-                118,
-                None,
-                None,
-                INPUT_DAILY_2020_01_01_2020_01_02,
-                RESULT_DAILY_2020_01_01_2020_01_02,
-            ),
-        ],
-    )
-    def test_unit_strang_parse_point_data(
-        self, parameter, valid_time, time_interval, input, output
-    ):
-        """Unit test for Strang _parse_point_data."""
-        client = Strang()
-        data = client._parse_point_data(input)
-
-        pd.testing.assert_frame_equal(data, output)
-
-    @pytest.mark.parametrize(
-        "parameter, valid_time, time_interval, input, output",
-        [
-            (
-                116,
-                "2020-01-01",
-                "monthly",
-                INPUT_MULTIPOINT_2020_01_01_MONTHLY_10,
-                RESULT_MULTIPOINT_2020_01_01_MONTHLY_10,
-            ),
-        ],
-    )
-    def test_unit_strang_parse_multipoint_data(
-        self, parameter, valid_time, time_interval, input, output
-    ):
-        """Unit test for Strang _parse_multipoint_data."""
-        client = Strang()
-        data = client._parse_multipoint_data(input)
-
-        pd.testing.assert_frame_equal(data, output)

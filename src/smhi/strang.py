@@ -92,7 +92,7 @@ class Strang:
             strange point model
 
         Raises:
-            TypeError: wrong type of latitude and/or longitude
+            ValueError: wrong value of latitude and/or longitude
             NotImplementedError: parameter not supported
         """
         strang_parameter = self._available_parameters[parameter]
@@ -103,7 +103,7 @@ class Strang:
             )
 
         if longitude is None or latitude is None:
-            raise TypeError("Wrong type of latitude and/or longitude provided.")
+            raise ValueError("Wrong value of latitude and/or longitude provided.")
 
         time_from = self._parse_datetime(time_from, strang_parameter)
         time_to = self._parse_datetime(time_to, strang_parameter)

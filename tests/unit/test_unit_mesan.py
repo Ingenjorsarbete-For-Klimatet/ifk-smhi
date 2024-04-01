@@ -6,7 +6,6 @@ from unittest.mock import patch
 import arrow
 import pandas as pd
 import pytest
-from pydantic import BaseModel, ConfigDict
 from smhi.constants import MESAN_LEVELS_UNIT, MESAN_PARAMETER_DESCRIPTIONS
 from smhi.mesan import Mesan
 from smhi.models.mesan_model import MesanGeometry, MesanParameterItem, MesanParameters
@@ -38,21 +37,6 @@ MOCK_MESAN_PARAMETERS = MesanParameters(
         ),
     ],
 )
-
-
-class MockMesanPointData(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    approved_time: str
-    reference_time: str
-    level_unit: str
-
-
-class MockMesanMultiPointData(BaseModel):
-    parameter: str
-    approved_time: str
-    reference_time: str
-    valid_time: str
 
 
 @pytest.fixture

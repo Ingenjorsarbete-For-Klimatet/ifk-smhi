@@ -149,7 +149,7 @@ def setup_data(setup_periods):
     mocked_response = get_response("tests/fixtures/metobs/data.txt", encode=True)
     mocked_model = MetobsData.model_validate_json(mocked_response.content)
     mocked_csv_data = MockResponse(
-        200, None, get_data("tests/fixtures/metobs/data_csv.csv", "data")
+        200, None, get_data("tests/fixtures/metobs/data.csv", "data")
     )
 
     mocked_station = pd.read_csv("tests/fixtures/metobs/data_station.csv", index_col=0)

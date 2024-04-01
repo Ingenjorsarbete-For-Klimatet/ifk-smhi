@@ -14,7 +14,7 @@ def get_point(file=None):
 @pytest.fixture
 def get_multipoint():
     df = pd.read_csv(
-        "tests/fixtures/strang/STRANG_RESULT_MULTIPOINT_2020_01_01_MONTHLY_10.csv",
+        "tests/fixtures/strang/strang_result_multipoint_2020_01_01_monthly_10.csv",
         index_col=0,
     )
 
@@ -35,7 +35,7 @@ class TestIntegrationStrang:
                 "2020-01-02",
                 "hourly",
                 get_point(
-                    "tests/fixtures/strang/STRANG_RESULT_HOURLY_2020_01_01_2020_01_02.csv"
+                    "tests/fixtures/strang/strang_result_hourly_2020_01_01_2020_01_02.csv"
                 ),
             ),
             (
@@ -46,7 +46,7 @@ class TestIntegrationStrang:
                 "2020-01-02",
                 "daily",
                 get_point(
-                    "tests/fixtures/strang/STRANG_RESULT_DAILY_2020_01_01_2020_01_02.csv"
+                    "tests/fixtures/strang/strang_result_daily_2020_01_01_2020_01_02.csv"
                 ),
             ),
             (
@@ -57,7 +57,7 @@ class TestIntegrationStrang:
                 "2020-02-01",
                 "monthly",
                 get_point(
-                    "tests/fixtures/strang/STRANG_RESULT_MONTHLY_2020_01_01_2020_02_01.csv"
+                    "tests/fixtures/strang/strang_result_monthly_2020_01_01_2020_02_01.csv"
                 ),
             ),
             (58, 16, 118, None, None, None, get_point()),
