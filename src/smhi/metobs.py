@@ -8,11 +8,15 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import pandas as pd
 from requests.structures import CaseInsensitiveDict
 from smhi.constants import METOBS_AVAILABLE_PERIODS
-from smhi.models.metobs_data import MetobsData, MetobsDataModel, MetobsDatum
-from smhi.models.metobs_parameters import MetobsParameterModel
-from smhi.models.metobs_periods import MetobsPeriodModel
-from smhi.models.metobs_stations import MetobsStationModel
-from smhi.models.metobs_versions import MetobsVersionModel
+from smhi.models.metobs_model import (
+    MetobsCategoryModel,
+    MetobsDataModel,
+    MetobsLinkModel,
+    MetobsParameterModel,
+    MetobsPeriodModel,
+    MetobsStationModel,
+    MetobsVersionModel,
+)
 from smhi.models.variable_model import MetobsModels
 from smhi.utils import get_request
 
@@ -115,7 +119,7 @@ class Versions(BaseMetobs):
             raise TypeError("Only json supported.")
 
         url = self._base_url.format(data_type=data_type)
-        model = self._get_and_parse_request(url, MetobsVersionModel)
+        model = self._get_and_parse_request(url, MetobsCategoryModel)
 
         self.url = url
         self.data = model.data
@@ -154,7 +158,7 @@ class Parameters(BaseMetobs):
             versions_object = Versions()
 
         url, _ = self._get_url(versions_object.data, "key", version, data_type)
-        model = self._get_and_parse_request(url, MetobsParameterModel)
+        model = self._get_and_parse_request(url, MetobsVersionModel)
 
         self.versions_object = versions_object
         self.selected_version = version
@@ -209,7 +213,7 @@ class Stations(BaseMetobs):
                 parameters_in_version.resource, "title", parameter_title, data_type
             )
 
-        model = self._get_and_parse_request(url, MetobsStationModel)
+        model = self._get_and_parse_request(url, MetobsParameterModel)
 
         self.parameters_in_version = parameters_in_version
         self.url = url
@@ -275,7 +279,7 @@ class Periods(BaseMetobs):
                 stations_in_parameter.station_set, "key", station_set, data_type
             )
 
-        model = self._get_and_parse_request(url, MetobsPeriodModel)
+        model = self._get_and_parse_request(url, MetobsStationModel)
 
         self.stations_in_parameter = stations_in_parameter
         self.url = url
@@ -339,7 +343,7 @@ class Data(BaseMetobs):
         self.selected_period = period
 
         url, _ = self._get_url(periods_in_station.period, "key", period, data_type)
-        model = self._get_and_parse_request(url, MetobsData)
+        model = self._get_and_parse_request(url, MetobsPeriodModel)
 
         data_model = self._get_data(model.data)
         stationdata = data_model.stationdata
@@ -376,7 +380,7 @@ class Data(BaseMetobs):
         )
 
     def _get_data(
-        self, raw_data: list[MetobsDatum], type: str = "text/plain"
+        self, raw_data: list[MetobsLinkModel], type: str = "text/plain"
     ) -> MetobsDataModel:
         """Get the selected data file.
 

@@ -15,11 +15,14 @@ from smhi.metobs import (
     Stations,
     Versions,
 )
-from smhi.models.metobs_data import MetobsData
-from smhi.models.metobs_parameters import MetobsParameterItem, MetobsParameterModel
-from smhi.models.metobs_periods import MetobsPeriodModel
-from smhi.models.metobs_stations import MetobsStationModel
-from smhi.models.metobs_versions import MetobsVersionModel
+from smhi.models.metobs_model import (
+    MetobsCategoryModel,
+    MetobsParameterModel,
+    MetobsPeriodModel,
+    MetobsStationModel,
+    MetobsVersionItem,
+    MetobsVersionModel,
+)
 from utils import MockResponse, get_data, get_response
 
 
@@ -63,7 +66,7 @@ class MockPeriods:
 def setup_versions():
     """Read in Versions response."""
     mocked_response = get_response("tests/fixtures/metobs/versions.txt")
-    mocked_model = MetobsVersionModel.model_validate_json(mocked_response.content)
+    mocked_model = MetobsCategoryModel.model_validate_json(mocked_response.content)
 
     return mocked_response, mocked_model
 
@@ -74,9 +77,9 @@ def setup_parameters(setup_versions):
     _, mocked_model_versions = setup_versions
 
     mocked_response = get_response("tests/fixtures/metobs/parameters.txt")
-    mocked_model = MetobsParameterModel.model_validate_json(mocked_response.content)
+    mocked_model = MetobsVersionModel.model_validate_json(mocked_response.content)
     mocked_data = tuple(
-        MetobsParameterItem.model_validate_json(x)
+        MetobsVersionItem.model_validate_json(x)
         for x in get_data("tests/fixtures/metobs/parameters_data.json")
     )
 
@@ -94,7 +97,7 @@ def setup_stations(setup_parameters):
     _, mocked_model_parameters, _, _ = setup_parameters
 
     mocked_response = get_response("tests/fixtures/metobs/stations.txt")
-    mocked_model = MetobsStationModel.model_validate_json(mocked_response.content)
+    mocked_model = MetobsParameterModel.model_validate_json(mocked_response.content)
     mocked_data = tuple(
         [tuple(x) for x in get_data("tests/fixtures/metobs/stations_data.json")]
     )
@@ -113,7 +116,7 @@ def setup_periods(setup_stations):
     _, mocked_model_stations, _, _ = setup_stations
 
     mocked_response = get_response("tests/fixtures/metobs/periods.txt")
-    mocked_model = MetobsPeriodModel.model_validate_json(mocked_response.content)
+    mocked_model = MetobsStationModel.model_validate_json(mocked_response.content)
     mocked_data = tuple(get_data("tests/fixtures/metobs/periods_data.json"))
 
     return (
@@ -130,7 +133,7 @@ def setup_periods_set(setup_stations):
     _, mocked_model_stations, _, _ = setup_stations
 
     mocked_response = get_response("tests/fixtures/metobs/periods_set.txt")
-    mocked_model = MetobsPeriodModel.model_validate_json(mocked_response.content)
+    mocked_model = MetobsStationModel.model_validate_json(mocked_response.content)
     mocked_data = tuple(get_data("tests/fixtures/metobs/periods_data_set.json"))
 
     return (
@@ -147,7 +150,7 @@ def setup_data(setup_periods):
     _, mocked_model_periods, _, _ = setup_periods
 
     mocked_response = get_response("tests/fixtures/metobs/data.txt", encode=True)
-    mocked_model = MetobsData.model_validate_json(mocked_response.content)
+    mocked_model = MetobsPeriodModel.model_validate_json(mocked_response.content)
     mocked_csv_data = MockResponse(
         200, None, get_data("tests/fixtures/metobs/data.csv", "data")
     )

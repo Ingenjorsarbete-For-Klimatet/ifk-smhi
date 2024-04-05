@@ -20,14 +20,18 @@ from smhi.models.metfcts_model import (
     MetfctsPointModel,
     MetfctsValidTime,
 )
-from smhi.models.metobs_data import MetobsDataModel
-from smhi.models.metobs_parameters import MetobsParameterModel
-from smhi.models.metobs_periods import MetobsPeriodModel
-from smhi.models.metobs_stations import MetobsStationModel
-from smhi.models.metobs_versions import MetobsVersionModel
+from smhi.models.metobs_model import (
+    MetobsCategoryModel,
+    MetobsDataModel,
+    MetobsParameterModel,
+    MetobsPeriodModel,
+    MetobsStationModel,
+    MetobsVersionModel,
+)
 
 MetobsModels = TypeVar(
     "MetobsModels",
+    MetobsCategoryModel,
     MetobsVersionModel,
     MetobsParameterModel,
     MetobsStationModel,

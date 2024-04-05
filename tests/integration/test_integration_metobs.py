@@ -6,7 +6,7 @@ import time
 import pandas as pd
 import pytest
 from smhi.metobs import Data, Parameters, Periods, Stations
-from smhi.models.metobs_parameters import MetobsParameterItem
+from smhi.models.metobs_model import MetobsVersionItem
 
 METOBS_INTEGRATION_DF = {}
 for i in [1, 2, 22]:
@@ -36,7 +36,7 @@ class TestIntegrationMetobs:
                 1,
                 1,
                 "corrected-archive",
-                MetobsParameterItem(
+                MetobsVersionItem(
                     key="1",
                     title="Lufttemperatur",
                     summary="momentanvärde, 1 gång/tim",
@@ -52,7 +52,7 @@ class TestIntegrationMetobs:
                 1,
                 192840,
                 "corrected-archive",
-                MetobsParameterItem(
+                MetobsVersionItem(
                     key="1",
                     title="Lufttemperatur",
                     summary="momentanvärde, 1 gång/tim",
@@ -68,7 +68,7 @@ class TestIntegrationMetobs:
                 2,
                 192840,
                 "corrected-archive",
-                MetobsParameterItem(
+                MetobsVersionItem(
                     key="2",
                     title="Lufttemperatur",
                     summary="medelvärde 1 dygn, 1 gång/dygn, kl 00",
@@ -84,7 +84,7 @@ class TestIntegrationMetobs:
                 22,
                 192840,
                 "corrected-archive",
-                MetobsParameterItem(
+                MetobsVersionItem(
                     key="22",
                     title="Lufttemperatur",
                     summary="medel, 1 gång per månad",
