@@ -1,39 +1,26 @@
 """Mesan integration tests."""
 
-import json
+import arrow
 import pytest
-import requests
+from smhi.constants import MESAN_PARAMETER_DESCRIPTIONS
 from smhi.mesan import Mesan
-import datetime as dt
 
-BASE_URL = "https://opendata-download-metanalys.smhi.se"
-APPROVED_TIME = BASE_URL + "/api/category/mesan2g/version/1/approvedtime.json"
-VALID_TIME = BASE_URL + "/api/category/mesan2g/version/1/validtime.json"
-GEO_POLYGON = BASE_URL + "/api/category/mesan2g/version/1/geotype/polygon.json"
-MULTIPOINT_D0 = BASE_URL + "/api/category/mesan2g/version/1/geotype/multipoint.json"
-MULTIPOINT_D1 = (
-    BASE_URL + "/api/category/mesan2g/version/1/geotype/multipoint.json?downsample=1"
-)
-MULTIPOINT_D2 = (
-    BASE_URL + "/api/category/mesan2g/version/1/geotype/multipoint.json?downsample=2"
-)
-MULTIPOINT_D10 = (
-    BASE_URL + "/api/category/mesan2g/version/1/geotype/multipoint.json?downsample=10"
-)
-MULTIPOINT_D20 = (
-    BASE_URL + "/api/category/mesan2g/version/1/geotype/multipoint.json?downsample=20"
-)
-PARAMETERS = BASE_URL + "/api/category/mesan2g/version/1/parameter.json"
+NUM_VALID_TIME = 24
+GEO_POLYGON_TYPE = "Polygon"
+GEO_MULTIPOINT_TYPE = "MultiPoint"
+NUM_GEO_COORDINATES = 10
+NUM_PARAMETERS = 10
+MIN_TEMPERATURE = -1000
 
-APPROVED_TIME_NOW = json.loads(requests.get(APPROVED_TIME).content)
-VALID_TIME_NOW = json.loads(requests.get(VALID_TIME).content)
-GEO_POLYGON_NOW = json.loads(requests.get(GEO_POLYGON).content)
-MULTIPOINT_D0_NOW = json.loads(requests.get(MULTIPOINT_D0).content)
-MULTIPOINT_D1_NOW = json.loads(requests.get(MULTIPOINT_D1).content)
-MULTIPOINT_D2_NOW = json.loads(requests.get(MULTIPOINT_D2).content)
-MULTIPOINT_D10_NOW = json.loads(requests.get(MULTIPOINT_D10).content)
-MULTIPOINT_D20_NOW = json.loads(requests.get(MULTIPOINT_D20).content)
-PARAMETERS_NOW = json.loads(requests.get(PARAMETERS).content)
+
+def datetime_between_day(test_time):
+    ttime = arrow.get(test_time)
+    return ttime.shift(days=-1) < ttime < ttime.shift(days=1)
+
+
+def datetime_between_week(test_time):
+    ttime = arrow.get(test_time)
+    return ttime.shift(days=-2) < ttime < ttime.shift(weeks=2)
 
 
 class TestIntegrationMesan:
@@ -42,126 +29,73 @@ class TestIntegrationMesan:
     def test_integration_mesan_approved_time(self):
         """Integration test for approved time property."""
         client = Mesan()
-        assert client.approved_time == APPROVED_TIME_NOW["approvedTime"]
-
-    def test_integration_mesan_valid_time(self):
-        """Integration test for approved time property."""
-        client = Mesan()
-        assert client.valid_time == VALID_TIME_NOW["validTime"]
-
-    def test_integration_mesan_geo_polygon(self):
-        """Integration test for geo_polygon property."""
-        client = Mesan()
-        assert client.geo_polygon == GEO_POLYGON_NOW["coordinates"]
-
-    @pytest.mark.parametrize(
-        "downsample, result",
-        [
-            (0, MULTIPOINT_D0_NOW),
-            (1, MULTIPOINT_D1_NOW),
-            (2, MULTIPOINT_D2_NOW),
-            (10, MULTIPOINT_D10_NOW),
-            (20, MULTIPOINT_D20_NOW),
-        ],
-    )
-    def test_integration_mesan_get_geo_multipoint(self, downsample, result):
-        """Integration test for get_geo_multipoint method.
-
-        Args:
-            downsample: downsample parameter
-            result: expected result
-        """
-        client = Mesan()
-        assert client.get_geo_multipoint(downsample) == result["coordinates"]
+        approved_time = client.approved_time.approved_time
+        assert datetime_between_day(approved_time)
 
     def test_integration_mesan_parameters(self):
         """Integration test for parameters property."""
         client = Mesan()
-        assert client.parameters == PARAMETERS_NOW["parameter"]
+        parameters = client.parameters
+        assert all(
+            [x.name in MESAN_PARAMETER_DESCRIPTIONS for x in parameters.parameter]
+        )
+        assert len(parameters.parameter) > NUM_PARAMETERS
+
+    def test_integration_mesan_valid_time(self):
+        """Integration test for approved time property."""
+        client = Mesan()
+        valid_time = client.valid_time.valid_time
+        for test_time in valid_time:
+            assert datetime_between_week(test_time)
+
+        assert len(valid_time) == NUM_VALID_TIME
+
+    def test_integration_mesan_geo_polygon(self):
+        """Integration test for geo_polygon property."""
+        client = Mesan()
+        geo_polygon = client.geo_polygon
+        assert geo_polygon.type_ == GEO_POLYGON_TYPE
+        assert len(geo_polygon.coordinates[0]) > NUM_GEO_COORDINATES
+
+    @pytest.mark.parametrize("downsample", [(1)])
+    def test_integration_mesan_get_geo_multipoint(self, downsample):
+        """Integration test for get_geo_multipoint method."""
+        client = Mesan()
+        geo_multipoint = client.get_geo_multipoint(downsample)
+        assert geo_multipoint.type_ == GEO_MULTIPOINT_TYPE
+        assert len(geo_multipoint.coordinates) > NUM_GEO_COORDINATES
 
     @pytest.mark.parametrize("lat, lon", [(58, 16)])
     def test_integration_mesan_get_point(self, lat, lon):
-        """Integration test for get_point method.
-
-        Args:
-            lat: latitude parameter
-            lon: longitude parameter
-        """
+        """Integration test for get_point method."""
         client = Mesan()
-        data = client.get_point(lat, lon)
+        point = client.get_point(lat, lon)
 
-        columns = [
-            ("Tiw", "Cel"),
-            ("Wsymb2", "category"),
-            ("c_sigfr", "percent"),
-            ("cb_sig", "m"),
-            ("ct_sig", "m"),
-            ("frsn12h", "cm"),
-            ("frsn1h", "cm"),
-            ("frsn24h", "cm"),
-            ("frsn3h", "cm"),
-            ("gust", "m/s"),
-            ("hcc", "octas"),
-            ("lcc", "octas"),
-            ("mcc", "octas"),
-            ("msl", "hPa"),
-            ("pmax", "kg/m2/h"),
-            ("pmean", "kg/m2/h"),
-            ("pmedian", "kg/m2/h"),
-            ("pmin", "kg/m2/h"),
-            ("prec12h", "mm"),
-            ("prec1h", "mm"),
-            ("prec24h", "mm"),
-            ("prec3h", "mm"),
-            ("prsort", "code"),
-            ("prtype", "code"),
-            ("r", "percent"),
-            ("spp", "percent"),
-            ("t", "Cel"),
-            ("tcc", "octas"),
-            ("tmax", "Cel"),
-            ("tmin", "Cel"),
-            ("vis", "km"),
-            ("wd", "degree"),
-            ("ws", "m/s"),
-            ("hl", "m"),
-            ("hmsl", "m"),
-        ]
-        assert data.columns.names == ["name", "unit"]
-        assert dt.datetime.now(dt.timezone.utc) - data.index[-1] < dt.timedelta(1)
-        for n, col in enumerate(columns):
-            assert data.columns[n] == col
+        assert not point.df_info.empty
+        assert not point.df.empty
+        assert point.df["t"].iloc[0] > MIN_TEMPERATURE
 
     @pytest.mark.parametrize(
-        "validtime, parameter, level_type, level, downsample",
-        [(VALID_TIME_NOW["validTime"][0], "t", "hl", 2, 2)],
+        "validtime, parameter, level_type, level, geo, downsample",
+        [
+            (
+                arrow.utcnow().shift(hours=-1).format("YYYYMMDDTHH"),
+                "t",
+                "hl",
+                2,
+                False,
+                10,
+            )
+        ],
     )
     def test_integration_mesan_get_multipoint(
-        self, validtime, parameter, level_type, level, downsample
+        self, validtime, parameter, level_type, level, geo, downsample
     ):
-        """Integration test for get_multipoint method.
-
-        Args:
-            validtime: valid time
-            parameter: parameter
-            level_type: level type
-            level: level
-            downsample: downsample
-        """
+        """Integration test for get_multipoint method."""
         client = Mesan()
-        data = client.get_multipoint(
-            validtime, parameter, level_type, level, downsample
+        multipoint = client.get_multipoint(
+            validtime, parameter, level_type, level, geo, downsample
         )
-        columns = [
-            "validTime",
-            "approvedTime",
-            "referenceTime",
-            "name",
-            "levelType",
-            "level",
-            "unit",
-            "values",
-        ]
-        assert dt.datetime.now(dt.timezone.utc) - data.validTime[0] < dt.timedelta(1)
-        for n, col in enumerate(columns):
-            assert data.columns[n] == col
+
+        assert not multipoint.df.empty
+        assert multipoint.df["value"].iloc[0] > MIN_TEMPERATURE

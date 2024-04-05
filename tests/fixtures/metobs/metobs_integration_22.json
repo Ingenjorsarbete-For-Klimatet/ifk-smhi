@@ -1,0 +1,27 @@
+[
+    {
+        "Stationsnamn": "Karesuando A",
+        "Stationsnummer": 192840,
+        "Stationsnät": "SMHIs stationsnät",
+        "Mäthöjd (meter över marken)": 2.0
+    },
+    {
+        "Parameternamn": "Lufttemperatur",
+        "Beskrivning": "medel, 1 gång per månad",
+        "Enhet": "celsius"
+    },
+    {
+        "Tidsperiod (fr.o.m)": "2008-12-01 00:00:00",
+        "Tidsperiod (t.o.m)": "2024-01-01 18:21:06",
+        "Höjd (meter över havet)": 329.68,
+        "Latitud (decimalgrader)": 68.4418,
+        "Longitud (decimalgrader)": 22.4435
+    },
+    {
+        "Index": "2008-11-01",
+        "Från Datum Tid (UTC)": "2008-11-01 00:00:01",
+        "Till Datum Tid (UTC)": "2008-12-01 00:00:00",
+        "Lufttemperatur": -8.7,
+        "Kvalitet": "Y"
+    }
+]

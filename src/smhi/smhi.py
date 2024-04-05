@@ -1,12 +1,13 @@
 """Read SMHI data."""
 
 import logging
+from typing import Any, List, Optional, Tuple
+
 import pandas as pd
-from geopy.geocoders import Nominatim
 from geopy import distance
-from typing import Optional, Any, List, Tuple
-from smhi.metobs import Metobs
+from geopy.geocoders import Nominatim
 from smhi.constants import TYPE_MAP
+from smhi.metobs import Metobs
 
 
 class SMHI:

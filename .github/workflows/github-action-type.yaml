@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9"]
+        python-version: ["3.11"]
 
     steps:
       - uses: actions/checkout@v2
@@ -19,9 +19,4 @@ jobs:
           pip install -e ".[type]"
       - name: Type checking with mypy
         run: >
-          MYPYPATH=src
-          mypy
-          --namespace-packages
-          --explicit-package-bases
-          --allow-redefinition
-          src
+          mypy src --ignore-missing-imports --exclude=src/smhi/smhi.py

@@ -1,0 +1,16 @@
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Age: 0
+Connection: keep-alive
+Content-Encoding: gzip
+Content-Length: 174
+Last-Modified: Mon, 01 Apr 2024 06:33:05 GMT
+Vary: Accept-Encoding
+Via: 1.1 varnish (Varnish/6.6)
+X-Varnish: 683722598
+X-hits: 0
+content-type: application/json
+date: Mon, 01 Apr 2024 06:33:05 GMT
+x-request-id: 77143621-33fa-43e2-a548-1556ad2984e0
+
+[{"date_time":"2020-02-01T00:00:00Z","value":0.0},{"date_time":"2020-02-01T01:00:00Z","value":0.0}]

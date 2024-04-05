@@ -2,186 +2,99 @@
 
 import json
 import time
-import pytest
-from smhi.metobs import Metobs, Parameters, Stations, Periods, Data
 
-METOBS_INTEGRATION = {}
+import pandas as pd
+import pytest
+from smhi.metobs import Data, Parameters, Periods, Stations
+from smhi.models.metobs_model import MetobsVersionItem
+
+METOBS_INTEGRATION_DF = {}
 for i in [1, 2, 22]:
-    with open(f"tests/fixtures/metobs_integration_{i}.json", encoding="utf-8") as f:
-        METOBS_INTEGRATION[i] = json.load(f)
+    with open(
+        f"tests/fixtures/metobs/metobs_integration_{i}.json", encoding="utf-8"
+    ) as f:
+        METOBS_INTEGRATION_DF[i] = []
+        all_dfs = json.load(f)
+        for j, header in enumerate(all_dfs):
+            METOBS_INTEGRATION_DF[i].append(pd.DataFrame(header, index=[0]))
+
+            if j == 3:
+                METOBS_INTEGRATION_DF[i][j].set_index("Index", drop=True, inplace=True)
+                METOBS_INTEGRATION_DF[i][j].index.name = None
+                METOBS_INTEGRATION_DF[i][j].index = pd.to_datetime(
+                    METOBS_INTEGRATION_DF[i][j].index
+                )
 
 
 class TestIntegrationMetobs:
     """Integration tests of Metobs."""
 
     @pytest.mark.parametrize(
-        "parameter, station, period, init_key, init_title, parameter_data_0, "
-        + "station_data_0, period_data_0, data_title, table_locr, table_locc, "
-        + "table, header_0",
+        "parameter, station, period, parameter_data, station_data, period_data, data_title, data_df",
         [
             (
                 1,
                 1,
                 "corrected-archive",
-                "metobs",
-                "Meteorologiska observationer från SMHI: Välj "
-                + "version (sedan parameter, station och tidsutsnitt)",
-                ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
+                MetobsVersionItem(
+                    key="1",
+                    title="Lufttemperatur",
+                    summary="momentanvärde, 1 gång/tim",
+                    unit="celsius",
+                ),
                 (1, "Akalla"),
                 "corrected-archive",
                 "Lufttemperatur - Akalla - Kvalitetskontrollerade historiska "
                 + "data (utom de senaste 3 mån): Ladda ner data",
-                None,
-                None,
-                False,
                 {},
             ),
             (
                 1,
                 192840,
                 "corrected-archive",
-                "metobs",
-                "Meteorologiska observationer från SMHI: Välj "
-                + "version (sedan parameter, station och tidsutsnitt)",
-                ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
+                MetobsVersionItem(
+                    key="1",
+                    title="Lufttemperatur",
+                    summary="momentanvärde, 1 gång/tim",
+                    unit="celsius",
+                ),
                 (192840, "Karesuando A"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
                 + "historiska data (utom de senaste 3 mån): Ladda ner data",
-                0,
-                0,
-                -15.2,
-                METOBS_INTEGRATION[1],
-            ),
-        ],
-    )
-    def test_integration_metobs_first(
-        self,
-        parameter,
-        station,
-        period,
-        init_key,
-        init_title,
-        parameter_data_0,
-        station_data_0,
-        period_data_0,
-        data_title,
-        table_locr,
-        table_locc,
-        table,
-        header_0,
-    ):
-        """Integration test of the Metobs API used through the Metobs client.
-
-        Args:
-            parameter
-            station
-            period
-            init_key
-            init_title
-            parameter_data_0
-            station_data_0
-            period_data_0
-            data_title
-            table_locr
-            table_locc
-            table
-            header_0
-        """
-        client = Metobs()
-        client.get_parameters()
-        client.get_stations(parameter)
-        client.get_periods(station)
-        data, data_header = client.get_data(period)
-
-        station_index = [
-            i for i, x in enumerate(client.stations.data) if x[0] == station
-        ][0]
-
-        assert client.parameters.data[parameter - 1] == parameter_data_0
-        assert client.stations.data[station_index] == station_data_0
-        assert client.periods.data[0] == period_data_0
-        assert client.data.title == data_title
-        if table:
-            assert data.iloc[table_locr, table_locc] == table
-            data_header.pop("Tidsperiod (t.o.m)")
-            header_0.pop("Tidsperiod (t.o.m)")
-            assert data_header == header_0
-
-        time.sleep(1)
-
-    @pytest.mark.parametrize(
-        "parameter, station, period, init_key, init_title, parameter_data_0, "
-        + "station_data_0, period_data_0, data_title, table_locr, table_locc, "
-        + "table, header_0",
-        [
-            (
-                1,
-                1,
-                "corrected-archive",
-                "metobs",
-                "Meteorologiska observationer från SMHI: Välj "
-                + "version (sedan parameter, station och tidsutsnitt)",
-                ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
-                (1, "Akalla"),
-                "corrected-archive",
-                "Lufttemperatur - Akalla - Kvalitetskontrollerade historiska "
-                + "data (utom de senaste 3 mån): Ladda ner data",
-                None,
-                None,
-                False,
-                {},
-            ),
-            (
-                1,
-                192840,
-                "corrected-archive",
-                "metobs",
-                "Meteorologiska observationer från SMHI: Välj "
-                + "version (sedan parameter, station och tidsutsnitt)",
-                ("1", "Lufttemperatur", "momentanvärde, 1 gång/tim"),
-                (192840, "Karesuando A"),
-                "corrected-archive",
-                "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
-                + "historiska data (utom de senaste 3 mån): Ladda ner data",
-                0,
-                0,
-                -15.2,
-                METOBS_INTEGRATION[1],
+                METOBS_INTEGRATION_DF[1],
             ),
             (
                 2,
                 192840,
                 "corrected-archive",
-                "metobs",
-                "Meteorologiska observationer från SMHI: Välj "
-                + "version (sedan parameter, station och tidsutsnitt)",
-                ("2", "Lufttemperatur", "medelvärde 1 dygn, 1 gång/dygn, kl 00"),
+                MetobsVersionItem(
+                    key="2",
+                    title="Lufttemperatur",
+                    summary="medelvärde 1 dygn, 1 gång/dygn, kl 00",
+                    unit="celsius",
+                ),
                 (192840, "Karesuando A"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
                 + "historiska data (utom de senaste 3 mån): Ladda ner data",
-                0,
-                2,
-                -16.1,
-                METOBS_INTEGRATION[2],
+                METOBS_INTEGRATION_DF[2],
             ),
             (
                 22,
                 192840,
                 "corrected-archive",
-                "metobs",
-                "Meteorologiska observationer från SMHI: Välj "
-                + "version (sedan parameter, station och tidsutsnitt)",
-                ("22", "Lufttemperatur", "medel, 1 gång per månad"),
+                MetobsVersionItem(
+                    key="22",
+                    title="Lufttemperatur",
+                    summary="medel, 1 gång per månad",
+                    unit="celsius",
+                ),
                 (192840, "Karesuando A"),
                 "corrected-archive",
                 "Lufttemperatur - Karesuando A - Kvalitetskontrollerade "
                 + "historiska data (utom de senaste 3 mån): Ladda ner data",
-                0,
-                2,
-                -8.7,
-                METOBS_INTEGRATION[22],
+                METOBS_INTEGRATION_DF[22],
             ),
         ],
     )
@@ -190,58 +103,40 @@ class TestIntegrationMetobs:
         parameter,
         station,
         period,
-        init_key,
-        init_title,
-        parameter_data_0,
-        station_data_0,
-        period_data_0,
+        parameter_data,
+        station_data,
+        period_data,
         data_title,
-        table_locr,
-        table_locc,
-        table,
-        header_0,
+        data_df,
     ):
-        """Integration test of the Metobs API through the object clients.
-
-        Args:
-            parameter
-            station
-            period
-            init_key
-            init_title
-            parameter_data_0
-            station_data_0
-            period_data_0
-            data_title
-            table_locr,
-            table_locc
-            table
-            header_0
-        """
+        """Integration test of the Metobs API through the object clients."""
         parameters = Parameters()
         stations = Stations(parameters, parameter)
         periods = Periods(stations, station)
-        periods_from_name = Periods(stations, station_name=station_data_0[1])
+        periods_from_name = Periods(stations, station_name=station_data[1])
         data = Data(periods, period)
 
         station_index = [i for i, x in enumerate(stations.data) if x[0] == station][0]
 
-        assert parameters.data[parameter - 1] == parameter_data_0
-        assert stations.data[station_index] == station_data_0
-        assert periods.data[0] == period_data_0
-        assert periods_from_name.data[0] == period_data_0
+        assert parameters.data[parameter - 1] == parameter_data
+        assert stations.data[station_index] == station_data
+        assert periods.data[0] == period_data
+        assert periods_from_name.data[0] == period_data
         assert data.title == data_title
-        if table:
-            assert data.data.iloc[table_locr, table_locc] == table
-            data.data_header.pop("Tidsperiod (t.o.m)")
-            if header_0.get("Tidsperiod (t.o.m)"):
-                header_0.pop("Tidsperiod (t.o.m)")
-            assert data.data_header == header_0
+
+        if len(data_df) > 0:
+            pd.testing.assert_frame_equal(data.station, data_df[0])
+            pd.testing.assert_frame_equal(data.parameter, data_df[1])
+            pd.testing.assert_frame_equal(
+                data.period.iloc[:, 2:],
+                data_df[2].iloc[:, 2:],  # skip columns Tidsperiod
+            )
+            pd.testing.assert_frame_equal(data.df.iloc[:1, :], data_df[3])
 
         time.sleep(1)
 
     @pytest.mark.parametrize(
-        "parameter", [parameter for parameter, _, _ in Parameters().data]
+        "parameter", [parameter.key for parameter in Parameters().data]
     )
     def test_integration_metobs_passing(self, parameter):
         """Test that all parameters available return data without error.
@@ -261,7 +156,7 @@ class TestIntegrationMetobs:
             assert True
         except TypeError:
             assert True
-        except BaseException:
+        except Exception:
             assert False
 
         time.sleep(1)

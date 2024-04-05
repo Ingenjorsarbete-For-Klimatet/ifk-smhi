@@ -5,20 +5,24 @@ site_url: https://ingenjorsarbete-for-klimatet.github.io/ifk-smhi/
 repo_name: Ingenjorsarbete-For-Klimatet/ifk-smhi
 
 nav:
-- Home: index.md
-- Examples:
-  - "Metobs": metobs-example.md
-  - "Metfcts": metfcts-example.md
-  - "Mesan": mesan-example.md
-  - "Strang": strang-example.md
-- Reference:
-  - "Metobs reference": metobs-reference.md
-  - "Metfcts reference": metfcts-reference.md
-  - "Mesan reference": mesan-reference.md
-  - "Strang reference": strang-reference.md
+  - Home: index.md
+  - Examples:
+      - "Metobs": metobs-example.md
+      - "Metfcts": metfcts-example.md
+      - "Mesan": mesan-example.md
+      - "Strang": strang-example.md
+  - Reference:
+      - "Metobs reference": metobs-reference.md
+      - "Metfcts reference": metfcts-reference.md
+      - "Mesan reference": mesan-reference.md
+      - "Strang reference": strang-reference.md
+      - "Metobs model": metobs-model.md
+      - "Metfcts model": metfcts-model.md
+      - "Mesan model": mesan-model.md
+      - "Strang model": strang-model.md
 
 watch:
-- src/smhi
+  - src/smhi
 
 theme:
   name: material
@@ -36,8 +40,8 @@ theme:
     - navigation.tabs
 
 plugins:
-- search
-- mkdocstrings
+  - search
+  - mkdocstrings
 
 markdown_extensions:
   - pymdownx.highlight:

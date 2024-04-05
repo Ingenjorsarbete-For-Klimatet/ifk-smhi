@@ -5,7 +5,7 @@ See [https://opendata.smhi.se/apidocs/](https://opendata.smhi.se/apidocs/)
 for a complete list of available APIs.
 SMHI stands for [Swedish Meteorological and Hydrological Institute](https://www.smhi.se/)
 (or in Swedish: Sveriges meteorologiska och hydrologiska institut),
-which is a Swedish agency under its parent department:  Ministry of Climate and
+which is a Swedish agency under its parent department: Ministry of Climate and
 Enterprise.
 
 Initially only these four APIs are supported
@@ -49,7 +49,7 @@ Use this to access data about _forecasts_, i.e. SMHI weather predictions.
 ## Mesan client
 
 Client to fetch data from meteorological analysis.
-Use this to access up to 24 hour predictions of weather parameters.
+Use this to access the last 24 hour predictions of weather parameters.
 This API is a useful complement to Metobs because the number of weather
 stations are limited.
 

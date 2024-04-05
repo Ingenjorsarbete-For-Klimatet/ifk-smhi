@@ -1,0 +1,12 @@
+﻿Stationsnamn;Stationsnummer;Stationsnät;Mäthöjd (meter över marken)
+Akalla;1;Övriga stationer;2.0
+
+Parameternamn;Beskrivning;Enhet
+Lufttemperatur;momentanvärde, 1 gång/tim;celsius
+
+Tidsperiod (fr.o.m);Tidsperiod (t.o.m);Höjd (meter över havet);Latitud (decimalgrader);Longitud (decimalgrader)
+2013-01-01 00:00:00;2013-04-30 23:59:59;23.0;59.5000;17.8000
+
+Datum;Tid (UTC);Lufttemperatur;Kvalitet;;Tidsutsnitt:
+2013-01-01;00:00:00;5.3;Y;;Kvalitetskontrollerade historiska data (utom de senaste 3 mån)
+2013-01-01;01:00:00;5.3;Y;;Tidsperiod (fr.o.m.) = 2013-01-01 00:00:00 (UTC)

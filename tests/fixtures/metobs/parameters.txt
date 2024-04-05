@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Date: Sun, 24 Mar 2024 10:19:20 GMT
+Cache-Control: max-age=60
+Content-Encoding: gzip
+Vary: Accept-Encoding
+X-Varnish: 402656395 434864950
+Age: 29
+Via: 1.1 varnish (Varnish/6.6)
+X-hits: 1
+Access-Control-Allow-Origin: *
+Last-Modified: Sun, 24 Mar 2024 10:19:50 GMT
+Accept-Ranges: bytes
+Content-Length: 2628
+Connection: keep-alive
+
+{"key":"1.0","updated":1711270800000,"title":"1.0 versionen av nedladdningstjänsten: Välj parameter (sedan station och tidsutsnitt)","summary":"","link":[{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0.json","rel":"version","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0.xml","rel":"version","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0.atom","rel":"version","type":"application/atom+xml"},{"href":"https://opendata-download-metobs.smhi.se/api.atom","rel":"category","type":"application/atom+xml"},{"href":"https://opendata-catalog.smhi.se/md/25080190-38ba-4279-a65d-d9ef8d0bf949","rel":"iso19139","type":"application/vnd.iso.19139+xml"}],"resource":[{"key":"1","updated":1711270800000,"title":"Lufttemperatur","summary":"momentanvärde, 1 gång/tim","link":[{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1.json","rel":"parameter","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1.xml","rel":"parameter","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1.atom","rel":"parameter","type":"application/atom+xml"},{"href":"https://opendata-catalog.smhi.se/md/c6ae10b6-6a18-4e15-9444-fbd746f4609d","rel":"iso19139","type":"application/vnd.iso.19139+xml"}],"unit":"celsius","geoBox":{"minLatitude":55.0,"minLongitude":10.0,"maxLatitude":70.0,"maxLongitude":25.0}},{"key":"2","updated":1711270800000,"title":"Lufttemperatur","summary":"medelvärde 1 dygn, 1 gång/dygn, kl 00","link":[{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/2.json","rel":"parameter","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/2.xml","rel":"parameter","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/2.atom","rel":"parameter","type":"application/atom+xml"},{"href":"https://opendata-catalog.smhi.se/md/a5a31815-bf29-4ae3-81cf-cdb76378e028","rel":"iso19139","type":"application/vnd.iso.19139+xml"}],"unit":"celsius","geoBox":{"minLatitude":55.0,"minLongitude":10.0,"maxLatitude":70.0,"maxLongitude":25.0}}]}

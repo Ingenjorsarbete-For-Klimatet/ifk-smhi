@@ -1,8 +1,8 @@
 # Metobs reference
 
-::: smhi.metobs.Metobs
+::: smhi.metobs.BaseMetobs
 
-::: smhi.metobs.BaseLevel
+::: smhi.metobs.Versions
 
 ::: smhi.metobs.Parameters
 

@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Date: Mon, 25 Mar 2024 21:03:03 GMT
+Cache-Control: max-age=60
+Content-Encoding: gzip
+Vary: Accept-Encoding
+X-Varnish: 406815169 414449707
+Age: 16
+Via: 1.1 varnish (Varnish/6.6)
+X-hits: 2
+Access-Control-Allow-Origin: *
+Last-Modified: Mon, 25 Mar 2024 21:03:20 GMT
+Accept-Ranges: bytes
+Content-Length: 365
+Connection: keep-alive
+
+{"key":"all","updated":1711396800000,"title":"Lufttemperatur - Alla Stationer: Välj tidsutsnitt","summary":"Data från alla aktiva mätstationer för senaste timmen i en fil.","link":[{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.json","rel":"stationSet","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.xml","rel":"stationSet","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.atom","rel":"stationSet","type":"application/atom+xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1.atom","rel":"parameter","type":"application/atom+xml"}],"period":[{"key":"latest-hour","updated":1711396800000,"title":"Data från senaste timmen","summary":"","link":[{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour.json","rel":"period","type":"application/json"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour.xml","rel":"period","type":"application/xml"},{"href":"https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour.atom","rel":"period","type":"application/atom+xml"}]}]}
