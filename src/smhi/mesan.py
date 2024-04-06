@@ -3,7 +3,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 
 import arrow
 import pandas as pd
@@ -195,7 +195,7 @@ class Mesan:
 
     def get_multipoint(
         self,
-        valid_time: str | datetime,
+        valid_time: Union[str, datetime],
         parameter: str,
         level_type: str,
         level: int,
@@ -334,7 +334,7 @@ class Mesan:
 
     def _build_multipoint_url(
         self,
-        valid_time: str | datetime,
+        valid_time: Union[str, datetime],
         parameter: str,
         level_type: str,
         level: int,
@@ -365,7 +365,7 @@ class Mesan:
             + f"{level_type}/level/{level}/data.json?with-geo={geo_url}&downsample={downsample}"
         )
 
-    def _check_valid_time(self, test_time: str | datetime) -> bool:
+    def _check_valid_time(self, test_time: Union[str, datetime]) -> bool:
         """Check if time is valid, that is within a day window.
 
         This might be overly restrictive but avoids an extra API call for each get_multipoint.
