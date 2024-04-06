@@ -157,3 +157,4 @@ STRANG_MULTIPOINT_URL = urljoin(
 STRANG_TIME_INTERVALS = ["hourly", "daily", "monthly"]
 
 STATUS_OK = 200
+OUT_OF_BOUNDS = "out of bounds"

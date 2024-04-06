@@ -3,7 +3,7 @@
 import logging
 
 import requests
-from smhi.constants import STATUS_OK
+from smhi.constants import OUT_OF_BOUNDS, STATUS_OK
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ def get_request(url: str) -> requests.Response:
         response
 
     Raises:
+        ValueError
         requests.exceptions.HTTPError
     """
     logger.debug(f"Fetching from {url}.")
@@ -25,7 +26,10 @@ def get_request(url: str) -> requests.Response:
     response = requests.get(url, timeout=200)
 
     if response.status_code != STATUS_OK:
-        raise requests.exceptions.HTTPError(f"Could request from {url}.")
+        if OUT_OF_BOUNDS in response.text.lower():
+            raise ValueError("Request is out of bounds.")
+
+        raise requests.exceptions.HTTPError(f"Could not request from {url}.")
 
     logger.debug(f"Successful request from {url}.")
 
