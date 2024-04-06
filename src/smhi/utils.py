@@ -2,6 +2,7 @@
 
 import logging
 from datetime import datetime
+from typing import Union
 
 import arrow
 import requests
@@ -34,7 +35,7 @@ def get_request(url: str) -> requests.Response:
     return response
 
 
-def format_datetime(test_time: str | datetime) -> str:
+def format_datetime(test_time: Union[str, datetime]) -> str:
     """Format str and datetime to accepected time formats.
 
     Args:
