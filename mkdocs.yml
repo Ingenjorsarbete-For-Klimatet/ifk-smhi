@@ -12,14 +12,16 @@ nav:
       - "Mesan": mesan-example.md
       - "Strang": strang-example.md
   - Reference:
-      - "Metobs reference": metobs-reference.md
-      - "Metfcts reference": metfcts-reference.md
-      - "Mesan reference": mesan-reference.md
-      - "Strang reference": strang-reference.md
-      - "Metobs model": metobs-model.md
-      - "Metfcts model": metfcts-model.md
-      - "Mesan model": mesan-model.md
-      - "Strang model": strang-model.md
+      - "Clients":
+          - "Metobs reference": metobs-reference.md
+          - "Metfcts reference": metfcts-reference.md
+          - "Mesan reference": mesan-reference.md
+          - "Strang reference": strang-reference.md
+      - "Models":
+          - "Metobs model": metobs-model.md
+          - "Metfcts model": metfcts-model.md
+          - "Mesan model": mesan-model.md
+          - "Strang model": strang-model.md
 
 watch:
   - src/smhi
@@ -41,7 +43,12 @@ theme:
 
 plugins:
   - search
-  - mkdocstrings
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_root_heading: true
+            heading_level: 2
 
 markdown_extensions:
   - pymdownx.highlight:
