@@ -2,6 +2,7 @@
 
 import json
 import logging
+from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
 
 import arrow
@@ -30,7 +31,7 @@ from smhi.models.variable_model import (
     PointModel,
     ValidTime,
 )
-from smhi.utils import get_request
+from smhi.utils import format_datetime, get_request
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +195,7 @@ class Mesan:
 
     def get_multipoint(
         self,
-        valid_time: str,
+        valid_time: str | datetime,
         parameter: str,
         level_type: str,
         level: int,
@@ -217,6 +218,7 @@ class Mesan:
         Raises:
             ValueError
         """
+        valid_time = format_datetime(valid_time)
         if self._check_valid_time(valid_time) is False:
             raise ValueError(f"Invalid time {valid_time}.")
 
@@ -352,7 +354,7 @@ class Mesan:
         Returns:
             valid multipoint url
         """
-        valid_time = self._format_datetime(valid_time)
+        valid_time = format_datetime(valid_time)
         downsample = self._check_downsample(downsample)
         geo_url = "true" if geo is True else "false"
 
@@ -362,17 +364,6 @@ class Mesan:
             + f"validtime/{valid_time}/parameter/{parameter}/leveltype/"
             + f"{level_type}/level/{level}/data.json?with-geo={geo_url}&downsample={downsample}"
         )
-
-    def _format_datetime(self, test_time: str) -> str:
-        """Format user input time.
-
-        Args:
-            test_time: input time
-
-        Returns:
-            formatted time
-        """
-        return arrow.get(test_time).format("YYYYMMDDTHHmmss") + "Z"
 
     def _check_valid_time(self, test_time: str) -> bool:
         """Check if time is valid, that is within a day window.
@@ -385,5 +376,5 @@ class Mesan:
         Returns
             true if valid and false if not valid
         """
-        valid_time = self._format_datetime(test_time)
+        valid_time = format_datetime(test_time)
         return -1 < (arrow.now("Z").shift(hours=-1) - arrow.get(valid_time)).days < 1

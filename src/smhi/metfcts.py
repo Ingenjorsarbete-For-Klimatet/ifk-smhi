@@ -23,6 +23,7 @@ from smhi.models.variable_model import (
     PointModel,
     ValidTime,
 )
+from smhi.utils import format_datetime
 
 
 class Metfcts(Mesan):
@@ -52,5 +53,5 @@ class Metfcts(Mesan):
         Returns
             true if valid and false if not valid
         """
-        valid_time = self._format_datetime(test_time)
+        valid_time = format_datetime(test_time)
         return -1 < (arrow.get(valid_time) - arrow.now("Z").shift(hours=-1)).days < 10

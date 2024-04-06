@@ -9,6 +9,7 @@ import pytest
 from smhi.constants import MESAN_LEVELS_UNIT, MESAN_PARAMETER_DESCRIPTIONS
 from smhi.mesan import Mesan
 from smhi.models.mesan_model import MesanGeometry, MesanParameter, MesanParameterItem
+from smhi.utils import format_datetime
 from utils import get_response
 
 BASE_URL = (
@@ -287,7 +288,7 @@ class TestUnitMesan:
         data = client.get_multipoint(
             valid_time, parameter, level_type, level, geo, downsample
         )
-        valid_time = client._format_datetime(valid_time)
+        valid_time = format_datetime(valid_time)
 
         assert data.parameter == parameter
         assert data.parameter_meaning == MESAN_PARAMETER_DESCRIPTIONS[parameter]
@@ -379,22 +380,6 @@ class TestUnitMesan:
             )
             == expected_answer
         )
-
-    @pytest.mark.parametrize(
-        "test_time, expected_answer",
-        [
-            ("2024-03-31T07", "20240331T070000Z"),
-            ("2024-03-31T06:00", "20240331T060000Z"),
-            ("2024-03-30T07:00:00", "20240330T070000Z"),
-            ("2024-03-30T060000", "20240330T060000Z"),
-            ("2024-03-30T060000Z", "20240330T060000Z"),
-        ],
-    )
-    @patch("smhi.mesan.Mesan._get_parameters")
-    def test_format_datetime(self, mock_get_parameters, test_time, expected_answer):
-        """Unit test _format_datetime."""
-        client = Mesan()
-        assert client._format_datetime(test_time) == expected_answer
 
     @pytest.mark.parametrize(
         "test_time, expected_answer",

@@ -24,7 +24,7 @@ from smhi.models.strang_model import (
     StrangParameter,
     StrangPointModel,
 )
-from smhi.utils import get_request
+from smhi.utils import format_datetime, get_request
 
 logger = logging.getLogger(__name__)
 
@@ -321,7 +321,7 @@ class Strang:
             return date_time
 
         try:
-            date_time_arrow = arrow.get(date_time)
+            date_time_arrow = arrow.get(format_datetime(date_time))
         except ValueError:
             raise ValueError("Wrong format of date.")
 
