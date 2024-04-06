@@ -81,17 +81,15 @@ class SMHI:
             return None
 
         user_position = (latitude, longitude)
-        self.get_stations(parameter)
+        self.stations = Stations(self.parameters, parameter)
         self.nearby_stations: List[Tuple[Any, Any, Any]]
-        all_stations = self.client.stations.stations
+        all_stations = self.stations.stations
         if dist == 0:
             stations = [
                 (
-                    s["id"],
-                    s["name"],
-                    distance.distance(
-                        user_position, (s["latitude"], s["longitude"])
-                    ).km,
+                    s.id,
+                    s.name,
+                    distance.distance(user_position, (s.latitude, s.longitude)).km,
                 )
                 for s in all_stations
             ]
@@ -100,15 +98,12 @@ class SMHI:
         else:
             self.nearby_stations = [
                 (
-                    s["id"],
-                    s["name"],
-                    distance.distance(
-                        user_position, (s["latitude"], s["longitude"])
-                    ).km,
+                    s.id,
+                    s.name,
+                    distance.distance(user_position, (s.latitude, s.longitude)).km,
                 )
                 for s in all_stations
-                if distance.distance(user_position, (s["latitude"], s["longitude"]))
-                <= dist
+                if distance.distance(user_position, (s.latitude, s.longitude)) <= dist
             ]
             self.nearby_stations = sorted(self.nearby_stations, key=lambda x: x[2])
 
