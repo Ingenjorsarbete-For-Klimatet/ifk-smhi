@@ -6,7 +6,6 @@ from typing import Any, List, Optional, Tuple
 import pandas as pd
 from geopy import distance
 from geopy.geocoders import Nominatim
-from smhi.constants import TYPE_MAP
 from smhi.metobs import Data, Parameters, Periods, Stations, Versions
 
 
@@ -20,17 +19,8 @@ class SMHI:
             type: API type
             version: API version
         """
-        self.type = TYPE_MAP[type]
-        self.parameters = Parameters(Versions())
-
-    @property
-    def parameters(self):
-        """Get available parameters.
-
-        Returns:
-            parameters
-        """
-        return self.parameters.data
+        self.versions = Versions()
+        self.parameters = Parameters(self.versions)
 
     def get_stations(self, parameter: Optional[int] = None):
         """Get stations from parameter.
