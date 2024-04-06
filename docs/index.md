@@ -8,7 +8,7 @@ SMHI stands for [Swedish Meteorological and Hydrological Institute](https://www.
 which is a Swedish agency under its parent department: Ministry of Climate and
 Enterprise.
 
-Initially only these four APIs are supported
+Currently, only these four APIs are supported
 
 - Metobs - Meteorological Observations
 - Metfcts - Meteorological Forecasts
@@ -58,3 +58,5 @@ stations are limited.
 Client to fetch data from meteorological analysis of sunshine.
 Use this to access data about _sunshine_,
 i.e. SMHI prediction of sunshine for a given coordinate.
+This API is also a useful complement to Metobs because the number of weather
+stations measureing sunshine are very limited.
