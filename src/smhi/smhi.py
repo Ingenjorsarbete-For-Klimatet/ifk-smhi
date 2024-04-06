@@ -7,7 +7,7 @@ import pandas as pd
 from geopy import distance
 from geopy.geocoders import Nominatim
 from smhi.constants import TYPE_MAP
-from smhi.metobs import Metobs
+from smhi.metobs import Data, Parameters, Periods, Stations, Versions
 
 
 class SMHI:
@@ -21,8 +21,7 @@ class SMHI:
             version: API version
         """
         self.type = TYPE_MAP[type]
-        self.client = Metobs(type)
-        self.client.get_parameters()
+        self.parameters = Parameters(Versions())
 
     @property
     def parameters(self):
@@ -31,7 +30,7 @@ class SMHI:
         Returns:
             parameters
         """
-        return self.client.parameters.data
+        return self.parameters.data
 
     def get_stations(self, parameter: Optional[int] = None):
         """Get stations from parameter.
@@ -42,12 +41,12 @@ class SMHI:
         Returns:
             stations
         """
-        if self.client.parameters is None:
+        if self.parameters is None:
             logging.info("No parameters available.")
             return None
 
-        self.client.get_stations(parameter)
-        return self.client.stations.data
+        self.stations = Stations(self.parameters, parameter)
+        return self.stations.data
 
     def get_stations_from_title(self, title: Optional[str] = None):
         """Get stations from title.
@@ -58,12 +57,12 @@ class SMHI:
         Returns:
             stations
         """
-        if self.client.stations is None:
+        if self.stations is None:
             logging.info("No stations available.")
             return None
 
-        self.client.get_stations(None, title)
-        return self.client.stations.data
+        self.stations = Stations(self.parameters, title)
+        return self.stations.data
 
     def find_stations_from_gps(
         self, parameter: int, latitude: float, longitude: float, dist: float = 0
@@ -144,9 +143,9 @@ class SMHI:
             station: station id
             period: period to get
         """
-        data, header = self.client.get_data_from_selection(
-            parameter=parameter, station=station, period=period
-        )
+        self.stations = Stations(Parameters(Versions()), parameter)
+        self.periods = Periods(self.stations, station)
+        df = Data(self.periods)
         if interpolate > 0:
             # Find the station latitude and longitude information from Metobs
             stat = next(
@@ -188,4 +187,4 @@ class SMHI:
                     > data.index.to_series().diff().median()
                 ]
         data = data.sort_index()
-        return data, header
+        return df
