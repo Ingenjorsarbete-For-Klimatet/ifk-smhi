@@ -46,8 +46,8 @@ def setup_point():
     mocked_response = get_response("tests/fixtures/mesan/point.txt")
     mocked_model = json.loads(mocked_response.content)
 
-    mocked_approved_time = mocked_model["approvedTime"]
-    mocked_reference_time = mocked_model["referenceTime"]
+    mocked_approved_time = arrow.get(mocked_model["approvedTime"]).datetime
+    mocked_reference_time = arrow.get(mocked_model["referenceTime"]).datetime
     mocked_geometry = MesanGeometry(
         type=mocked_model["geometry"]["type"],
         coordinates=mocked_model["geometry"]["coordinates"],
@@ -77,9 +77,9 @@ def setup_multipoint():
     mocked_response = get_response("tests/fixtures/mesan/multipoint.txt")
     mocked_model = json.loads(mocked_response.content)
 
-    mocked_approved_time = mocked_model["approvedTime"]
-    mocked_reference_time = mocked_model["referenceTime"]
-    mocked_valid_time = mocked_model["timeSeries"][0]["validTime"]
+    mocked_approved_time = arrow.get(mocked_model["approvedTime"]).datetime
+    mocked_reference_time = arrow.get(mocked_model["referenceTime"]).datetime
+    mocked_valid_time = arrow.get(mocked_model["timeSeries"][0]["validTime"]).datetime
     mocked_data = pd.read_csv("tests/fixtures/mesan/multipoint_data.csv", index_col=0)
 
     return (
@@ -129,7 +129,10 @@ class TestUnitMesan:
     @patch(
         "smhi.mesan.Mesan._get_data",
         return_value=(
-            {"approvedTime": "1", "referenceTime": "2"},
+            {
+                "approvedTime": arrow.get(1).datetime,
+                "referenceTime": arrow.get(2).datetime,
+            },
             {"head": "head"},
             200,
         ),
@@ -150,7 +153,7 @@ class TestUnitMesan:
 
     @patch(
         "smhi.mesan.Mesan._get_data",
-        return_value=({"validTime": ["1"]}, {"head": "head"}, 200),
+        return_value=({"validTime": [arrow.get(1).datetime]}, {"head": "head"}, 200),
     )
     @patch("smhi.mesan.Mesan._get_parameters", return_value=MOCK_MESAN_PARAMETERS)
     def test_unit_mesan_valid_time(self, mock_get_parameters, mock_get_data):

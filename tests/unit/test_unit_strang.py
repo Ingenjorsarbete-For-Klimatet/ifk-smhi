@@ -177,7 +177,7 @@ class TestUnitStrang:
 
         assert multipoint.parameter_key == parameter.key
         assert multipoint.parameter_meaning == parameter.meaning
-        assert multipoint.valid_time == arrow.get(valid_time).isoformat()
+        assert multipoint.valid_time == arrow.get(valid_time).datetime
         assert multipoint.time_interval == time_interval
         assert multipoint.url is not None
         assert multipoint.status == mock_response.status_code

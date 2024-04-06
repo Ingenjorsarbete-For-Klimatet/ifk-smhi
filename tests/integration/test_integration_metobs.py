@@ -22,7 +22,7 @@ for i in [1, 2, 22]:
                 METOBS_INTEGRATION_DF[i][j].set_index("Index", drop=True, inplace=True)
                 METOBS_INTEGRATION_DF[i][j].index.name = None
                 METOBS_INTEGRATION_DF[i][j].index = pd.to_datetime(
-                    METOBS_INTEGRATION_DF[i][j].index
+                    METOBS_INTEGRATION_DF[i][j].index, utc=True
                 )
 
 

@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Tuple
 
@@ -15,10 +14,18 @@ class MetobsLinkModel(BaseModel):
 
 class MetobsLinksModel(BaseModel):
     key: Optional[str] = None
-    updated: Optional[int] = None
+    updated: Optional[datetime] = None
     title: str
     summary: str
     link: List[MetobsLinkModel]
+
+    @field_validator("updated", mode="before")
+    @classmethod
+    def parse_datetime(cls, x: int) -> int:
+        """Pydantic V2 treats timestamps differently depending on value."""
+        if x is None:
+            return x
+        return x / 1000 if abs(x) < 2e10 else x
 
 
 class MetobsGeoBoxModel(BaseModel):
@@ -35,10 +42,18 @@ class MetobsGeoLinksModel(MetobsLinksModel):
 
 class MetobsBaseModel(BaseModel):
     key: Optional[str] = None
-    updated: Optional[int] = None
+    updated: Optional[datetime] = None
     title: str
     summary: str
     link: List[MetobsLinkModel]
+
+    @field_validator("from_", "to", "updated", mode="before", check_fields=False)
+    @classmethod
+    def parse_datetime(cls, x: int) -> int:
+        """Pydantic V2 treats timestamps differently depending on value."""
+        if x is None:
+            return x
+        return x / 1000 if abs(x) < 2e10 else x
 
 
 class MetobsCategoryModel(MetobsBaseModel):
@@ -107,8 +122,16 @@ class MetobsStationLinkModel(MetobsLinksModel):
     latitude: float
     longitude: float
     active: bool
-    from_: int = Field(..., alias="from")
-    to: int
+    from_: datetime = Field(default=None, alias="from")
+    to: datetime = None
+
+    @field_validator("from_", "to", "updated", mode="before")
+    @classmethod
+    def parse_datetime(cls, x: int) -> int:
+        """Pydantic V2 treats timestamps differently depending on value."""
+        if x is None:
+            return x
+        return x / 1000 if abs(x) < 2e10 else x
 
 
 class MetobsParameterModel(MetobsBaseModel):
@@ -130,11 +153,19 @@ class MetobsParameterModel(MetobsBaseModel):
 
 
 class MetobsPositionItem(BaseModel):
-    from_: int = Field(..., alias="from")
-    to: int
+    from_: datetime = Field(..., alias="from")
+    to: datetime
     height: float
     latitude: float
     longitude: float
+
+    @field_validator("from_", "to", mode="before")
+    @classmethod
+    def parse_datetime(cls, x: int) -> int:
+        """Pydantic V2 treats timestamps differently depending on value."""
+        if x is None:
+            return x
+        return x / 1000 if abs(x) < 2e10 else x
 
 
 class MetobsStationModel(MetobsBaseModel):
@@ -146,8 +177,8 @@ class MetobsStationModel(MetobsBaseModel):
         default=None, alias="measuringStations"
     )
     active: Optional[bool] = None
-    from_: Optional[int] = Field(default=None, alias="from")
-    to: Optional[int] = None
+    from_: Optional[datetime] = Field(default=None, alias="from")
+    to: Optional[datetime] = None
     position: Optional[List[MetobsPositionItem]] = None
     period: List[MetobsLinksModel]
 
@@ -164,8 +195,8 @@ class MetobsStationModel(MetobsBaseModel):
 class MetobsPeriodModel(MetobsBaseModel):
     """Model used for stations."""
 
-    from_: int = Field(..., alias="from")
-    to: int
+    from_: datetime = Field(..., alias="from")
+    to: datetime
     data: List[MetobsLinksModel]
 
 
@@ -174,7 +205,7 @@ class MetobsDataModel(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    station: Optional[pd.DataFrame]
-    parameter: Optional[pd.DataFrame]
-    period: Optional[pd.DataFrame]
-    stationdata: Optional[pd.DataFrame]
+    station: Optional[pd.DataFrame] = None
+    parameter: Optional[pd.DataFrame] = None
+    period: Optional[pd.DataFrame] = None
+    stationdata: Optional[pd.DataFrame] = None

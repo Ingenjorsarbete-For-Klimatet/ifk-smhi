@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime
 from typing import Annotated, Callable, Dict, Optional
 
@@ -25,12 +23,12 @@ class StrangMultiPointSchema(pa.DataFrameModel):
 class StrangParameter(BaseModel):
     key: Optional[int]
     meaning: Optional[str]
-    time_from: Optional[datetime]
+    time_from: Optional[datetime] = None
     time_to: Optional[Callable]
 
 
 class StrangPointItem(BaseModel):
-    date_time: str
+    date_time: datetime
     value: float
 
 
@@ -45,8 +43,8 @@ class StrangPointModel(BaseModel):
     parameter_meaning: str
     longitude: float
     latitude: float
-    time_from: Optional[str]
-    time_to: Optional[str]
+    time_from: Optional[datetime]
+    time_to: Optional[datetime]
     time_interval: Optional[str]
     url: str
     status: int
@@ -57,7 +55,7 @@ class StrangPointModel(BaseModel):
 class StrangMultiPointModel(BaseModel):
     parameter_key: int
     parameter_meaning: str
-    valid_time: Optional[str]
+    valid_time: Optional[datetime]
     time_interval: Optional[str]
     url: str
     status: int

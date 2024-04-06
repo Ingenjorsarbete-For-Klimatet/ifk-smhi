@@ -466,7 +466,9 @@ class Data(BaseMetobs):
             raise TypeError("Can't parse type.")
 
         stationdata.set_index(
-            pd.to_datetime(stationdata[datetime_columns].agg(" ".join, axis=1)),
+            pd.to_datetime(
+                stationdata[datetime_columns].agg(" ".join, axis=1), utc=True
+            ),
             inplace=True,
         )
         stationdata.drop(datetime_columns, axis=1, inplace=True)
