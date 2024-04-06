@@ -54,7 +54,7 @@ point = client.get_point(
 )
 ```
 
-The return object is of type `StrangPointModel`. For a full list of available
+The return object is of type `StrangPoint`. For a full list of available
 fields see [strang model](/ifk-smhi/strang-model/).
 
 ```python
@@ -80,7 +80,7 @@ response = client.get_multipoint(116, "2022-01-01", "monthly")
 
 Also here, the datetime input can be in either `str` or `datetime` formats.
 
-The return objects is of type `StrangMultiPointModel`.
+The return objects is of type `StrangMultiPoint`.
 For a full list of available fields see
 [strang model](/ifk-smhi/strang-model/).
 

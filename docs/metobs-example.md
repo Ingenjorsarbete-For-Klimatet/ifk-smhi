@@ -32,8 +32,8 @@ data.df
 # show the station data dataframe
 ```
 
-Note that, the last call gives back a `MetobsDataModel` with four
-dataframes when a single station is used to fetch data as above.
+The `data` variable holds four dataframes when a single station
+is used to fetch data as above.
 They are called `station`, `parameter`, `period` and `df`.
 
 It is posible to fetch a station set, that is, data from many stations for
