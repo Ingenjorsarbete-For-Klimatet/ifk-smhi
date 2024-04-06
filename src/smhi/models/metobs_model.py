@@ -21,7 +21,7 @@ class MetobsLinksModel(BaseModel):
 
     @field_validator("updated", mode="before")
     @classmethod
-    def parse_datetime(cls, x: int) -> int:
+    def parse_datetime(cls, x: int) -> float | None:
         """Pydantic V2 treats timestamps differently depending on value."""
         if x is None:
             return x
@@ -49,7 +49,7 @@ class MetobsBaseModel(BaseModel):
 
     @field_validator("from_", "to", "updated", mode="before", check_fields=False)
     @classmethod
-    def parse_datetime(cls, x: int) -> int:
+    def parse_datetime(cls, x: int) -> float | None:
         """Pydantic V2 treats timestamps differently depending on value."""
         if x is None:
             return x
@@ -122,12 +122,12 @@ class MetobsStationLinkModel(MetobsLinksModel):
     latitude: float
     longitude: float
     active: bool
-    from_: datetime = Field(default=None, alias="from")
-    to: datetime = None
+    from_: datetime | None = Field(default=None, alias="from")
+    to: datetime | None = None
 
     @field_validator("from_", "to", "updated", mode="before")
     @classmethod
-    def parse_datetime(cls, x: int) -> int:
+    def parse_datetime(cls, x: int) -> float | None:
         """Pydantic V2 treats timestamps differently depending on value."""
         if x is None:
             return x
@@ -161,7 +161,7 @@ class MetobsPositionItem(BaseModel):
 
     @field_validator("from_", "to", mode="before")
     @classmethod
-    def parse_datetime(cls, x: int) -> int:
+    def parse_datetime(cls, x: int) -> float | None:
         """Pydantic V2 treats timestamps differently depending on value."""
         if x is None:
             return x
