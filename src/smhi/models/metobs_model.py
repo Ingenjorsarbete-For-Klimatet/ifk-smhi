@@ -174,7 +174,7 @@ class MetobsDataModel(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    station: Optional[pd.DataFrame]
-    parameter: Optional[pd.DataFrame]
-    period: Optional[pd.DataFrame]
-    stationdata: Optional[pd.DataFrame]
+    station: Optional[pd.DataFrame] = None
+    parameter: Optional[pd.DataFrame] = None
+    period: Optional[pd.DataFrame] = None
+    stationdata: Optional[pd.DataFrame] = None
