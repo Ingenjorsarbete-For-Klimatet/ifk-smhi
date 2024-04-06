@@ -145,17 +145,17 @@ class SMHI:
         """
         self.stations = Stations(Parameters(Versions()), parameter)
         self.periods = Periods(self.stations, station)
-        df = Data(self.periods)
+        data = Data(self.periods)
         if interpolate > 0:
             # Find the station latitude and longitude information from Metobs
-            stat = next(
-                item for item in self.client.stations.stations if item["id"] == station
-            )
-            latitude = stat["latitude"]
-            longitude = stat["longitude"]
+            # should be replaced by a self.periods.position[0].latitude
+            stat = next(item for item in self.stations.station if item.id == station)
+            latitude = stat.latitude
+            longitude = stat.longitude
 
-            holes_to_fill = data[
-                data.index.to_series().diff() > data.index.to_series().diff().median()
+            holes_to_fill = data.df[
+                data.df.index.to_series().diff()
+                > data.df.index.to_series().diff().median()
             ]
             # Find stations within a given radius - set in "interpolate".
             self.find_stations_from_gps(
@@ -167,24 +167,25 @@ class SMHI:
 
             # Iterate over nearby stations, starting with the closest
             for nearby_station in self.nearby_stations[1:]:
-                tmpdata, _ = self.get_data(parameter, nearby_station[0])
+                tmpdata = Data(Periods(self.stations, station))
                 for time, _ in holes_to_fill.iterrows():
-                    earliertime = data[data.index < time].index.max()
+                    earliertime = data.df[data.df.index < time].index.max()
 
                     if (
                         len(
-                            tmpdata[
-                                (tmpdata.index > earliertime) & (tmpdata.index < time)
+                            tmpdata.df[
+                                (tmpdata.df.index > earliertime)
+                                & (tmpdata.df.index < time)
                             ]
                         )
                         > 0
                     ):
-                        data = pd.concat([data, tmpdata], axis=0, join="outer")
+                        data.df = pd.concat([data.df, tmpdata.df], axis=0, join="outer")
 
                 # Re-check how many holes remain
-                holes_to_fill = data[
-                    data.index.to_series().diff()
-                    > data.index.to_series().diff().median()
+                holes_to_fill = data.df[
+                    data.df.index.to_series().diff()
+                    > data.df.index.to_series().diff().median()
                 ]
-        data = data.sort_index()
-        return df
+        data.df = data.df.sort_index()
+        return data
