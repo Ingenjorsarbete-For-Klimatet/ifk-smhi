@@ -20,9 +20,9 @@ from smhi.constants import (
     STRANG_TIME_INTERVALS,
 )
 from smhi.models.strang_model import (
-    StrangMultiPointModel,
+    StrangMultiPoint,
     StrangParameter,
-    StrangPointModel,
+    StrangPoint,
 )
 from smhi.utils import format_datetime, get_request
 
@@ -80,7 +80,7 @@ class Strang:
         time_from: Optional[str] = None,
         time_to: Optional[str] = None,
         time_interval: Optional[str] = None,
-    ) -> StrangPointModel:
+    ) -> StrangPoint:
         """Get data for given lon, lat and parameter.
 
         Args:
@@ -117,7 +117,7 @@ class Strang:
         url = self._build_time_point_url(url, time_from, time_to, time_interval)
         data, header, status = self._get_and_load_data(url, RequestType["POINT"])
 
-        return StrangPointModel(
+        return StrangPoint(
             parameter_key=strang_parameter.key,
             parameter_meaning=strang_parameter.meaning,
             longitude=longitude,
@@ -133,7 +133,7 @@ class Strang:
 
     def get_multipoint(
         self, parameter: int, valid_time: str, time_interval: Optional[str] = None
-    ) -> StrangMultiPointModel:
+    ) -> StrangMultiPoint:
         """Get full spatial data for given parameter and time.
 
         Args:
@@ -167,7 +167,7 @@ class Strang:
         url = self._build_time_multipoint_url(url, time_interval)
         data, header, status = self._get_and_load_data(url, RequestType["MULTIPOINT"])
 
-        return StrangMultiPointModel(
+        return StrangMultiPoint(
             parameter_key=strang_parameter.key,
             parameter_meaning=strang_parameter.meaning,
             valid_time=valid_time,

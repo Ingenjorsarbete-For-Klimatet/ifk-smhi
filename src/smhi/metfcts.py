@@ -9,18 +9,18 @@ from smhi.models.metfcts_model import (
     MetfctsApprovedTime,
     MetfctsGeoMultiPoint,
     MetfctsGeoPolygon,
-    MetfctsMultiPointModel,
+    MetfctsMultiPoint,
     MetfctsParameter,
-    MetfctsPointModel,
+    MetfctsPoint,
     MetfctsValidTime,
 )
 from smhi.models.variable_model import (
     ApprovedTime,
     GeoMultiPoint,
     GeoPolygon,
-    MultiPointModel,
+    MultiPoint,
     Parameter,
-    PointModel,
+    Point,
     ValidTime,
 )
 from smhi.utils import format_datetime
@@ -34,8 +34,8 @@ class Metfcts(Mesan):
     __valid_time_model: ValidTime = MetfctsValidTime
     __geo_polygon_model: GeoPolygon = MetfctsGeoPolygon
     __geo_multipoint_model: GeoMultiPoint = MetfctsGeoMultiPoint
-    __point_data_model: PointModel = MetfctsPointModel
-    __multipoint_data_model: MultiPointModel = MetfctsMultiPointModel
+    __point_data_model: Point = MetfctsPoint
+    __multipoint_data_model: MultiPoint = MetfctsMultiPoint
 
     _category: str = "pmp3g"
     _version: int = 2

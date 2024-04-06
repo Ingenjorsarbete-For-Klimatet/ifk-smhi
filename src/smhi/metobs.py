@@ -11,7 +11,7 @@ from smhi.constants import METOBS_AVAILABLE_PERIODS
 from smhi.models.metobs_model import (
     MetobsCategoryModel,
     MetobsDataModel,
-    MetobsLinkModel,
+    MetobsLink,
     MetobsParameterModel,
     MetobsPeriodModel,
     MetobsStationModel,
@@ -380,7 +380,7 @@ class Data(BaseMetobs):
         )
 
     def _get_data(
-        self, raw_data: list[MetobsLinkModel], type: str = "text/plain"
+        self, raw_data: list[MetobsLink], type: str = "text/plain"
     ) -> MetobsDataModel:
         """Get the selected data file.
 

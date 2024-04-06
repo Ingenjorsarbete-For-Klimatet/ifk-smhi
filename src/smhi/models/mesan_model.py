@@ -54,14 +54,14 @@ class MesanGeoMultiPoint(BaseModel):
     coordinates: List[List[float]]
 
 
-class MesanPointModelInfoSchema(pa.DataFrameModel):
+class MesanPointInfoSchema(pa.DataFrameModel):
     name: Index[str] = pa.Field(check_name=True, unique=True)
     level: Series[int]
     level_type: Series[str]
     unit: Series[str]
 
 
-class MesanMultiPointModelSchema(pa.DataFrameModel):
+class MesanMultiPointSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
     value: Series[float]
@@ -72,7 +72,7 @@ class MesanGeometry(BaseModel):
     coordinates: List[List[float]]
 
 
-class MesanPointModel(BaseModel):
+class MesanPoint(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     longitude: float
@@ -85,10 +85,10 @@ class MesanPointModel(BaseModel):
     status: int
     headers: Dict[str, str]
     df: pd.DataFrame
-    df_info: DataFrame[MesanPointModelInfoSchema]
+    df_info: DataFrame[MesanPointInfoSchema]
 
 
-class MesanMultiPointModel(BaseModel):
+class MesanMultiPoint(BaseModel):
     parameter: str
     parameter_meaning: str
     geo: bool
@@ -99,4 +99,4 @@ class MesanMultiPointModel(BaseModel):
     valid_time: datetime
     status: int
     headers: Dict[str, str]
-    df: DataFrame[MesanMultiPointModelSchema]
+    df: DataFrame[MesanMultiPointSchema]

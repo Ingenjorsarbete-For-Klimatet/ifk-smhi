@@ -38,7 +38,7 @@ class StrangMultiPointItem(BaseModel):
     value: float
 
 
-class StrangPointModel(BaseModel):
+class StrangPoint(BaseModel):
     parameter_key: int
     parameter_meaning: str
     longitude: float
@@ -52,7 +52,7 @@ class StrangPointModel(BaseModel):
     df: Optional[DataFrame[StrangPointSchema]]
 
 
-class StrangMultiPointModel(BaseModel):
+class StrangMultiPoint(BaseModel):
     parameter_key: int
     parameter_meaning: str
     valid_time: Optional[datetime]

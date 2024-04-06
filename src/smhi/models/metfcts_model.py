@@ -54,20 +54,20 @@ class MetfctsParameter(BaseModel):
     parameter: List[MetfctsParameterItem]
 
 
-class MetfctsPointModelInfoSchema(pa.DataFrameModel):
+class MetfctsPointInfoSchema(pa.DataFrameModel):
     name: Index[str] = pa.Field(check_name=True, unique=True)
     level: Series[int]
     level_type: Series[str]
     unit: Series[str]
 
 
-class MetfctsMultiPointModelSchema(pa.DataFrameModel):
+class MetfctsMultiPointSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
     value: Series[float]
 
 
-class MetfctsPointModel(BaseModel):
+class MetfctsPoint(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     longitude: float
@@ -80,10 +80,10 @@ class MetfctsPointModel(BaseModel):
     status: int
     headers: Dict[str, str]
     df: pd.DataFrame
-    df_info: DataFrame[MetfctsPointModelInfoSchema]
+    df_info: DataFrame[MetfctsPointInfoSchema]
 
 
-class MetfctsMultiPointModel(BaseModel):
+class MetfctsMultiPoint(BaseModel):
     parameter: str
     parameter_meaning: str
     geo: bool
@@ -94,4 +94,4 @@ class MetfctsMultiPointModel(BaseModel):
     valid_time: datetime
     status: int
     headers: Dict[str, str]
-    df: DataFrame[MetfctsMultiPointModelSchema]
+    df: DataFrame[MetfctsMultiPointSchema]

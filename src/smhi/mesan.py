@@ -17,18 +17,18 @@ from smhi.models.mesan_model import (
     MesanApprovedTime,
     MesanGeoMultiPoint,
     MesanGeoPolygon,
-    MesanMultiPointModel,
+    MesanMultiPoint,
     MesanParameter,
-    MesanPointModel,
+    MesanPoint,
     MesanValidTime,
 )
 from smhi.models.variable_model import (
     ApprovedTime,
     GeoMultiPoint,
     GeoPolygon,
-    MultiPointModel,
+    MultiPoint,
     Parameter,
-    PointModel,
+    Point,
     ValidTime,
 )
 from smhi.utils import format_datetime, get_request
@@ -44,8 +44,8 @@ class Mesan:
     __valid_time_model: ValidTime = MesanValidTime
     __geo_polygon_model: GeoPolygon = MesanGeoPolygon
     __geo_multipoint_model: GeoMultiPoint = MesanGeoMultiPoint
-    __point_data_model: PointModel = MesanPointModel
-    __multipoint_data_model: MultiPointModel = MesanMultiPointModel
+    __point_data_model: Point = MesanPoint
+    __multipoint_data_model: MultiPoint = MesanMultiPoint
 
     _category: str = "mesan2g"
     _version: int = 1
@@ -165,7 +165,7 @@ class Mesan:
         self,
         latitude: float,
         longitude: float,
-    ) -> PointModel:
+    ) -> Point:
         """Get data for given lon, lat and parameter.
 
         Args:
@@ -201,7 +201,7 @@ class Mesan:
         level: int,
         geo: bool = True,
         downsample: int = 2,
-    ) -> MultiPointModel:
+    ) -> MultiPoint:
         """Get multipoint data.
 
         Args:

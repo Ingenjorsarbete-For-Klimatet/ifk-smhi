@@ -11,9 +11,7 @@ from smhi.constants import (
     STRANG_PARAMETERS,
     STRANG_POINT_URL,
 )
-from smhi.models.strang_model import (
-    StrangParameter,
-)
+from smhi.models.strang_model import StrangParameter
 from smhi.strang import Strang
 from utils import get_response
 
