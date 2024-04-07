@@ -118,7 +118,6 @@ class SMHI:
         self,
         parameter: int,
         station: int,
-        period: str = "corrected-archive",
         interpolate: int = 0,
     ) -> Tuple[Any, Any]:
         """Get data from station.
@@ -126,7 +125,7 @@ class SMHI:
         Args:
             parameter: data parameter
             station: station id
-            period: period to get
+            interpolate: station distance
         """
         self.stations = Stations(Parameters(), parameter)
         self.periods = Periods(self.stations, station)
@@ -134,9 +133,8 @@ class SMHI:
         if interpolate > 0:
             # Find the station latitude and longitude information from Metobs
             # should be replaced by a self.periods.position[0].latitude
-            stat = next(item for item in self.stations.station if item.id == station)
-            latitude = stat.latitude
-            longitude = stat.longitude
+            latitude = self.periods.position[0].latitude
+            longitude = self.periods.position[0].longitude
 
             holes_to_fill = data.df[
                 data.df.index.to_series().diff()
@@ -152,7 +150,7 @@ class SMHI:
 
             # Iterate over nearby stations, starting with the closest
             for nearby_station in self.nearby_stations[1:]:
-                tmpdata = Data(Periods(self.stations, station))
+                tmpdata = Data(Periods(self.stations, nearby_station[0]))
                 for time, _ in holes_to_fill.iterrows():
                     earliertime = data.df[data.df.index < time].index.max()
 
