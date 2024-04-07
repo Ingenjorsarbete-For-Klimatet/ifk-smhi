@@ -20,7 +20,7 @@ class SMHI:
             version: API version
         """
         self.versions = Versions()
-        self.parameters = Parameters(self.versions)
+        self.parameters = Parameters()
 
     def get_stations(self, parameter: Optional[int] = None):
         """Get stations from parameter.
@@ -128,7 +128,7 @@ class SMHI:
             station: station id
             period: period to get
         """
-        self.stations = Stations(Parameters(Versions()), parameter)
+        self.stations = Stations(Parameters(), parameter)
         self.periods = Periods(self.stations, station)
         data = Data(self.periods)
         if interpolate > 0:
