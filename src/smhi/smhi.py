@@ -12,11 +12,10 @@ from smhi.metobs import Data, Parameters, Periods, Stations, Versions
 class SMHI:
     """SMHI class with high-level functions."""
 
-    def __init__(self, type: str = "json", version: str = "1.0") -> None:
+    def __init__(self, version: str = "1.0") -> None:
         """Initialise SMHI class.
 
         Args:
-            type: API type
             version: API version
         """
         self.versions = Versions()
