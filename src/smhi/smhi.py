@@ -73,7 +73,7 @@ class SMHI:
         user_position = (latitude, longitude)
         self.stations = Stations(self.parameters, parameter)
         self.nearby_stations: List[Tuple[Any, Any, Any]]
-        all_stations = self.stations.stations
+        all_stations = self.stations.station
         if dist == 0:
             stations = [
                 (
