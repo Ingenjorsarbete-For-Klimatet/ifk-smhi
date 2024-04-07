@@ -169,8 +169,10 @@ class SMHI:
         if distance > 0:
             # Find the station latitude and longitude information from Metobs
             # should be replaced by a self.periods.position[0].latitude
-            latitude = periods.position[0].latitude
-            longitude = periods.position[0].longitude
+            latitude, longitude = (
+                periods.position[0].latitude,
+                periods.position[0].longitude,
+            )
 
             holes_to_fill = data.df[
                 data.df.index.to_series().diff()
@@ -184,20 +186,18 @@ class SMHI:
 
             # Iterate over nearby stations, starting with the closest
             for nearby_station in nearby_stations[1:]:
-                tmpdata = Data(Periods(stations, nearby_station[0]))
+                nearby_data = Data(Periods(stations, nearby_station[0]))
+
                 for time, _ in holes_to_fill.iterrows():
                     earliertime = data.df[data.df.index < time].index.max()
+                    condition = (nearby_data.df.index > earliertime) & (
+                        nearby_data.df.index < time
+                    )
 
-                    if (
-                        len(
-                            tmpdata.df[
-                                (tmpdata.df.index > earliertime)
-                                & (tmpdata.df.index < time)
-                            ]
+                    if len(nearby_data.df[condition]) > 0:
+                        data.df = pd.concat(
+                            [data.df, nearby_data.df], axis=0, join="outer"
                         )
-                        > 0
-                    ):
-                        data.df = pd.concat([data.df, tmpdata.df], axis=0, join="outer")
 
                 # Re-check how many holes remain
                 holes_to_fill = data.df[
