@@ -138,6 +138,34 @@ class SMHI:
         periods = Periods(stations, station)
         data = Data(periods)
 
+        return self._interpolate(self, distance, stations, periods, data)
+
+    def get_data_by_city(
+        self,
+        parameter: int,
+        city: str,
+        distance: int = 0,
+    ) -> Tuple[Any, Any]:
+        """Get data from station.
+
+        Args:
+            parameter: data parameter
+            city: user provided city
+            distance: station distance
+
+        Returns:
+            data
+        """
+        stations = Stations(Parameters(), parameter)
+        station = self._find_stations_by_city(
+            Stations(Parameters(), parameter), city, distance
+        )[0]
+        periods = Periods(stations, station[0])
+        data = Data(periods)
+
+        return self._interpolate(self, distance, stations, periods, data)
+
+    def _interpolate(self, distance, stations, periods, data):
         if distance > 0:
             # Find the station latitude and longitude information from Metobs
             # should be replaced by a self.periods.position[0].latitude
