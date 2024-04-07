@@ -16,8 +16,15 @@ class SMHI:
     """SMHI class with high-level functions."""
 
     def __init__(self) -> None:
-        """Initialise SMHI class."""
+        """Initialise SMHI class.
+
+        Raises:
+            ValueError
+        """
         self.parameters = Parameters()
+
+        if self.parameters is None:
+            raise ValueError("No parameters available.")
 
     def get_stations(self, parameter: Optional[int] = None) -> List[MetobsLinksModel]:
         """Get stations from parameter.
@@ -28,10 +35,6 @@ class SMHI:
         Returns:
             stations
         """
-        if self.parameters is None:
-            logger.info("No parameters available.")
-            return None
-
         return Stations(self.parameters, parameter).data
 
     def get_stations_from_title(
@@ -45,11 +48,7 @@ class SMHI:
         Returns:
             stations
         """
-        if self.stations is None:
-            logging.info("No stations available.")
-            return None
-
-        return Stations(self.parameters, title).data
+        return Stations(self.parameters, parameter_title=title).data
 
     def _find_stations_from_gps(
         self,
@@ -57,53 +56,40 @@ class SMHI:
         latitude: float,
         longitude: float,
         dist: float = 0,
-    ) -> List[Tuple[Any, Any, Any]]:
+    ) -> List[Tuple[int, str, float]]:
         """Find stations for parameter from gps location.
 
         Args:
             parameter: station parameter
             latitude: latitude
             longitude: longitude
-            dist: distance from gps location. If zero (default), chooses closest.
+            dist: distance from gps location. If zero (default), chooses closest
 
         Returns:
             nearby stations
         """
-        user_position = (latitude, longitude)
+        user_pos = (latitude, longitude)
         all_stations = station_response.station
+        nearby_stations = [
+            (s.id, s.name, distance.distance(user_pos, (s.latitude, s.longitude)).km)
+            for s in all_stations
+        ]
+
         if dist == 0:
-            stations = [
-                (
-                    s.id,
-                    s.name,
-                    distance.distance(user_position, (s.latitude, s.longitude)).km,
-                )
-                for s in all_stations
-            ]
-            nearby_stations = min(stations, key=lambda x: x[2])
+            return min(nearby_stations, key=lambda x: x[2])
 
-        else:
-            nearby_stations = [
-                (
-                    s.id,
-                    s.name,
-                    distance.distance(user_position, (s.latitude, s.longitude)).km,
-                )
-                for s in all_stations
-                if distance.distance(user_position, (s.latitude, s.longitude)) <= dist
-            ]
-            nearby_stations = sorted(nearby_stations, key=lambda x: x[2])
+        nearby_stations = [x for x in nearby_stations if x[2] <= dist]
 
-        return nearby_stations
+        return sorted(nearby_stations, key=lambda x: x[2])
 
     def _find_stations_by_city(
         self, station_response: Stations, city: str, dist: float = 0
-    ) -> List[Tuple[Any, Any, Any]]:
+    ) -> List[Tuple[int, str, float]]:
         """Find stations for parameter from city name.
 
         Args:
             parameter: station parameter
-            dist: distance from city
+            dist: distance from city in km
             city: name of city
 
         Returns:
@@ -111,6 +97,7 @@ class SMHI:
         """
         geolocator = Nominatim(user_agent="ifk-smhi")
         loc = geolocator.geocode(city)
+
         return self._find_stations_from_gps(
             station_response,
             latitude=loc.latitude,
@@ -129,7 +116,7 @@ class SMHI:
         Args:
             parameter: data parameter
             station: station id
-            distance: station distance
+            distance: station distance in km
 
         Returns:
             data
@@ -138,7 +125,7 @@ class SMHI:
         periods = Periods(stations, station)
         data = Data(periods)
 
-        return self._interpolate(self, distance, stations, periods, data)
+        return self._interpolate(distance, stations, periods, data)
 
     def get_data_by_city(
         self,
@@ -151,19 +138,17 @@ class SMHI:
         Args:
             parameter: data parameter
             city: user provided city
-            distance: station distance
+            distance: station distance in km
 
         Returns:
             data
         """
         stations = Stations(Parameters(), parameter)
-        station = self._find_stations_by_city(
-            Stations(Parameters(), parameter), city, distance
-        )[0]
+        station = self._find_stations_by_city(stations, city, distance)[0]
         periods = Periods(stations, station[0])
         data = Data(periods)
 
-        return self._interpolate(self, distance, stations, periods, data)
+        return self._interpolate(distance, stations, periods, data)
 
     def _interpolate(self, distance, stations, periods, data):
         if distance > 0:
