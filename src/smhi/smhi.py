@@ -150,46 +150,41 @@ class SMHI:
 
         return self._interpolate(distance, stations, periods, data)
 
-    def _interpolate(self, distance, stations, periods, data):
+    def _interpolate(
+        self, distance: float, stations: Stations, periods: Periods, data: Data
+    ) -> Data:
+        """Interpolate data from several stations based on allowed distance."""
         if distance > 0:
-            # Find the station latitude and longitude information from Metobs
-            # should be replaced by a self.periods.position[0].latitude
-            latitude, longitude = (
-                periods.position[0].latitude,
-                periods.position[0].longitude,
+            lat, lon = (periods.position[0].latitude, periods.position[0].longitude)
+            df = data.df
+            df_index = df.index.to_series()
+
+            condition = df_index.diff() > df_index.diff().median()
+            holes_to_fill = df[condition]
+
+            all_nearby_stations = self._find_stations_from_gps(
+                stations, lat, lon, distance
             )
 
-            holes_to_fill = data.df[
-                data.df.index.to_series().diff()
-                > data.df.index.to_series().diff().median()
-            ]
-
-            # Find stations within a given radius - set in "distance".
-            nearby_stations = self._find_stations_from_gps(
-                stations, latitude, longitude, distance
-            )
-
-            # Iterate over nearby stations, starting with the closest
-            for nearby_station in nearby_stations[1:]:
+            for nearby_station in all_nearby_stations[1:]:
                 nearby_data = Data(Periods(stations, nearby_station[0]))
+                df = self._iterate_time(df, nearby_data.df, holes_to_fill)
 
-                for time, _ in holes_to_fill.iterrows():
-                    earliertime = data.df[data.df.index < time].index.max()
-                    condition = (nearby_data.df.index > earliertime) & (
-                        nearby_data.df.index < time
-                    )
+                holes_to_fill = df[condition]
 
-                    if len(nearby_data.df[condition]) > 0:
-                        data.df = pd.concat(
-                            [data.df, nearby_data.df], axis=0, join="outer"
-                        )
-
-                # Re-check how many holes remain
-                holes_to_fill = data.df[
-                    data.df.index.to_series().diff()
-                    > data.df.index.to_series().diff().median()
-                ]
-
-        data.df = data.df.sort_index()
+        data.df = df.sort_index()
 
         return data
+
+    def _iterate_time(
+        self, df: pd.DataFrame, nearby_df: pd.DataFrame, holes_to_fill: pd.DataFrame
+    ) -> pd.DataFrame:
+        """Iterate over time."""
+        for time, _ in holes_to_fill.iterrows():
+            earliertime = df[df.index < time].index.max()
+            condition = (nearby_df.index > earliertime) & (nearby_df.index < time)
+
+            if len(nearby_df[condition]) > 0:
+                df = pd.concat([df, nearby_df], axis=0, join="outer")
+
+        return df
