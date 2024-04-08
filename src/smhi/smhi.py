@@ -154,24 +154,23 @@ class SMHI:
         self, distance: float, stations: Stations, periods: Periods, data: Data
     ) -> Data:
         """Interpolate data from several stations based on allowed distance."""
-        if distance > 0:
-            lat, lon = (periods.position[0].latitude, periods.position[0].longitude)
+        if distance <= 0:
+            return data
+
+        lat, lon = (periods.position[0].latitude, periods.position[0].longitude)
+        missing_df = self._find_missing_data(data.df)
+        all_nearby_stations = self._find_stations_from_gps(stations, lat, lon, distance)
+
+        for nearby_station in all_nearby_stations[1:]:
+            nearby_data = Data(Periods(stations, nearby_station[0]))
+            data.df = self._iterate_over_time(data.df, nearby_data.df, missing_df)
             missing_df = self._find_missing_data(data.df)
-
-            all_nearby_stations = self._find_stations_from_gps(
-                stations, lat, lon, distance
-            )
-
-            for nearby_station in all_nearby_stations[1:]:
-                nearby_data = Data(Periods(stations, nearby_station[0]))
-                data.df = self._iterate_time(data.df, nearby_data.df, missing_df)
-                missing_df = self._find_missing_data(data.df)
 
         data.df = data.df.sort_index()
 
         return data
 
-    def _iterate_time(
+    def _iterate_over_time(
         self, df: pd.DataFrame, nearby_df: pd.DataFrame, missing_df: pd.DataFrame
     ) -> pd.DataFrame:
         """Iterate over time."""
