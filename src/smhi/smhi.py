@@ -156,11 +156,7 @@ class SMHI:
         """Interpolate data from several stations based on allowed distance."""
         if distance > 0:
             lat, lon = (periods.position[0].latitude, periods.position[0].longitude)
-            df = data.df
-            df_index = df.index.to_series()
-
-            condition = df_index.diff() > df_index.diff().median()
-            holes_to_fill = df[condition]
+            missing_df = self._find_missing_data(data.df)
 
             all_nearby_stations = self._find_stations_from_gps(
                 stations, lat, lon, distance
@@ -168,19 +164,18 @@ class SMHI:
 
             for nearby_station in all_nearby_stations[1:]:
                 nearby_data = Data(Periods(stations, nearby_station[0]))
-                df = self._iterate_time(df, nearby_data.df, holes_to_fill)
+                data.df = self._iterate_time(data.df, nearby_data.df, missing_df)
+                missing_df = self._find_missing_data(data.df)
 
-                holes_to_fill = df[condition]
-
-        data.df = df.sort_index()
+        data.df = data.df.sort_index()
 
         return data
 
     def _iterate_time(
-        self, df: pd.DataFrame, nearby_df: pd.DataFrame, holes_to_fill: pd.DataFrame
+        self, df: pd.DataFrame, nearby_df: pd.DataFrame, missing_df: pd.DataFrame
     ) -> pd.DataFrame:
         """Iterate over time."""
-        for time, _ in holes_to_fill.iterrows():
+        for time, _ in missing_df.iterrows():
             earliertime = df[df.index < time].index.max()
             condition = (nearby_df.index > earliertime) & (nearby_df.index < time)
 
@@ -188,3 +183,7 @@ class SMHI:
                 df = pd.concat([df, nearby_df], axis=0, join="outer")
 
         return df
+
+    def _find_missing_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Find missing data."""
+        return df[df.index.to_series().diff() > df.index.to_series().diff().median()]
