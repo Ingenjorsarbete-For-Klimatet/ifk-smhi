@@ -2,7 +2,8 @@
 
 import json
 import logging
-from typing import Any, Dict, Optional, Tuple
+from datetime import datetime
+from typing import Any, Dict, Optional, Tuple, Union
 
 import arrow
 import pandas as pd
@@ -16,21 +17,21 @@ from smhi.models.mesan_model import (
     MesanApprovedTime,
     MesanGeoMultiPoint,
     MesanGeoPolygon,
-    MesanMultiPointModel,
+    MesanMultiPoint,
     MesanParameter,
-    MesanPointModel,
+    MesanPoint,
     MesanValidTime,
 )
 from smhi.models.variable_model import (
     ApprovedTime,
     GeoMultiPoint,
     GeoPolygon,
-    MultiPointModel,
+    MultiPoint,
     Parameter,
-    PointModel,
+    Point,
     ValidTime,
 )
-from smhi.utils import get_request
+from smhi.utils import format_datetime, get_request
 
 logger = logging.getLogger(__name__)
 
@@ -43,8 +44,8 @@ class Mesan:
     __valid_time_model: ValidTime = MesanValidTime
     __geo_polygon_model: GeoPolygon = MesanGeoPolygon
     __geo_multipoint_model: GeoMultiPoint = MesanGeoMultiPoint
-    __point_data_model: PointModel = MesanPointModel
-    __multipoint_data_model: MultiPointModel = MesanMultiPointModel
+    __point_data_model: Point = MesanPoint
+    __multipoint_data_model: MultiPoint = MesanMultiPoint
 
     _category: str = "mesan2g"
     _version: int = 1
@@ -164,7 +165,7 @@ class Mesan:
         self,
         latitude: float,
         longitude: float,
-    ) -> PointModel:
+    ) -> Point:
         """Get data for given lon, lat and parameter.
 
         Args:
@@ -194,13 +195,13 @@ class Mesan:
 
     def get_multipoint(
         self,
-        valid_time: str,
+        valid_time: Union[str, datetime],
         parameter: str,
         level_type: str,
         level: int,
         geo: bool = True,
         downsample: int = 2,
-    ) -> MultiPointModel:
+    ) -> MultiPoint:
         """Get multipoint data.
 
         Args:
@@ -217,6 +218,7 @@ class Mesan:
         Raises:
             ValueError
         """
+        valid_time = format_datetime(valid_time)
         if self._check_valid_time(valid_time) is False:
             raise ValueError(f"Invalid time {valid_time}.")
 
@@ -332,7 +334,7 @@ class Mesan:
 
     def _build_multipoint_url(
         self,
-        valid_time: str,
+        valid_time: Union[str, datetime],
         parameter: str,
         level_type: str,
         level: int,
@@ -352,7 +354,7 @@ class Mesan:
         Returns:
             valid multipoint url
         """
-        valid_time = self._format_datetime(valid_time)
+        valid_time = format_datetime(valid_time)
         downsample = self._check_downsample(downsample)
         geo_url = "true" if geo is True else "false"
 
@@ -363,18 +365,7 @@ class Mesan:
             + f"{level_type}/level/{level}/data.json?with-geo={geo_url}&downsample={downsample}"
         )
 
-    def _format_datetime(self, test_time: str) -> str:
-        """Format user input time.
-
-        Args:
-            test_time: input time
-
-        Returns:
-            formatted time
-        """
-        return arrow.get(test_time).format("YYYYMMDDTHHmmss") + "Z"
-
-    def _check_valid_time(self, test_time: str) -> bool:
+    def _check_valid_time(self, test_time: Union[str, datetime]) -> bool:
         """Check if time is valid, that is within a day window.
 
         This might be overly restrictive but avoids an extra API call for each get_multipoint.
@@ -385,5 +376,5 @@ class Mesan:
         Returns
             true if valid and false if not valid
         """
-        valid_time = self._format_datetime(test_time)
+        valid_time = format_datetime(test_time)
         return -1 < (arrow.now("Z").shift(hours=-1) - arrow.get(valid_time)).days < 1
