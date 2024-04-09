@@ -6,18 +6,18 @@ from smhi.models.mesan_model import (
     MesanApprovedTime,
     MesanGeoMultiPoint,
     MesanGeoPolygon,
-    MesanMultiPointModel,
+    MesanMultiPoint,
     MesanParameter,
-    MesanPointModel,
+    MesanPoint,
     MesanValidTime,
 )
 from smhi.models.metfcts_model import (
     MetfctsApprovedTime,
     MetfctsGeoMultiPoint,
     MetfctsGeoPolygon,
-    MetfctsMultiPointModel,
+    MetfctsMultiPoint,
     MetfctsParameter,
-    MetfctsPointModel,
+    MetfctsPoint,
     MetfctsValidTime,
 )
 from smhi.models.metobs_model import (
@@ -44,7 +44,5 @@ ApprovedTime = TypeVar("ApprovedTime", MesanApprovedTime, MetfctsApprovedTime)
 ValidTime = TypeVar("ValidTime", MesanValidTime, MetfctsValidTime)
 GeoPolygon = TypeVar("GeoPolygon", MesanGeoPolygon, MetfctsGeoPolygon)
 GeoMultiPoint = TypeVar("GeoMultiPoint", MesanGeoMultiPoint, MetfctsGeoMultiPoint)
-PointModel = TypeVar("PointModel", MesanPointModel, MetfctsPointModel)
-MultiPointModel = TypeVar(
-    "MultiPointModel", MesanMultiPointModel, MetfctsMultiPointModel
-)
+Point = TypeVar("Point", MesanPoint, MetfctsPoint)
+MultiPoint = TypeVar("MultiPoint", MesanMultiPoint, MetfctsMultiPoint)
