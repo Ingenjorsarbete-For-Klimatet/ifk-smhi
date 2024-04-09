@@ -15,6 +15,12 @@ Currently, only these four APIs are supported
 - Mesan - Meteorological Analysis MESAN
 - Strang - Meteorological Analysis STRÅNG (sunshine)
 
+## Examples
+
+You can reach example usage of the different clients
+
+- [example of Metobs use](/ifk-smhi/metobs-example/)
+
 ## Install
 
 ifk-smhi can be installed as
@@ -40,11 +46,15 @@ It will be expanded in future versions.
 Client to fetch data from meteorological observations.
 Use this to access data from _observations_,
 i.e. recorded data from weather stations scattered over north Europe.
+See [example of Metobs use](/ifk-smhi/metobs-example/)
+for details on how to use the client.
 
 ## Metfcts client
 
 Client to fetch data from meteorological forecasts.
 Use this to access data about _forecasts_, i.e. SMHI weather predictions.
+See [example of Metfcts use](/ifk-smhi/metfcts-example/)
+for details on how to use the client.
 
 ## Mesan client
 
@@ -52,6 +62,8 @@ Client to fetch data from meteorological analysis.
 Use this to access the last 24 hour predictions of weather parameters.
 This API is a useful complement to Metobs because the number of weather
 stations are limited.
+See [example of Mesan use](/ifk-smhi/mesan-example/)
+for details on how to use the client.
 
 ## Strang client
 
@@ -60,3 +72,5 @@ Use this to access data about _sunshine_,
 i.e. SMHI prediction of sunshine for a given coordinate.
 This API is also a useful complement to Metobs because the number of weather
 stations measureing sunshine are very limited.
+See [example of Strang use](/ifk-smhi/strang-example/)
+for details on how to use the client.
