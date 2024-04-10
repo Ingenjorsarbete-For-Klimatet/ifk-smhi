@@ -85,10 +85,9 @@ class MetfctsPoint(BaseModel):
     df_info: DataFrame[MetfctsPointInfoSchema]
 
 
-
 class MetfctsMultiPoint(BaseModel):
     """Multi point model."""
-    
+
     parameter: str
     parameter_meaning: str
     geo: bool

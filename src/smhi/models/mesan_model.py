@@ -37,7 +37,23 @@ class MesanGeoMultiPoint(BaseModel):
     type_: str = Field(..., alias="type")
     coordinates: List[List[float]]
 
-      
+
+class MesanParameterItem(BaseModel):
+    name: str
+    key: str
+    level_type: str = Field(..., alias="levelType")
+    level: int
+    unit: str
+    missing_value: int = Field(..., alias="missingValue")
+
+
+class MesanParameter(BaseModel):
+    url: str
+    status: int
+    headers: Dict[str, str]
+    parameter: List[MesanParameterItem]
+
+
 class MesanPointInfoSchema(pa.DataFrameModel):
     name: Index[str] = pa.Field(check_name=True, unique=True)
     level: Series[int]
