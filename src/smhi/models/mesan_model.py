@@ -11,7 +11,7 @@ class MesanValidTime(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    valid_time: List[str]
+    valid_time: List[datetime]
 
 
 class MesanApprovedTime(BaseModel):
