@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict, List, Optional
 
 import pandas as pd
@@ -17,8 +18,8 @@ class MesanApprovedTime(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    approved_time: str
-    reference_time: str
+    approved_time: datetime
+    reference_time: datetime
 
 
 class MesanGeoPolygon(BaseModel):
@@ -36,31 +37,15 @@ class MesanGeoMultiPoint(BaseModel):
     type_: str = Field(..., alias="type")
     coordinates: List[List[float]]
 
-
-class MesanParameterItem(BaseModel):
-    name: str
-    key: str
-    level_type: str = Field(..., alias="levelType")
-    level: int
-    unit: str
-    missing_value: int = Field(..., alias="missingValue")
-
-
-class MesanParameter(BaseModel):
-    url: str
-    status: int
-    headers: Dict[str, str]
-    parameter: List[MesanParameterItem]
-
-
-class MesanPointModelInfoSchema(pa.DataFrameModel):
+      
+class MesanPointInfoSchema(pa.DataFrameModel):
     name: Index[str] = pa.Field(check_name=True, unique=True)
     level: Series[int]
     level_type: Series[str]
     unit: Series[str]
 
 
-class MesanMultiPointModelSchema(pa.DataFrameModel):
+class MesanMultiPointSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
     value: Series[float]
@@ -71,7 +56,7 @@ class MesanGeometry(BaseModel):
     coordinates: List[List[float]]
 
 
-class MesanPointModel(BaseModel):
+class MesanPoint(BaseModel):
     """Point model."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -79,17 +64,17 @@ class MesanPointModel(BaseModel):
     longitude: float
     latitude: float
     url: str
-    approved_time: str
-    reference_time: str
+    approved_time: datetime
+    reference_time: datetime
     level_unit: str
     geometry: MesanGeometry
     status: int
     headers: Dict[str, str]
     df: pd.DataFrame
-    df_info: DataFrame[MesanPointModelInfoSchema]
+    df_info: DataFrame[MesanPointInfoSchema]
 
 
-class MesanMultiPointModel(BaseModel):
+class MesanMultiPoint(BaseModel):
     """Multi point model."""
 
     parameter: str
@@ -97,9 +82,9 @@ class MesanMultiPointModel(BaseModel):
     geo: bool
     downsample: int
     url: str
-    approved_time: str
-    reference_time: str
-    valid_time: str
+    approved_time: datetime
+    reference_time: datetime
+    valid_time: datetime
     status: int
     headers: Dict[str, str]
-    df: DataFrame[MesanMultiPointModelSchema]
+    df: DataFrame[MesanMultiPointSchema]

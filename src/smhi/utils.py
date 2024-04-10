@@ -1,7 +1,10 @@
 """Utility methods."""
 
 import logging
+from datetime import datetime
+from typing import Union
 
+import arrow
 import requests
 from smhi.constants import OUT_OF_BOUNDS, STATUS_OK
 
@@ -34,3 +37,15 @@ def get_request(url: str) -> requests.Response:
     logger.debug(f"Successful request from {url}.")
 
     return response
+
+
+def format_datetime(test_time: Union[str, datetime]) -> str:
+    """Format str and datetime to accepected time formats.
+
+    Args:
+        test_time: time to format
+
+    Returns:
+        accepted timeformat in utc as string
+    """
+    return arrow.get(test_time).to("utc").format("YYYYMMDDTHHmmss") + "Z"

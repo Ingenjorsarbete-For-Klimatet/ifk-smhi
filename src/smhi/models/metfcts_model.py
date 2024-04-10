@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict, List, Optional
 
 import pandas as pd
@@ -17,8 +18,8 @@ class MetfctsApprovedTime(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    approved_time: str
-    reference_time: str
+    approved_time: datetime
+    reference_time: datetime
 
 
 class MetfctsGeoPolygon(BaseModel):
@@ -53,20 +54,20 @@ class MetfctsParameter(BaseModel):
     parameter: List[MetfctsParameterItem]
 
 
-class MetfctsPointModelInfoSchema(pa.DataFrameModel):
+class MetfctsPointInfoSchema(pa.DataFrameModel):
     name: Index[str] = pa.Field(check_name=True, unique=True)
     level: Series[int]
     level_type: Series[str]
     unit: Series[str]
 
 
-class MetfctsMultiPointModelSchema(pa.DataFrameModel):
+class MetfctsMultiPointSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
     value: Series[float]
 
 
-class MetfctsPointModel(BaseModel):
+class MetfctsPoint(BaseModel):
     """Point model."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -74,27 +75,28 @@ class MetfctsPointModel(BaseModel):
     longitude: float
     latitude: float
     url: str
-    approved_time: str
-    reference_time: str
+    approved_time: datetime
+    reference_time: datetime
     level_unit: str
     geometry: MetfctsGeoPolygon
     status: int
     headers: Dict[str, str]
     df: pd.DataFrame
-    df_info: DataFrame[MetfctsPointModelInfoSchema]
+    df_info: DataFrame[MetfctsPointInfoSchema]
 
 
-class MetfctsMultiPointModel(BaseModel):
+
+class MetfctsMultiPoint(BaseModel):
     """Multi point model."""
-
+    
     parameter: str
     parameter_meaning: str
     geo: bool
     downsample: int
     url: str
-    approved_time: str
-    reference_time: str
-    valid_time: str
+    approved_time: datetime
+    reference_time: datetime
+    valid_time: datetime
     status: int
     headers: Dict[str, str]
-    df: DataFrame[MetfctsMultiPointModelSchema]
+    df: DataFrame[MetfctsMultiPointSchema]
