@@ -50,6 +50,51 @@ class SMHI:
         """
         return Stations(self.parameters, parameter_title=title).data
 
+    def get_data(
+        self,
+        parameter: int,
+        station: int,
+        distance: int = 0,
+    ) -> Tuple[Any, Any]:
+        """Get data from station.
+
+        Args:
+            parameter: data parameter
+            station: station id
+            distance: station distance in km
+
+        Returns:
+            data
+        """
+        stations = Stations(Parameters(), parameter)
+        periods = Periods(stations, station)
+        data = Data(periods)
+
+        return self._interpolate(distance, stations, periods, data)
+
+    def get_data_by_city(
+        self,
+        parameter: int,
+        city: str,
+        distance: int = 0,
+    ) -> Tuple[Any, Any]:
+        """Get data from station.
+
+        Args:
+            parameter: data parameter
+            city: user provided city
+            distance: station distance in km
+
+        Returns:
+            data
+        """
+        stations = Stations(Parameters(), parameter)
+        station = self._find_stations_by_city(stations, city, distance)[0][0]
+        periods = Periods(stations, station)
+        data = Data(periods)
+
+        return self._interpolate(distance, stations, periods, data)
+
     def _find_stations_from_gps(
         self,
         station_response: Stations,
@@ -99,56 +144,8 @@ class SMHI:
         loc = geolocator.geocode(city)
 
         return self._find_stations_from_gps(
-            station_response,
-            latitude=loc.latitude,
-            longitude=loc.longitude,
-            dist=dist,
+            station_response, latitude=loc.latitude, longitude=loc.longitude, dist=dist
         )
-
-    def get_data(
-        self,
-        parameter: int,
-        station: int,
-        distance: int = 0,
-    ) -> Tuple[Any, Any]:
-        """Get data from station.
-
-        Args:
-            parameter: data parameter
-            station: station id
-            distance: station distance in km
-
-        Returns:
-            data
-        """
-        stations = Stations(Parameters(), parameter)
-        periods = Periods(stations, station)
-        data = Data(periods)
-
-        return self._interpolate(distance, stations, periods, data)
-
-    def get_data_by_city(
-        self,
-        parameter: int,
-        city: str,
-        distance: int = 0,
-    ) -> Tuple[Any, Any]:
-        """Get data from station.
-
-        Args:
-            parameter: data parameter
-            city: user provided city
-            distance: station distance in km
-
-        Returns:
-            data
-        """
-        stations = Stations(Parameters(), parameter)
-        station = self._find_stations_by_city(stations, city, distance)[0]
-        periods = Periods(stations, station[0])
-        data = Data(periods)
-
-        return self._interpolate(distance, stations, periods, data)
 
     def _interpolate(
         self, distance: float, stations: Stations, periods: Periods, data: Data
