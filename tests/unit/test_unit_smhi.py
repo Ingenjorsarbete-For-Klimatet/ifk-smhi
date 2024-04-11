@@ -9,7 +9,9 @@ from smhi.smhi import SMHI
 class TestUnitSMHI:
     """Unit tests for SMHI class."""
 
-    def test_unit_smhi_init(self):
+    @patch("smhi.metobs.Versions.__new__")
+    @patch("smhi.metobs.Parameters.__new__")
+    def test_unit_smhi_init(self, mock_parameters, mock_versions):
         """Unit test for SMHI init method.
 
         Args:
@@ -17,7 +19,8 @@ class TestUnitSMHI:
         """
         client = SMHI()
 
-        assert client.versions.data[0].key == "latest"
+        assert client.versions == mock_versions
+        assert client.parameters == mock_parameters
 
     def test_unit_smhi_parameters(self):
         """Unit test for SMHI parameters method.
