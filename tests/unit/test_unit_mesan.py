@@ -9,6 +9,7 @@ import pytest
 from smhi.constants import MESAN_LEVELS_UNIT, MESAN_PARAMETER_DESCRIPTIONS
 from smhi.mesan import Mesan
 from smhi.models.mesan_model import MesanGeometry, MesanParameter, MesanParameterItem
+from smhi.utils import format_datetime
 from utils import get_response
 
 BASE_URL = (
@@ -46,8 +47,8 @@ def setup_point():
     mocked_response = get_response("tests/fixtures/mesan/point.txt")
     mocked_model = json.loads(mocked_response.content)
 
-    mocked_approved_time = mocked_model["approvedTime"]
-    mocked_reference_time = mocked_model["referenceTime"]
+    mocked_approved_time = arrow.get(mocked_model["approvedTime"]).datetime
+    mocked_reference_time = arrow.get(mocked_model["referenceTime"]).datetime
     mocked_geometry = MesanGeometry(
         type=mocked_model["geometry"]["type"],
         coordinates=mocked_model["geometry"]["coordinates"],
@@ -77,9 +78,9 @@ def setup_multipoint():
     mocked_response = get_response("tests/fixtures/mesan/multipoint.txt")
     mocked_model = json.loads(mocked_response.content)
 
-    mocked_approved_time = mocked_model["approvedTime"]
-    mocked_reference_time = mocked_model["referenceTime"]
-    mocked_valid_time = mocked_model["timeSeries"][0]["validTime"]
+    mocked_approved_time = arrow.get(mocked_model["approvedTime"]).datetime
+    mocked_reference_time = arrow.get(mocked_model["referenceTime"]).datetime
+    mocked_valid_time = arrow.get(mocked_model["timeSeries"][0]["validTime"]).datetime
     mocked_data = pd.read_csv("tests/fixtures/mesan/multipoint_data.csv", index_col=0)
 
     return (
@@ -129,7 +130,10 @@ class TestUnitMesan:
     @patch(
         "smhi.mesan.Mesan._get_data",
         return_value=(
-            {"approvedTime": "1", "referenceTime": "2"},
+            {
+                "approvedTime": arrow.get(1).datetime,
+                "referenceTime": arrow.get(2).datetime,
+            },
             {"head": "head"},
             200,
         ),
@@ -150,7 +154,7 @@ class TestUnitMesan:
 
     @patch(
         "smhi.mesan.Mesan._get_data",
-        return_value=({"validTime": ["1"]}, {"head": "head"}, 200),
+        return_value=({"validTime": [arrow.get(1).datetime]}, {"head": "head"}, 200),
     )
     @patch("smhi.mesan.Mesan._get_parameters", return_value=MOCK_MESAN_PARAMETERS)
     def test_unit_mesan_valid_time(self, mock_get_parameters, mock_get_data):
@@ -284,7 +288,7 @@ class TestUnitMesan:
         data = client.get_multipoint(
             valid_time, parameter, level_type, level, geo, downsample
         )
-        valid_time = client._format_datetime(valid_time)
+        valid_time = format_datetime(valid_time)
 
         assert data.parameter == parameter
         assert data.parameter_meaning == MESAN_PARAMETER_DESCRIPTIONS[parameter]
@@ -376,22 +380,6 @@ class TestUnitMesan:
             )
             == expected_answer
         )
-
-    @pytest.mark.parametrize(
-        "test_time, expected_answer",
-        [
-            ("2024-03-31T07", "20240331T070000Z"),
-            ("2024-03-31T06:00", "20240331T060000Z"),
-            ("2024-03-30T07:00:00", "20240330T070000Z"),
-            ("2024-03-30T060000", "20240330T060000Z"),
-            ("2024-03-30T060000Z", "20240330T060000Z"),
-        ],
-    )
-    @patch("smhi.mesan.Mesan._get_parameters")
-    def test_format_datetime(self, mock_get_parameters, test_time, expected_answer):
-        """Unit test _format_datetime."""
-        client = Mesan()
-        assert client._format_datetime(test_time) == expected_answer
 
     @pytest.mark.parametrize(
         "test_time, expected_answer",

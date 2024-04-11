@@ -6,22 +6,27 @@ from typing import Any, List, Optional, Tuple
 import pandas as pd
 from geopy import distance
 from geopy.geocoders import Nominatim
-from smhi.metobs import Data, Parameters, Periods, Stations, Versions
+from smhi.metobs import Data, Parameters, Periods, Stations
+from smhi.models.metobs_model import MetobsLinksModel
+
+logger = logging.getLogger(__name__)
 
 
 class SMHI:
     """SMHI class with high-level functions."""
 
-    def __init__(self, version: str = "1.0") -> None:
+    def __init__(self) -> None:
         """Initialise SMHI class.
 
-        Args:
-            version: API version
+        Raises:
+            ValueError
         """
-        self.versions = Versions()
         self.parameters = Parameters()
 
-    def get_stations(self, parameter: Optional[int] = None):
+        if self.parameters is None:
+            raise ValueError("No parameters available.")
+
+    def get_stations(self, parameter: Optional[int] = None) -> List[MetobsLinksModel]:
         """Get stations from parameter.
 
         Args:
@@ -30,14 +35,11 @@ class SMHI:
         Returns:
             stations
         """
-        if self.parameters is None:
-            logging.info("No parameters available.")
-            return None
+        return Stations(self.parameters, parameter).data
 
-        self.stations = Stations(self.parameters, parameter)
-        return self.stations.data
-
-    def get_stations_from_title(self, title: Optional[str] = None):
+    def get_stations_from_title(
+        self, title: Optional[str] = None
+    ) -> List[MetobsLinksModel]:
         """Get stations from title.
 
         Args:
@@ -46,128 +48,141 @@ class SMHI:
         Returns:
             stations
         """
-        if self.stations is None:
-            logging.info("No stations available.")
-            return None
+        return Stations(self.parameters, parameter_title=title).data
 
-        self.stations = Stations(self.parameters, title)
-        return self.stations.data
-
-    def find_stations_from_gps(
-        self, parameter: int, latitude: float, longitude: float, dist: float = 0
-    ) -> None:
+    def _find_stations_from_gps(
+        self,
+        station_response: Stations,
+        latitude: float,
+        longitude: float,
+        dist: float = 0,
+    ) -> List[Tuple[int, str, float]]:
         """Find stations for parameter from gps location.
 
         Args:
             parameter: station parameter
             latitude: latitude
             longitude: longitude
-            dist: distance from gps location. If zero (default), chooses closest.
+            dist: distance from gps location. If zero (default), chooses closest
 
+        Returns:
+            nearby stations
         """
-        if parameter is None:
-            logging.info("Parameter needed.")
-            return None
+        user_pos = (latitude, longitude)
+        all_stations = station_response.station
+        nearby_stations = [
+            (s.id, s.name, distance.distance(user_pos, (s.latitude, s.longitude)).km)
+            for s in all_stations
+        ]
 
-        user_position = (latitude, longitude)
-        self.stations = Stations(self.parameters, parameter)
-        self.nearby_stations: List[Tuple[Any, Any, Any]]
-        all_stations = self.stations.station
         if dist == 0:
-            stations = [
-                (
-                    s.id,
-                    s.name,
-                    distance.distance(user_position, (s.latitude, s.longitude)).km,
-                )
-                for s in all_stations
-            ]
-            self.nearby_stations = min(stations, key=lambda x: x[2])
+            return min(nearby_stations, key=lambda x: x[2])
 
-        else:
-            self.nearby_stations = [
-                (
-                    s.id,
-                    s.name,
-                    distance.distance(user_position, (s.latitude, s.longitude)).km,
-                )
-                for s in all_stations
-                if distance.distance(user_position, (s.latitude, s.longitude)) <= dist
-            ]
-            self.nearby_stations = sorted(self.nearby_stations, key=lambda x: x[2])
+        nearby_stations = [x for x in nearby_stations if x[2] <= dist]
 
-    def find_stations_by_city(self, parameter: int, city: str, dist: float = 0) -> None:
+        return sorted(nearby_stations, key=lambda x: x[2])
+
+    def _find_stations_by_city(
+        self, station_response: Stations, city: str, dist: float = 0
+    ) -> List[Tuple[int, str, float]]:
         """Find stations for parameter from city name.
 
         Args:
             parameter: station parameter
-            dist: distance from city
+            dist: distance from city in km
             city: name of city
+
+        Returns:
+            nearby stations
         """
         geolocator = Nominatim(user_agent="ifk-smhi")
         loc = geolocator.geocode(city)
-        self.find_stations_from_gps(
-            parameter=parameter,
-            dist=dist,
+
+        return self._find_stations_from_gps(
+            station_response,
             latitude=loc.latitude,
             longitude=loc.longitude,
+            dist=dist,
         )
 
     def get_data(
         self,
         parameter: int,
         station: int,
-        interpolate: int = 0,
+        distance: int = 0,
     ) -> Tuple[Any, Any]:
         """Get data from station.
 
         Args:
             parameter: data parameter
             station: station id
-            interpolate: station distance
+            distance: station distance in km
+
+        Returns:
+            data
         """
-        self.stations = Stations(Parameters(), parameter)
-        self.periods = Periods(self.stations, station)
-        data = Data(self.periods)
-        if interpolate > 0:
-            # Find the station latitude and longitude information from Metobs
-            # should be replaced by a self.periods.position[0].latitude
-            latitude = self.periods.position[0].latitude
-            longitude = self.periods.position[0].longitude
+        stations = Stations(Parameters(), parameter)
+        periods = Periods(stations, station)
+        data = Data(periods)
 
-            holes_to_fill = data.df[
-                data.df.index.to_series().diff()
-                > data.df.index.to_series().diff().median()
-            ]
-            # Find stations within a given radius - set in "interpolate".
-            self.find_stations_from_gps(
-                parameter=parameter,
-                latitude=latitude,
-                longitude=longitude,
-                dist=interpolate,
-            )
+        return self._interpolate(distance, stations, periods, data)
 
-            # Iterate over nearby stations, starting with the closest
-            for nearby_station in self.nearby_stations[1:]:
-                tmpdata = Data(Periods(self.stations, nearby_station[0]))
-                for time, _ in holes_to_fill.iterrows():
-                    earliertime = data.df[data.df.index < time].index.max()
+    def get_data_by_city(
+        self,
+        parameter: int,
+        city: str,
+        distance: int = 0,
+    ) -> Tuple[Any, Any]:
+        """Get data from station.
 
-                    if (
-                        len(
-                            tmpdata.df[
-                                (tmpdata.df.index > earliertime)
-                                & (tmpdata.df.index < time)
-                            ]
-                        )
-                        > 0
-                    ):
-                        data.df = pd.concat([data.df, tmpdata.df], axis=0, join="outer")
+        Args:
+            parameter: data parameter
+            city: user provided city
+            distance: station distance in km
 
-                # Re-check how many holes remain
-                holes_to_fill = data.df[
-                    data.df.index.to_series().diff()
-                    > data.df.index.to_series().diff().median()
-                ]
+        Returns:
+            data
+        """
+        stations = Stations(Parameters(), parameter)
+        station = self._find_stations_by_city(stations, city, distance)[0]
+        periods = Periods(stations, station[0])
+        data = Data(periods)
+
+        return self._interpolate(distance, stations, periods, data)
+
+    def _interpolate(
+        self, distance: float, stations: Stations, periods: Periods, data: Data
+    ) -> Data:
+        """Interpolate data from several stations based on allowed distance."""
+        if distance <= 0:
+            return data
+
+        lat, lon = (periods.position[0].latitude, periods.position[0].longitude)
+        missing_df = self._find_missing_data(data.df)
+        all_nearby_stations = self._find_stations_from_gps(stations, lat, lon, distance)
+
+        for nearby_station in all_nearby_stations[1:]:
+            nearby_data = Data(Periods(stations, nearby_station[0]))
+            data.df = self._iterate_over_time(data.df, nearby_data.df, missing_df)
+            missing_df = self._find_missing_data(data.df)
+
         data.df = data.df.sort_index()
+
         return data
+
+    def _iterate_over_time(
+        self, df: pd.DataFrame, nearby_df: pd.DataFrame, missing_df: pd.DataFrame
+    ) -> pd.DataFrame:
+        """Iterate over time."""
+        for time, _ in missing_df.iterrows():
+            earliertime = df[df.index < time].index.max()
+            condition = (nearby_df.index > earliertime) & (nearby_df.index < time)
+
+            if len(nearby_df[condition]) > 0:
+                df = pd.concat([df, nearby_df], axis=0, join="outer")
+
+        return df
+
+    def _find_missing_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Find missing data."""
+        return df[df.index.to_series().diff() > df.index.to_series().diff().median()]
