@@ -7,7 +7,7 @@ import pandas as pd
 from geopy import distance
 from geopy.geocoders import Nominatim
 from smhi.metobs import Data, Parameters, Periods, Stations
-from smhi.models.metobs_model import MetobsLinksModel
+from smhi.models.metobs_model import MetobsLinks
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class SMHI:
         if self.parameters is None:
             raise ValueError("No parameters available.")
 
-    def get_stations(self, parameter: Optional[int] = None) -> List[MetobsLinksModel]:
+    def get_stations(self, parameter: Optional[int] = None) -> List[MetobsLinks]:
         """Get stations from parameter.
 
         Args:
@@ -37,9 +37,7 @@ class SMHI:
         """
         return Stations(self.parameters, parameter).data
 
-    def get_stations_from_title(
-        self, title: Optional[str] = None
-    ) -> List[MetobsLinksModel]:
+    def get_stations_from_title(self, title: Optional[str] = None) -> List[MetobsLinks]:
         """Get stations from title.
 
         Args:
