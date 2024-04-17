@@ -1,7 +1,8 @@
 """SMHI unit tests."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 from smhi.smhi import SMHI
 
 
