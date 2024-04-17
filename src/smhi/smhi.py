@@ -119,7 +119,7 @@ class SMHI:
         ]
 
         if dist == 0:
-            return min(nearby_stations, key=lambda x: x[2])
+            return [min(nearby_stations, key=lambda x: x[2])]
 
         nearby_stations = [x for x in nearby_stations if x[2] <= dist]
 
