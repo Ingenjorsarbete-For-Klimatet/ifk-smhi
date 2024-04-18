@@ -59,7 +59,7 @@ class SMHI:
         Args:
             parameter: data parameter
             station: station id
-            distance: station distance in km
+            distance: station distance in km (for interpolation)
 
         Returns:
             data
