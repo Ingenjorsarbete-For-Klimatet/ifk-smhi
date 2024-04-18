@@ -44,6 +44,28 @@ class TestUnitSMHI:
         client = SMHI()
         assert client.get_stations_from_title(parameter_title)
 
+    @pytest.mark.parametrize(
+        "parameter, station, distance", [(8, 180960, None), (8, 180960, 50)]
+    )
+    @patch("smhi.metobs.Stations.__new__")
+    @patch("smhi.metobs.Periods.__new__")
+    @patch("smhi.metobs.Data.__new__")
+    @patch("smhi.smhi.SMHI._interpolate")
+    def test_unit_get_data(
+        self,
+        mock_station_data,
+        mock_period_data,
+        mock_data_data,
+        mock_interpolate,
+        parameter,
+        station,
+        distance,
+    ):
+        mock_interpolate.return_value = "test"
+        client = SMHI()
+        data = client.get_data(parameter, station, distance)
+        assert data == "test"
+
     def test_find_stations_from_gps(
         self,
     ):
