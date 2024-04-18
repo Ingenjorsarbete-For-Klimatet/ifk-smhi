@@ -53,10 +53,10 @@ class TestUnitSMHI:
     @patch("smhi.smhi.SMHI._interpolate")
     def test_unit_get_data(
         self,
-        mock_station_data,
-        mock_period_data,
-        mock_data_data,
         mock_interpolate,
+        mock_data_data,
+        mock_period_data,
+        mock_station_data,
         parameter,
         station,
         distance,
