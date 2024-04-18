@@ -20,34 +20,29 @@ class TestUnitSMHI:
 
         assert client.parameters
 
-    def test_unit_smhi_parameters(self):
-        """Unit test for SMHI parameters method.
-
-        Args:
-            mock_metobs: mock Metobs object
-        """
-        client = SMHI()
-        assert client.parameters.data[0].key == "1"
-
-    @pytest.mark.parametrize(
-        "parameter",
-        [(None), (1)],
-    )
-    def test_unit_smhi_get_stations(self, parameter):
+    @pytest.mark.parametrize("parameter", [(None), (1)])
+    @patch("smhi.metobs.Stations.__new__")
+    def test_unit_smhi_get_stations(self, mock_station_data, parameter):
         """Unit test for SMHI get_stations method.
 
         Args:
             parameter: parameter (int)
         """
-        assert 2 == 2
+        client = SMHI()
+        assert client.get_stations(parameter)
 
-    def test_unit_smhi_get_stations_from_title(self):
+    @pytest.mark.parametrize("parameter_title", [(None), ("Snöfall")])
+    @patch("smhi.metobs.Stations.__new__")
+    def test_unit_smhi_get_stations_from_title(
+        self, mock_station_data, parameter_title
+    ):
         """Unit test for SMHI get_stations_from_title method.
 
         Args:
             title: title of station
         """
-        assert 1 == 1
+        client = SMHI()
+        assert client.get_stations_from_title(parameter_title)
 
     def test_find_stations_from_gps(
         self,
