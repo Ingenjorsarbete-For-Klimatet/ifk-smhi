@@ -1,9 +1,9 @@
 """SMHI unit tests."""
 
-from unittest.mock import patch
-
+from unittest.mock import MagicMock, patch
 import pytest
 from smhi.smhi import SMHI
+import pandas as pd
 
 
 class TestUnitSMHI:
@@ -66,14 +66,75 @@ class TestUnitSMHI:
         data = client.get_data(parameter, station, distance)
         assert data == "test"
 
-    def test_find_stations_from_gps(
+    @pytest.mark.parametrize(
+        "parameter, city, distance", [(8, "Bengtsfors", None), (8, "Bengtsfors", 50)]
+    )
+    @patch("smhi.metobs.Stations.__new__")
+    @patch("smhi.metobs.Periods.__new__")
+    @patch("smhi.metobs.Data.__new__")
+    @patch("smhi.smhi.SMHI._find_stations_by_city")
+    @patch("smhi.smhi.SMHI._interpolate")
+    def test_unit_get_data_by_city(
         self,
+        mock_interpolate,
+        mock_find_stations_by_city,
+        mock_data_data,
+        mock_period_data,
+        mock_station_data,
+        parameter,
+        city,
+        distance,
+    ):
+        mock_interpolate.return_value = "test"
+        client = SMHI()
+        data = client.get_data_by_city(parameter, city, distance)
+        assert data == "test"
+
+    @pytest.mark.parametrize(
+        "stations,latitude, longitude,dist",
+        [
+            (
+                MagicMock(
+                    **{
+                        "id": [1, 2],
+                        "name": ["Akalla", "Högdalen"],
+                        "latitude": [59.5, 59.3],
+                        "longitude": [17.8, 17.8],
+                    }
+                ),
+                59,
+                17,
+                None,
+            ),
+            (
+                MagicMock(
+                    **{
+                        "id": [1, 2],
+                        "name": ["Akalla", "Högdalen"],
+                        "latitude": [59.5, 59.3],
+                        "longitude": [17.8, 17.8],
+                    }
+                ),
+                59.4,
+                17,
+                30,
+            ),
+        ],
+    )
+    @patch("geopy.distance")
+    def test_find_stations_from_gps(
+        self, mock_distance, stations, latitude, longitude, dist
     ):
         """Unit test for SMHI find_stations_from_gps method.
 
         Args:
         """
-        assert True
+
+        client = SMHI()
+        nearby_town = client._find_stations_from_gps(
+            stations, latitude, longitude, dist
+        )
+        assert nearby_town in stations
 
     def test_find_stations_by_city(
         self,
