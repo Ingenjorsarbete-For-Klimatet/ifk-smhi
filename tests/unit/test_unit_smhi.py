@@ -128,11 +128,29 @@ class TestUnitSMHI:
         )
         assert nearby_town[0][0] == 1
 
+    @pytest.mark.parametrize(
+        "parameter, city, distance", [(8, "Bengtsfors", None), (8, "Bengtsfors", 50)]
+    )
+    @patch("smhi.metobs.Stations.__new__")
+    @patch("smhi.metobs.Periods.__new__")
+    @patch("smhi.metobs.Data.__new__")
+    @patch("geopy.geocoders.Nominatim.__new__")
+    @patch("smhi.smhi.SMHI._find_stations_from_gps")
     def test_find_stations_by_city(
         self,
+        mock_find_from_gps,
+        mock_nominatim,
+        mock_data_data,
+        mock_period_data,
+        mock_station_data,
+        parameter,
+        city,
+        distance,
     ):
         """Unit test for SMHI find_stations_by_city method.
 
         Args:
         """
-        assert True
+        client = SMHI()
+        data = client._find_stations_by_city(parameter, city, distance)
+        mock_nominatim.assert_called_once()
