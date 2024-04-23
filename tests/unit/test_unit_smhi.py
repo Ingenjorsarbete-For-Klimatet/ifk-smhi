@@ -90,13 +90,16 @@ class TestUnitSMHI:
         data = client.get_data_by_city(parameter, city, distance)
         assert data == "test"
 
+    distanceresponse = MagicMock()
+    distanceresponse.km = 0
+
     @pytest.mark.parametrize(
         "latitude, longitude,dist",
         [
             (
                 59,
                 17,
-                None,
+                0,
             ),
             (
                 59.4,
@@ -105,23 +108,25 @@ class TestUnitSMHI:
             ),
         ],
     )
-    @patch("geopy.distance")
+    @patch("geopy.distance.distance", return_value=distanceresponse)
     def test_find_stations_from_gps(self, mock_distance, latitude, longitude, dist):
         """Unit test for SMHI find_stations_from_gps method.
 
         Args:
         """
+        station1 = MagicMock()
+        station1.id = 1
+        station1.name = "Akalla"
+        station1.latitude = 59.5
+        station1.longitude = 17.8
         stations = MagicMock()
-        stations.station.id.return_value = 1
-        stations.station.name.return_value = "Akalla"
-        stations.station.latitude.return_value = 59.5
-        stations.station.longitude.return_value = 17.8
-        mock_distance.distance.return_value = 0
+        stations.station = [station1]
+
         client = SMHI()
         nearby_town = client._find_stations_from_gps(
             stations, latitude, longitude, dist
         )
-        assert nearby_town[0][0] in stations.station.id
+        assert nearby_town[0][0] == 1
 
     def test_find_stations_by_city(
         self,
