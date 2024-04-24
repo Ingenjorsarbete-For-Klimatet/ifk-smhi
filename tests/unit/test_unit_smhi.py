@@ -188,7 +188,7 @@ class TestUnitSMHI:
     def test_iterate_over_time(
         self,
     ):
-        """Unit test for SMHI _interpolate method.
+        """Unit test for SMHI _iterate_over_time method.
 
         Args:
         """
@@ -220,3 +220,29 @@ class TestUnitSMHI:
 
         data = client._iterate_over_time(df, nearby_df, missing_df)
         assert data.tail(2).iloc[0]["Temperatur"] == nearby_df.iloc[0]["Temperatur"]
+
+    def test_find_missing_data(
+        self,
+    ):
+        """Unit test for SMHI _find_missing_data method.
+
+        Args:
+        """
+        df = pd.DataFrame(
+            {
+                "date": [
+                    "2024-04-21 10:00",
+                    "2024-04-21 11:00",
+                    "2024-04-21 12:00",
+                    "2024-04-22 12:00",
+                ],
+                "Temperatur": [1, 1, 1, 12],
+            }
+        )
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.set_index("date")
+
+        client = SMHI()
+
+        missingdata = client._find_missing_data(df)
+        assert missingdata.iloc[0]["Temperatur"] == df.iloc[-1]["Temperatur"]
