@@ -1,9 +1,11 @@
 """SMHI unit tests."""
 
 from unittest.mock import MagicMock, patch
+
 import pytest
-from smhi.smhi import SMHI
 import pandas as pd
+
+from smhi.smhi import SMHI
 
 
 class TestUnitSMHI:
@@ -152,7 +154,7 @@ class TestUnitSMHI:
         Args:
         """
         client = SMHI()
-        data = client._find_stations_by_city(parameter, city, distance)
+        _ = client._find_stations_by_city(parameter, city, distance)
         mock_nominatim.assert_called_once()
 
     @pytest.mark.parametrize("distance", [(0), (50)])
