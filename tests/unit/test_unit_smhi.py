@@ -147,10 +147,40 @@ class TestUnitSMHI:
         city,
         distance,
     ):
-        """Unit test for SMHI find_stations_by_city method.
+        """Unit test for SMHI _find_stations_by_city method.
 
         Args:
         """
         client = SMHI()
         data = client._find_stations_by_city(parameter, city, distance)
         mock_nominatim.assert_called_once()
+
+    @pytest.mark.parametrize("distance", [(0), (50)])
+    @patch("smhi.metobs.Stations.__new__")
+    @patch("smhi.metobs.Periods.__new__")
+    @patch("smhi.metobs.Data.__new__")
+    @patch("smhi.smhi.SMHI._iterate_over_time")
+    @patch("smhi.smhi.SMHI._find_missing_data")
+    @patch("smhi.smhi.SMHI._find_stations_from_gps")
+    def test_interpolate(
+        self,
+        mock_find_from_gps,
+        mock_find_missing_data,
+        mock_iterate_over_time,
+        mock_data_data,
+        mock_period_data,
+        mock_station_data,
+        distance,
+    ):
+        """Unit test for SMHI _interpolate method.
+
+        Args:
+        """
+        client = SMHI()
+        data = client._interpolate(
+            distance, mock_station_data, mock_period_data, mock_data_data
+        )
+        if distance <= 0:
+            assert data == mock_data_data
+        else:
+            mock_find_from_gps.assert_called_once()
