@@ -2,9 +2,8 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 import pandas as pd
-
+import pytest
 from smhi.smhi import SMHI
 
 
