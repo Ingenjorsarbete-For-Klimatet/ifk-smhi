@@ -184,3 +184,39 @@ class TestUnitSMHI:
             assert data == mock_data_data
         else:
             mock_find_from_gps.assert_called_once()
+
+    def test_iterate_over_time(
+        self,
+    ):
+        """Unit test for SMHI _interpolate method.
+
+        Args:
+        """
+        df = pd.DataFrame(
+            {
+                "date": [
+                    "2024-04-21 10:00",
+                    "2024-04-21 11:00",
+                    "2024-04-21 12:00",
+                    "2024-04-22 12:00",
+                ],
+                "Temperatur": [1, 1, 1, 12],
+            }
+        )
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.set_index("date")
+
+        nearby_df = pd.DataFrame(
+            {"date": ["2024-04-22 10:00", "2024-04-22 11:00"], "Temperatur": [8, 9]}
+        )
+        nearby_df["date"] = pd.to_datetime(nearby_df["date"])
+        nearby_df = nearby_df.set_index("date")
+
+        missing_df = df[
+            df.index.to_series().diff() > df.index.to_series().diff().median()
+        ]
+
+        client = SMHI()
+
+        data = client._iterate_over_time(df, nearby_df, missing_df)
+        assert data.tail(2).iloc[0]["Temperatur"] == nearby_df.iloc[0]["Temperatur"]
