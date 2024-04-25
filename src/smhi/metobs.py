@@ -306,7 +306,7 @@ class Data(BaseMetobs):
     def __init__(
         self,
         periods_in_station: Periods,
-        period: str = "corrected-archive",
+        period: str = "not-set",
         data_type: str = "json",
     ) -> None:
         """Get data from period.
@@ -322,6 +322,9 @@ class Data(BaseMetobs):
             NotImplementedError: period not implemented
         """
         super().__init__()
+
+        if period == "not-set":
+            period = periods_in_station.data[0]
 
         if data_type != "json":
             raise TypeError("Only json supported.")
