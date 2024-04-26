@@ -324,8 +324,7 @@ class Data(BaseMetobs):
         super().__init__()
 
         if period == "not-set":
-            periods_in_station = sorted(periods_in_station, key=lambda x: x.key)
-            period = periods_in_station.data[0]
+            period = sorted(periods_in_station, key=lambda x: x.key).data[0]
 
         if data_type != "json":
             raise TypeError("Only json supported.")
