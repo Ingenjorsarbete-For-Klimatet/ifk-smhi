@@ -324,7 +324,13 @@ class Data(BaseMetobs):
         super().__init__()
 
         if period == "not-set":
-            available_periods = sorted(periods_in_station.data)
+            ordering = {
+                "latest-hour": 0,
+                "latest-day": 1,
+                "latest-month": 2,
+                "corrected-archive": 3,
+            }
+            available_periods = sorted(periods_in_station.data, key=ordering.get)
             period = available_periods[0]
 
         if data_type != "json":
