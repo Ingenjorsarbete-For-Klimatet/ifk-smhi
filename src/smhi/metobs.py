@@ -330,7 +330,9 @@ class Data(BaseMetobs):
                 "latest-month": 2,
                 "corrected-archive": 3,
             }
-            available_periods = sorted(periods_in_station.data, key=ordering.get)
+            available_periods = sorted(
+                periods_in_station.data, key=lambda x: ordering.get(x)
+            )
             period = available_periods[0]
 
         if data_type != "json":
