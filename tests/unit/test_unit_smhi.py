@@ -112,8 +112,6 @@ class TestUnitSMHI:
     @patch("geopy.distance.distance", return_value=distanceresponse)
     def test_find_stations_from_gps(self, mock_distance, latitude, longitude, dist):
         """Unit test for SMHI find_stations_from_gps method.
-
-        Args:
         """
         station1 = MagicMock()
         station1.id = 1
