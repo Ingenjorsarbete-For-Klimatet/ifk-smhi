@@ -331,7 +331,7 @@ class Data(BaseMetobs):
                 "corrected-archive": 3,
             }
             available_periods = sorted(
-                periods_in_station.data, key=lambda x: ordering.get(x)
+                periods_in_station.data, key=lambda x: ordering.__getitem__(x)
             )
             period = available_periods[0]
 
