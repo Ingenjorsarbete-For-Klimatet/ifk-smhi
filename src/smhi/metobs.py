@@ -327,7 +327,7 @@ class Data(BaseMetobs):
             ordering = {
                 "latest-hour": 0,
                 "latest-day": 1,
-                "latest-month": 2,
+                "latest-months": 2,
                 "corrected-archive": 3,
             }
             available_periods = sorted(
