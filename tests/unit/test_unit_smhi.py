@@ -15,7 +15,7 @@ class TestUnitSMHI:
         """Unit test for SMHI init method.
 
         Args:
-            mock_requests_metobs: mock requests metobs object
+            mock_parameters
         """
         client = SMHI()
 
@@ -27,6 +27,7 @@ class TestUnitSMHI:
         """Unit test for SMHI get_stations method.
 
         Args:
+            mock_station_data,
             parameter: parameter (int)
         """
         client = SMHI()
@@ -40,7 +41,8 @@ class TestUnitSMHI:
         """Unit test for SMHI get_stations_from_title method.
 
         Args:
-            title: title of station
+            mock_station_data,
+            parameter_title: title of parameter
         """
         client = SMHI()
         assert client.get_stations_from_title(parameter_title)
@@ -62,6 +64,17 @@ class TestUnitSMHI:
         station,
         distance,
     ):
+        """Unit test for SMHI method get_data
+
+        Args:
+            mock_interpolate,
+            mock_data_data,
+            mock_period_data,
+            mock_station_data,
+            parameter,
+            station,
+            distance,
+        """
         mock_interpolate.return_value = "test"
         client = SMHI()
         data = client.get_data(parameter, station, distance)
@@ -86,6 +99,18 @@ class TestUnitSMHI:
         city,
         distance,
     ):
+        """Unit test for SMHI _get_data_by_city method.
+
+        args:
+            mock_interpolate,
+            mock_find_stations_by_city,
+            mock_data_data,
+            mock_period_data,
+            mock_station_data,
+            parameter,
+            city,
+            distance
+        """
         mock_interpolate.return_value = "test"
         client = SMHI()
         data = client.get_data_by_city(parameter, city, distance)
@@ -112,6 +137,12 @@ class TestUnitSMHI:
     @patch("geopy.distance.distance", return_value=distanceresponse)
     def test_find_stations_from_gps(self, mock_distance, latitude, longitude, dist):
         """Unit test for SMHI find_stations_from_gps method.
+
+        Args:
+            mock_distance,
+            latitude,
+            longitude,
+            dist
         """
         station1 = MagicMock()
         station1.id = 1
@@ -149,6 +180,14 @@ class TestUnitSMHI:
         """Unit test for SMHI _find_stations_by_city method.
 
         Args:
+            mock_find_from_gps,
+            mock_nominatim,
+            mock_data_data,
+            mock_period_data,
+            mock_station_data,
+            parameter,
+            city,
+            distance
         """
         client = SMHI()
         _ = client._find_stations_by_city(parameter, city, distance)
@@ -174,6 +213,13 @@ class TestUnitSMHI:
         """Unit test for SMHI _interpolate method.
 
         Args:
+            mock_find_from_gps,
+            mock_find_missing_data,
+            mock_iterate_over_time,
+            mock_data_data,
+            mock_period_data,
+            mock_station_data,
+            distance
         """
         client = SMHI()
         data = client._interpolate(
@@ -187,10 +233,7 @@ class TestUnitSMHI:
     def test_iterate_over_time(
         self,
     ):
-        """Unit test for SMHI _iterate_over_time method.
-
-        Args:
-        """
+        """Unit test for SMHI _iterate_over_time method."""
         df = pd.DataFrame(
             {
                 "date": [
@@ -223,10 +266,7 @@ class TestUnitSMHI:
     def test_find_missing_data(
         self,
     ):
-        """Unit test for SMHI _find_missing_data method.
-
-        Args:
-        """
+        """Unit test for SMHI _find_missing_data method."""
         df = pd.DataFrame(
             {
                 "date": [
