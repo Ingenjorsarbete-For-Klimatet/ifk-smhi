@@ -509,7 +509,7 @@ class TestUnitData:
                 Data(mock_periods, period, data_type)
             return None
 
-        if period not in METOBS_AVAILABLE_PERIODS:
+        if period is not None and period not in METOBS_AVAILABLE_PERIODS:
             with pytest.raises(NotImplementedError):
                 Data(mock_periods, period, data_type)
             return None
