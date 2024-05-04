@@ -26,6 +26,34 @@ class MockParameterModel:
         self.station = station
 
 
+@pytest.fixture
+def setup_test_x():
+    """Pytest fixture"""
+    df = pd.DataFrame(
+        {
+            "date": [
+                "2024-04-21 10:00",
+                "2024-04-21 11:00",
+                "2024-04-21 12:00",
+                "2024-04-22 12:00",
+            ],
+            "Temperatur": [1, 1, 1, 12],
+        }
+    )
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.set_index("date")
+
+    nearby_df = pd.DataFrame(
+        {"date": ["2024-04-22 10:00", "2024-04-22 11:00"], "Temperatur": [8, 9]}
+    )
+    nearby_df["date"] = pd.to_datetime(nearby_df["date"])
+    nearby_df = nearby_df.set_index("date")
+
+    missing_df = df[df.index.to_series().diff() > df.index.to_series().diff().median()]
+
+    return df, nearby_df, missing_df
+
+
 class TestUnitSMHI:
     """Unit tests for SMHI class."""
 
@@ -234,34 +262,9 @@ class TestUnitSMHI:
         else:
             mock_find_from_gps.assert_called_once()
 
-    def test_iterate_over_time(
-        self,
-    ):
+    def test_iterate_over_time(self, setup_test_x):
         """Unit test for SMHI _iterate_over_time method."""
-        df = pd.DataFrame(
-            {
-                "date": [
-                    "2024-04-21 10:00",
-                    "2024-04-21 11:00",
-                    "2024-04-21 12:00",
-                    "2024-04-22 12:00",
-                ],
-                "Temperatur": [1, 1, 1, 12],
-            }
-        )
-        df["date"] = pd.to_datetime(df["date"])
-        df = df.set_index("date")
-
-        nearby_df = pd.DataFrame(
-            {"date": ["2024-04-22 10:00", "2024-04-22 11:00"], "Temperatur": [8, 9]}
-        )
-        nearby_df["date"] = pd.to_datetime(nearby_df["date"])
-        nearby_df = nearby_df.set_index("date")
-
-        missing_df = df[
-            df.index.to_series().diff() > df.index.to_series().diff().median()
-        ]
-
+        df, nearby_df, missing_df = setup_test_x
         client = SMHI()
 
         data = client._iterate_over_time(df, nearby_df, missing_df)
