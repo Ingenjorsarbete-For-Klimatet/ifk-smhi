@@ -306,7 +306,7 @@ class Data(BaseMetobs):
     def __init__(
         self,
         periods_in_station: Periods,
-        period: str = "not-set",
+        period: Optional[str] = None,
         data_type: str = "json",
     ) -> None:
         """Get data from period.
@@ -323,7 +323,7 @@ class Data(BaseMetobs):
         """
         super().__init__()
 
-        if period == "not-set":
+        if period == None:
             ordering = {
                 "latest-hour": 0,
                 "latest-day": 1,
