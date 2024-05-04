@@ -323,7 +323,7 @@ class Data(BaseMetobs):
         """
         super().__init__()
 
-        if period == None:
+        if period is None:
             ordering = {
                 "latest-hour": 0,
                 "latest-day": 1,
