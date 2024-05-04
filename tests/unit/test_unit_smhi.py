@@ -7,6 +7,25 @@ import pytest
 from smhi.smhi import SMHI
 
 
+class MockMetobsStationLink:
+    """Support class to mock MetObs StationLink object."""
+
+    def __init__(self, id: int, name: str, lat: float, lon: float):
+        """Initiate parameters."""
+        self.id = id
+        self.name = name
+        self.latitude = lat
+        self.longitude = lon
+
+
+class MockParameterModel:
+    """Support class to mock Metobs Parameter object."""
+
+    def __init__(self, station: MockMetobsStationLink):
+        """Initiate station."""
+        self.station = station
+
+
 class TestUnitSMHI:
     """Unit tests for SMHI class."""
 
@@ -120,43 +139,28 @@ class TestUnitSMHI:
     distanceresponse.km = 0
 
     @pytest.mark.parametrize(
-        "latitude, longitude,dist",
-        [
-            (
-                59,
-                17,
-                0,
-            ),
-            (
-                59.4,
-                17,
-                30,
-            ),
-        ],
+        "latitude, longitude, dist, expected_result",
+        [(59, 17, 0, 1), (59.5, 17.75, 30, 1)],
     )
-    @patch("geopy.distance.distance", return_value=distanceresponse)
-    def test_find_stations_from_gps(self, mock_distance, latitude, longitude, dist):
+    def test_find_stations_from_gps(self, latitude, longitude, dist, expected_result):
         """Unit test for SMHI find_stations_from_gps method.
 
         Args:
-            mock_distance,
             latitude,
             longitude,
             dist
+            expected_result
         """
-        station1 = MagicMock()
-        station1.id = 1
-        station1.name = "Akalla"
-        station1.latitude = 59.5
-        station1.longitude = 17.8
-        stations = MagicMock()
-        stations.station = [station1]
+        station1 = MockMetobsStationLink(1, "Akalla", 59.5, 17.8)
+        station2 = MockMetobsStationLink(2, "name", 57, 16)
+        station3 = MockMetobsStationLink(3, "name", 58, 17)
+        stations = MockParameterModel([station1, station2, station3])
 
         client = SMHI()
         nearby_town = client._find_stations_from_gps(
             stations, latitude, longitude, dist
         )
-        assert nearby_town[0][0] == 1
+        assert nearby_town[0][0] == expected_result
 
     @pytest.mark.parametrize(
         "parameter, city, distance", [(8, "Bengtsfors", None), (8, "Bengtsfors", 50)]
