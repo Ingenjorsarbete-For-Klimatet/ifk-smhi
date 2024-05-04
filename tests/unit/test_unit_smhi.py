@@ -26,6 +26,14 @@ class MockParameterModel:
         self.station = station
 
 
+class MockStationModel:
+    """Support class to mock Metobs Station object."""
+
+    def __init__(self, data="str"):
+        """Initiate data"""
+        self.data = data
+
+
 @pytest.fixture
 def setup_test_x():
     """Pytest fixture"""
@@ -57,7 +65,7 @@ def setup_test_x():
 class TestUnitSMHI:
     """Unit tests for SMHI class."""
 
-    @patch("smhi.metobs.Parameters.__new__")
+    @patch("smhi.metobs.Parameters.__new__", return_value="test")
     def test_unit_smhi_init(self, mock_parameters):
         """Unit test for SMHI init method.
 
@@ -66,10 +74,10 @@ class TestUnitSMHI:
         """
         client = SMHI()
 
-        assert client.parameters
+        assert client.parameters == "test"
 
     @pytest.mark.parametrize("parameter", [(None), (1)])
-    @patch("smhi.metobs.Stations.__new__")
+    @patch("smhi.metobs.Stations.__new__", return_value=MockStationModel("Test"))
     def test_unit_smhi_get_stations(self, mock_station_data, parameter):
         """Unit test for SMHI get_stations method.
 
@@ -78,10 +86,10 @@ class TestUnitSMHI:
             parameter: parameter (int)
         """
         client = SMHI()
-        assert client.get_stations(parameter)
+        assert client.get_stations(parameter) == "Test"
 
     @pytest.mark.parametrize("parameter_title", [(None), ("Snöfall")])
-    @patch("smhi.metobs.Stations.__new__")
+    @patch("smhi.metobs.Stations.__new__", return_value=MockStationModel("Test"))
     def test_unit_smhi_get_stations_from_title(
         self, mock_station_data, parameter_title
     ):
@@ -92,7 +100,7 @@ class TestUnitSMHI:
             parameter_title: title of parameter
         """
         client = SMHI()
-        assert client.get_stations_from_title(parameter_title)
+        assert client.get_stations_from_title(parameter_title) == "Test"
 
     @pytest.mark.parametrize(
         "parameter, station, distance", [(8, 180960, None), (8, 180960, 50)]
