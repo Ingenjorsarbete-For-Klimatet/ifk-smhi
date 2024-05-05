@@ -328,7 +328,7 @@ class Data(BaseMetobs):
 
         if period is None:
             period = periods_in_station.data[0]
-            logger.info("No period selected, selecting: {period}.")
+            logger.info(f"No period selected, selecting: {period}.")
 
         if self._check_available_periods(periods_in_station.data, period):
             logger.info(
