@@ -477,7 +477,7 @@ class TestUnitData:
     @pytest.mark.parametrize(
         "period, data_type",
         [
-            (None, "yaml"),
+            ("latest", "yaml"),
             (None, "json"),
             ("latest", "json"),
             ("corrected-archive", "json"),
@@ -509,7 +509,7 @@ class TestUnitData:
                 Data(mock_periods, period, data_type)
             return None
 
-        if period is not None and period not in METOBS_AVAILABLE_PERIODS:
+        if period not in METOBS_AVAILABLE_PERIODS and period is not None:
             with pytest.raises(NotImplementedError):
                 Data(mock_periods, period, data_type)
             return None
