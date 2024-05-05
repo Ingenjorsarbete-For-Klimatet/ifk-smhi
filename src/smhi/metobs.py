@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseMetobs:
-    """Base Metobs class."""
+    """BaseMetobs class."""
 
     def __init__(self) -> None:
         """Initialise base class."""
@@ -105,7 +105,7 @@ class Versions(BaseMetobs):
     ) -> None:
         """Get versions.
 
-        For now, only supports `json` and version 1.
+        Currently, only supports `json` and version 1.
 
         Args:
             data_type: data_type of request
