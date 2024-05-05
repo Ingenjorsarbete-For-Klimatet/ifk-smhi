@@ -1,5 +1,7 @@
 """Mesan integration tests."""
 
+import time
+
 import arrow
 import pytest
 from smhi.constants import MESAN_PARAMETER_DESCRIPTIONS
@@ -32,6 +34,8 @@ class TestIntegrationMesan:
         approved_time = client.approved_time.approved_time
         assert datetime_between_day(approved_time)
 
+        time.sleep(1)
+
     def test_integration_mesan_parameters(self):
         """Integration test for parameters property."""
         client = Mesan()
@@ -40,6 +44,8 @@ class TestIntegrationMesan:
             [x.name in MESAN_PARAMETER_DESCRIPTIONS for x in parameters.parameter]
         )
         assert len(parameters.parameter) > NUM_PARAMETERS
+
+        time.sleep(1)
 
     def test_integration_mesan_valid_time(self):
         """Integration test for approved time property."""
@@ -50,12 +56,16 @@ class TestIntegrationMesan:
 
         assert len(valid_time) == NUM_VALID_TIME
 
+        time.sleep(1)
+
     def test_integration_mesan_geo_polygon(self):
         """Integration test for geo_polygon property."""
         client = Mesan()
         geo_polygon = client.geo_polygon
         assert geo_polygon.type_ == GEO_POLYGON_TYPE
         assert len(geo_polygon.coordinates[0]) > NUM_GEO_COORDINATES
+
+        time.sleep(1)
 
     @pytest.mark.parametrize("downsample", [(1)])
     def test_integration_mesan_get_geo_multipoint(self, downsample):
@@ -64,6 +74,8 @@ class TestIntegrationMesan:
         geo_multipoint = client.get_geo_multipoint(downsample)
         assert geo_multipoint.type_ == GEO_MULTIPOINT_TYPE
         assert len(geo_multipoint.coordinates) > NUM_GEO_COORDINATES
+
+        time.sleep(1)
 
     @pytest.mark.parametrize("lat, lon", [(58, 16)])
     def test_integration_mesan_get_point(self, lat, lon):
@@ -74,6 +86,8 @@ class TestIntegrationMesan:
         assert not point.df_info.empty
         assert not point.df.empty
         assert point.df["t"].iloc[0] > MIN_TEMPERATURE
+
+        time.sleep(1)
 
     @pytest.mark.parametrize(
         "validtime, parameter, level_type, level, geo, downsample",
@@ -99,3 +113,5 @@ class TestIntegrationMesan:
 
         assert not multipoint.df.empty
         assert multipoint.df["value"].iloc[0] > MIN_TEMPERATURE
+
+        time.sleep(1)
