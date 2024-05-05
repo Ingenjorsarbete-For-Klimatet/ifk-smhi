@@ -22,10 +22,10 @@ def get_now() -> datetime:
 
 
 METOBS_AVAILABLE_PERIODS = {
-    "latest-hour": 0,
-    "latest-day": 1,
-    "latest-months": 2,
-    "corrected-archive": 3,
+    "corrected-archive": 0,
+    "latest-months": 1,
+    "latest-day": 2,
+    "latest-hour": 3,
 }
 
 METFCTS_URL = (
