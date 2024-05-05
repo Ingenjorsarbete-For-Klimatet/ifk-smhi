@@ -7,20 +7,11 @@ from pandera.typing import DataFrame, Index, Series
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class MesanParameterItem(BaseModel):
-    name: str
-    key: str
-    level_type: str = Field(..., alias="levelType")
-    level: int
-    unit: str
-    missing_value: int = Field(..., alias="missingValue")
-
-
-class MesanParameter(BaseModel):
+class MesanValidTime(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    parameter: List[MesanParameterItem]
+    valid_time: List[datetime]
 
 
 class MesanApprovedTime(BaseModel):
@@ -29,13 +20,6 @@ class MesanApprovedTime(BaseModel):
     headers: Dict[str, str]
     approved_time: datetime
     reference_time: datetime
-
-
-class MesanValidTime(BaseModel):
-    url: str
-    status: int
-    headers: Dict[str, str]
-    valid_time: List[datetime]
 
 
 class MesanGeoPolygon(BaseModel):
@@ -52,6 +36,22 @@ class MesanGeoMultiPoint(BaseModel):
     headers: Dict[str, str]
     type_: str = Field(..., alias="type")
     coordinates: List[List[float]]
+
+
+class MesanParameterItem(BaseModel):
+    name: str
+    key: str
+    level_type: str = Field(..., alias="levelType")
+    level: int
+    unit: str
+    missing_value: int = Field(..., alias="missingValue")
+
+
+class MesanParameter(BaseModel):
+    url: str
+    status: int
+    headers: Dict[str, str]
+    parameter: List[MesanParameterItem]
 
 
 class MesanPointInfoSchema(pa.DataFrameModel):
@@ -73,6 +73,8 @@ class MesanGeometry(BaseModel):
 
 
 class MesanPoint(BaseModel):
+    """Point model."""
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     longitude: float
@@ -89,6 +91,8 @@ class MesanPoint(BaseModel):
 
 
 class MesanMultiPoint(BaseModel):
+    """Multi point model."""
+
     parameter: str
     parameter_meaning: str
     geo: bool

@@ -68,6 +68,8 @@ class MetfctsMultiPointSchema(pa.DataFrameModel):
 
 
 class MetfctsPoint(BaseModel):
+    """Point model."""
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     longitude: float
@@ -84,6 +86,8 @@ class MetfctsPoint(BaseModel):
 
 
 class MetfctsMultiPoint(BaseModel):
+    """Multi point model."""
+
     parameter: str
     parameter_meaning: str
     geo: bool

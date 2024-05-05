@@ -21,6 +21,8 @@ class StrangMultiPointSchema(pa.DataFrameModel):
 
 
 class StrangParameter(BaseModel):
+    """Strang parameter model."""
+
     key: Optional[int]
     meaning: Optional[str]
     time_from: Optional[datetime] = None
@@ -39,6 +41,8 @@ class StrangMultiPointItem(BaseModel):
 
 
 class StrangPoint(BaseModel):
+    """Point model."""
+
     parameter_key: int
     parameter_meaning: str
     longitude: float
@@ -53,6 +57,8 @@ class StrangPoint(BaseModel):
 
 
 class StrangMultiPoint(BaseModel):
+    """Multi point model."""
+
     parameter_key: int
     parameter_meaning: str
     valid_time: Optional[datetime]
