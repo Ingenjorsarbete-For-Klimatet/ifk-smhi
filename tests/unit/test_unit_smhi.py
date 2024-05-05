@@ -35,8 +35,8 @@ class MockStationModel:
 
 
 @pytest.fixture
-def setup_test_x():
-    """Pytest fixture"""
+def setup_iterate_over_time():
+    """Iterate over time fixture."""
     df = pd.DataFrame(
         {
             "date": [
@@ -108,7 +108,7 @@ class TestUnitSMHI:
     @patch("smhi.metobs.Stations.__new__")
     @patch("smhi.metobs.Periods.__new__")
     @patch("smhi.metobs.Data.__new__")
-    @patch("smhi.smhi.SMHI._interpolate")
+    @patch("smhi.smhi.SMHI._interpolate", return_value="test")
     def test_unit_get_data(
         self,
         mock_interpolate,
@@ -130,7 +130,6 @@ class TestUnitSMHI:
             station,
             distance,
         """
-        mock_interpolate.return_value = "test"
         client = SMHI()
         data = client.get_data(parameter, station, distance)
         assert data == "test"
@@ -142,7 +141,7 @@ class TestUnitSMHI:
     @patch("smhi.metobs.Periods.__new__")
     @patch("smhi.metobs.Data.__new__")
     @patch("smhi.smhi.SMHI._find_stations_by_city")
-    @patch("smhi.smhi.SMHI._interpolate")
+    @patch("smhi.smhi.SMHI._interpolate", return_value="test")
     def test_unit_get_data_by_city(
         self,
         mock_interpolate,
@@ -166,7 +165,6 @@ class TestUnitSMHI:
             city,
             distance
         """
-        mock_interpolate.return_value = "test"
         client = SMHI()
         data = client.get_data_by_city(parameter, city, distance)
         assert data == "test"
@@ -232,6 +230,7 @@ class TestUnitSMHI:
         client = SMHI()
         _ = client._find_stations_by_city(parameter, city, distance)
         mock_nominatim.assert_called_once()
+        mock_find_from_gps.assert_called_once()
 
     @pytest.mark.parametrize("distance", [(0), (50)])
     @patch("smhi.metobs.Stations.__new__")
@@ -270,17 +269,15 @@ class TestUnitSMHI:
         else:
             mock_find_from_gps.assert_called_once()
 
-    def test_iterate_over_time(self, setup_test_x):
+    def test_iterate_over_time(self, setup_iterate_over_time):
         """Unit test for SMHI _iterate_over_time method."""
-        df, nearby_df, missing_df = setup_test_x
+        df, nearby_df, missing_df = setup_iterate_over_time
         client = SMHI()
 
         data = client._iterate_over_time(df, nearby_df, missing_df)
         assert data.tail(2).iloc[0]["Temperatur"] == nearby_df.iloc[0]["Temperatur"]
 
-    def test_find_missing_data(
-        self,
-    ):
+    def test_find_missing_data(self):
         """Unit test for SMHI _find_missing_data method."""
         df = pd.DataFrame(
             {

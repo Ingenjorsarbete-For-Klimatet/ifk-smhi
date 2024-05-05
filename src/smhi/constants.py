@@ -21,12 +21,12 @@ def get_now() -> datetime:
     return arrow.utcnow().datetime  # .isoformat("T", "seconds") + "Z"
 
 
-METOBS_AVAILABLE_PERIODS = [
-    "latest-hour",
-    "latest-day",
-    "latest-months",
-    "corrected-archive",
-]
+METOBS_AVAILABLE_PERIODS = {
+    "latest-hour": 0,
+    "latest-day": 1,
+    "latest-months": 2,
+    "corrected-archive": 3,
+}
 
 METFCTS_URL = (
     "https://opendata-download-metfcst.smhi.se/"
