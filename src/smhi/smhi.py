@@ -111,6 +111,9 @@ class SMHI:
         Returns:
             nearby stations
         """
+        if not dist:
+            dist = 0
+
         user_pos = (latitude, longitude)
         all_stations = station_response.station
         nearby_stations = [
@@ -149,6 +152,9 @@ class SMHI:
         self, distance: float, stations: Stations, periods: Periods, data: Data
     ) -> Data:
         """Interpolate data from several stations based on allowed distance."""
+        if not distance:
+            return data
+
         if distance <= 0:
             return data
 
