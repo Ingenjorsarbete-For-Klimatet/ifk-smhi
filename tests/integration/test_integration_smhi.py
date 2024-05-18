@@ -1,8 +1,8 @@
 """SMHI integration tests."""
-import pandas as pd
+import time
+
 import pytest
 from smhi.smhi import SMHI
-import time
 
 
 class TestIntegrationSMHI:
