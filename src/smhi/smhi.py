@@ -1,7 +1,7 @@
 """Read SMHI data."""
 
-import time
 import logging
+import time
 from typing import Any, List, Optional, Tuple
 
 import pandas as pd
@@ -177,9 +177,9 @@ class SMHI:
         self, df: pd.DataFrame, nearby_df: pd.DataFrame, missing_df: pd.DataFrame
     ) -> pd.DataFrame:
         """Iterate over time."""
-        for time, _ in missing_df.iterrows():
-            earliertime = df[df.index < time].index.max()
-            condition = (nearby_df.index > earliertime) & (nearby_df.index < time)
+        for tajm, _ in missing_df.iterrows():
+            earliertime = df[df.index < tajm].index.max()
+            condition = (nearby_df.index > earliertime) & (nearby_df.index < tajm)
 
             if len(nearby_df[condition]) > 0:
                 df = pd.concat([df, nearby_df], axis=0, join="outer")
