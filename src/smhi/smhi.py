@@ -1,5 +1,6 @@
 """Read SMHI data."""
 
+import time
 import logging
 from typing import Any, List, Optional, Tuple
 
@@ -163,6 +164,7 @@ class SMHI:
         all_nearby_stations = self._find_stations_from_gps(stations, lat, lon, distance)
 
         for nearby_station in all_nearby_stations[1:]:
+            time.sleep(1)
             nearby_data = Data(Periods(stations, nearby_station[0]))
             data.df = self._iterate_over_time(data.df, nearby_data.df, missing_df)
             missing_df = self._find_missing_data(data.df)
