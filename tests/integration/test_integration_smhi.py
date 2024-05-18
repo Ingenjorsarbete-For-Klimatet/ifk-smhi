@@ -1,4 +1,5 @@
 """SMHI integration tests."""
+
 import time
 
 import pytest
@@ -36,7 +37,6 @@ class TestIntegrationSMHI:
         expected_result,
     ):
         """Integration test of SMHI class."""
-
         client = SMHI()
         data = client.get_data_by_city(parameter, city, radius)
         assert len(data.df[expected_result[0]]) > 0
