@@ -17,7 +17,8 @@ Currently, only these four APIs are supported
 
 ## Examples
 
-You can reach example usage of the different clients
+Examples of direct usage of the different clients, and the experimental parent class,
+are available here:
 
 - [example of Metobs use](/ifk-smhi/metobs-example/)
 - [example of Mesan use](/ifk-smhi/mesan-example/)
