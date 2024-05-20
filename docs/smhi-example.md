@@ -22,7 +22,7 @@ client.parameters.data #List all available parameters
 stations = client.get_stations(1) 
 stations.data #List all available stations for parameter 1
 
-data = client.get_data(1,72630) #Get data from specific station
+data = client.get_data(1, 72630) #Get data from specific station
 #Station 72630 is Gothenburg
 ```
 
@@ -46,18 +46,18 @@ from smhi.smhi import SMHI
 client = SMHI()
 
 #Parameter 8 is depth of snow coverage
-data = client.get_data(8,180960,40) #Get data from specific station
+data = client.get_data(8, 180960, 40) #Get data from specific station
 #Station 180960 is Kiruna. 40 indicates we will use stations within
 #a 40km radius to complement any data losses.
 
-data2 = client.get_data(8,180960) #Get comparison data without the
+data2 = client.get_data(8, 180960) #Get comparison data without the
 #interpolation.
 
 import matplotlib.pyplot as plt
-plt.plot(data.df.index,data.df["Snödjup"])
-plt.plot(data2.df.index,data2.df["Snödjup"])
+plt.plot(data.df.index, data.df["Snödjup"])
+plt.plot(data2.df.index, data2.df["Snödjup"])
 plt.ylabel("Snödjup")
-plt.legend(["Interpolated (40km)","Station 180960"])
+plt.legend(["Interpolated (40km)", "Station 180960"])
 plt.show()
 ```
 
@@ -73,7 +73,7 @@ from smhi.smhi import SMHI
 client = SMHI()
 
 #Parameter 8 is depth of snow coverage
-data = client.get_data_by_city(8,"Kiruna",40) #Get data from a station
+data = client.get_data_by_city(8, "Kiruna", 40) #Get data from a station
 #close to the city centre of Kiruna, and fill any empty holes with data
 #from stations within a 40km perimeter
 
