@@ -36,7 +36,7 @@ the actual observational data. See further
 
 When there are several stations close to a measurement location and historical data
 records are incomplete, it is convenient to use nearby stations to fill in the missing
-data: This naive interpolation feature is included in the toolbox by the parameter
+data: This naive interpolation feature is included in the package by the parameter
 `radius`. Thus, if we want to fetch historical data on the snow coverage in Kiruna,
 the call is:
 
@@ -65,7 +65,7 @@ plt.show()
 
 There are a lot of stations available: Frequently, we are simply interested
 in meterological observations from a specific city. Using the library `geopy`,
-this is included in the toolbox too:
+this is included in the package too:
 
 ```python
 from smhi.smhi import SMHI
