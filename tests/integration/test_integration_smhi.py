@@ -10,7 +10,7 @@ class TestIntegrationSMHI:
     """Integration test of SMHI class."""
 
     @pytest.mark.parametrize(
-        "parameter, city, period,radius,expected_result",
+        "parameter, city, period, radius, expected_result",
         [
             (
                 1,
