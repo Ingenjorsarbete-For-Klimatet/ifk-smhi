@@ -19,7 +19,7 @@ client = SMHI()
 client.parameters.data #List all available parameters
 #Parameter 1 is hourly air temperature
 
-stations = client.get_stations(1) 
+stations = client.get_stations(1)
 stations.data #List all available stations for parameter 1
 
 data = client.get_data(1, 72630) #Get data from specific station
@@ -55,6 +55,7 @@ data2 = client.get_data(8, 180960) #Get comparison data without the
 ```
 
 Visualise the data:
+
 <details>
     <summary>Scatter plot code</summary>
 
@@ -100,7 +101,7 @@ fig.show()
 <iframe id="igraph"
 alt="Historiskt snödjup i Kiruna."
 scrolling="no" style="border:none;" seamless="seamless"
-src="assets/kiruna_snodjup.html" height="525" width="100%">
+src="/ifk-smhi/assets/kiruna_snodjup.html" height="525" width="100%">
 </iframe>
 
 ## Finding data from a city
