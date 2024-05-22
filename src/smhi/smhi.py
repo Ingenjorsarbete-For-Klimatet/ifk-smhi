@@ -6,6 +6,7 @@ from typing import Any, List, Optional, Tuple
 
 import pandas as pd
 from geopy import distance
+from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
 from smhi.metobs import Data, Parameters, Periods, Stations
 from smhi.models.metobs_model import MetobsLinks
@@ -143,7 +144,8 @@ class SMHI:
             nearby stations
         """
         geolocator = Nominatim(user_agent="ifk-smhi")
-        loc = geolocator.geocode(city)
+        geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+        loc = geocode(city)
 
         return self._find_stations_from_gps(
             station_response, latitude=loc.latitude, longitude=loc.longitude, dist=dist
