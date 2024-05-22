@@ -52,14 +52,56 @@ data = client.get_data(8, 180960, 40) #Get data from specific station
 
 data2 = client.get_data(8, 180960) #Get comparison data without the
 #interpolation.
-
-import matplotlib.pyplot as plt
-plt.plot(data.df.index, data.df["Snödjup"])
-plt.plot(data2.df.index, data2.df["Snödjup"])
-plt.ylabel("Snödjup")
-plt.legend(["Interpolated (40km)", "Station 180960"])
-plt.show()
 ```
+
+Visualise the data:
+<details>
+    <summary>Scatter plot code</summary>
+
+```python
+import plotly.graph_objects as go
+
+d1 = data.df
+d2 = data2.df
+
+index = d1.index.intersection(d2.index)
+d2_dropped = d2.drop(index, axis=0)
+
+fig = go.Figure()
+fig.add_trace(
+    go.Scattergl(
+        x=d1.index,
+        y=d1["Snödjup"],
+        mode="markers",
+        name="Kiruna station"
+    )
+)
+fig.add_trace(
+    go.Scattergl(
+        x=d2_dropped.index,
+        y=d2_dropped["Snödjup"],
+        mode="markers",
+        name="Interpolerat, radie 40 km"
+    )
+)
+fig.update_layout(
+    title='Historiskt snödjup i Kiruna',
+    xaxis_title="År",
+    yaxis_title="Snödjup [m]",
+    legend={"orientation": "h"},
+    margin={"l": 0, "r": 0, "b": 80, "t": 100}
+)
+
+fig.show()
+```
+
+</details>
+
+<iframe id="igraph"
+alt="Historiskt snödjup i Kiruna."
+scrolling="no" style="border:none;" seamless="seamless"
+src="assets/kiruna_snodjup.html" height="525" width="100%">
+</iframe>
 
 ## Finding data from a city
 
