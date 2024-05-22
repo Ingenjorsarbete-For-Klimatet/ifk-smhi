@@ -17,9 +17,14 @@ Currently, only these four APIs are supported
 
 ## Examples
 
-You can reach example usage of the different clients
+Examples of direct usage of the different clients, and the experimental parent class,
+are available here:
 
 - [example of Metobs use](/ifk-smhi/metobs-example/)
+- [example of Mesan use](/ifk-smhi/mesan-example/)
+- [example of Metfcts use](/ifk-smhi/metfcts-example/)
+- [example of Strang use](/ifk-smhi/strang-example/)
+- [example of SMHI use](/ifk-smhi/smhi-example/)
 
 ## Install
 
@@ -40,6 +45,8 @@ pip install git+https://github.com/Ingenjorsarbete-For-Klimatet/ifk-smhi.git@mai
 The SMHI client is in an experimental state.
 As of now, it only controls the Metobs sub-client.
 It will be expanded in future versions.
+See [example of SMHI use](/ifk-smhi/smhi-example/)
+for details on how to use the client.
 
 ## Metobs client
 

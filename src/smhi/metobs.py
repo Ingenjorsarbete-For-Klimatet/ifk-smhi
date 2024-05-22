@@ -298,7 +298,7 @@ class Periods(BaseMetobs):
 class Data(BaseMetobs):
     """Get data from period for version 1 of Metobs API."""
 
-    _metobs_available_periods: Dict[str, str] = METOBS_AVAILABLE_PERIODS
+    _metobs_available_periods: Dict[str, int] = METOBS_AVAILABLE_PERIODS
     _metobs_parameter_tim: List[str] = ["Datum", "Tid (UTC)"]
     _metobs_parameter_dygn: List[str] = ["Representativt dygn"]
     _metobs_parameter_manad: List[str] = ["Representativ månad"]
@@ -306,7 +306,7 @@ class Data(BaseMetobs):
     def __init__(
         self,
         periods_in_station: Periods,
-        period: str = "corrected-archive",
+        period: Optional[str] = None,
         data_type: str = "json",
     ) -> None:
         """Get data from period.
@@ -326,6 +326,10 @@ class Data(BaseMetobs):
         if data_type != "json":
             raise TypeError("Only json supported.")
 
+        if period is None:
+            period = periods_in_station.data[0]
+            logger.info(f"No period selected, selecting: {period}.")
+
         if self._check_available_periods(periods_in_station.data, period):
             logger.info(
                 "Found only one period to download. "
@@ -335,8 +339,8 @@ class Data(BaseMetobs):
 
         if period not in self._metobs_available_periods:
             raise NotImplementedError(
-                "Select a supported periods: }"
-                + ", ".join([p for p in self._metobs_available_periods])
+                "Select a supported period: "
+                + ", ".join([p for p in self._metobs_available_periods.keys()])
             )
 
         self.periods_in_station = periods_in_station

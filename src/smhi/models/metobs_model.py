@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple
 
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from smhi.constants import METOBS_AVAILABLE_PERIODS
 
 
 class MetobsLink(BaseModel):
@@ -183,7 +184,7 @@ class MetobsStationModel(MetobsBaseModel):
     @field_validator("period")
     @classmethod
     def serialise_period_in_order(cls, period: List[MetobsLinks]):
-        return sorted(period, key=lambda x: x.key)
+        return sorted(period, key=lambda x: METOBS_AVAILABLE_PERIODS[x.key])
 
     @property
     def data(self) -> Tuple[Optional[str], ...]:

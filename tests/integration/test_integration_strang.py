@@ -1,5 +1,7 @@
 """Strang integration tests."""
 
+import time
+
 import pandas as pd
 import pytest
 from smhi.strang import Strang
@@ -90,6 +92,8 @@ class TestIntegrationStrang:
         else:
             assert expected_result == point_model.df.index.name
 
+        time.sleep(1)
+
     def test_integration_strang_multipoint(self, get_multipoint):
         """Strang MultiPoint integration tests.
 
@@ -113,3 +117,5 @@ class TestIntegrationStrang:
             get_multipoint,
             multipoint_model.df.iloc[:10, :],
         )
+
+        time.sleep(1)
