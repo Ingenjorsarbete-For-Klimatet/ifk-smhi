@@ -23,7 +23,8 @@ MOCK_MESAN_PARAMETERS = MesanParameter(
     parameter=[
         MesanParameterItem(
             name="t",
-            key="t_hl_2",
+            shortName="t",
+            description="Temperature",
             levelType="hl",
             level=2,
             unit="Cel",
@@ -31,7 +32,8 @@ MOCK_MESAN_PARAMETERS = MesanParameter(
         ),
         MesanParameterItem(
             name="gust",
-            key="gust_hl_10",
+            shortName="gust",
+            description="Wind gusts",
             levelType="hl",
             level=10,
             unit="m/s",
