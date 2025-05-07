@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from requests.structures import CaseInsensitiveDict
+
 from smhi.constants import METOBS_AVAILABLE_PERIODS
 from smhi.models.metobs_model import (
     MetobsCategoryModel,

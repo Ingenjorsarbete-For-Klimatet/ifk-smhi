@@ -3,6 +3,7 @@
 from typing import Dict
 
 import arrow
+
 from smhi.constants import METFCTS_PARAMETER_DESCRIPTIONS, METFCTS_URL
 from smhi.mesan import Mesan
 from smhi.models.metfcts_model import (

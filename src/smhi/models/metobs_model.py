@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple
 
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
 from smhi.constants import METOBS_AVAILABLE_PERIODS
 
 
