@@ -3,6 +3,7 @@
 import time
 
 import pytest
+
 from smhi.smhi import SMHI
 
 

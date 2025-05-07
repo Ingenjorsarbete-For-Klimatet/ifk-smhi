@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import arrow
 import pytest
+
 from smhi.metfcts import Metfcts
 
 BASE_URL = (

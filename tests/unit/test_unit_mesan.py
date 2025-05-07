@@ -6,11 +6,12 @@ from unittest.mock import patch
 import arrow
 import pandas as pd
 import pytest
+from utils import get_response
+
 from smhi.constants import MESAN_LEVELS_UNIT, MESAN_PARAMETER_DESCRIPTIONS
 from smhi.mesan import Mesan
 from smhi.models.mesan_model import MesanGeometry, MesanParameter, MesanParameterItem
 from smhi.utils import format_datetime
-from utils import get_response
 
 BASE_URL = (
     "https://opendata-download-metanalys.smhi.se/" + "api/category/mesan2g/version/1/"

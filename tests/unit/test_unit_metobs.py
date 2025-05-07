@@ -6,6 +6,8 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 from pydantic import BaseModel
+from utils import MockResponse, get_data, get_response
+
 from smhi.constants import METOBS_AVAILABLE_PERIODS
 from smhi.metobs import (
     BaseMetobs,
@@ -23,7 +25,6 @@ from smhi.models.metobs_model import (
     MetobsVersionItem,
     MetobsVersionModel,
 )
-from utils import MockResponse, get_data, get_response
 
 
 class MockModelInner(BaseModel):

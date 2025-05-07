@@ -1,6 +1,7 @@
 """Test utils functions."""
 
 import pytest
+
 from smhi.utils import format_datetime
 
 
