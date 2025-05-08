@@ -13,6 +13,7 @@ from typing import Any, Optional
 import arrow
 import pandas as pd
 from requests.structures import CaseInsensitiveDict
+
 from smhi.constants import (
     STRANG_MULTIPOINT_URL,
     STRANG_PARAMETERS,

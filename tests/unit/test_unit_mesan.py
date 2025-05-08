@@ -6,11 +6,12 @@ from unittest.mock import patch
 import arrow
 import pandas as pd
 import pytest
+from utils import get_response
+
 from smhi.constants import MESAN_LEVELS_UNIT, MESAN_PARAMETER_DESCRIPTIONS
 from smhi.mesan import Mesan
 from smhi.models.mesan_model import MesanGeometry, MesanParameter, MesanParameterItem
 from smhi.utils import format_datetime
-from utils import get_response
 
 BASE_URL = (
     "https://opendata-download-metanalys.smhi.se/" + "api/category/mesan2g/version/1/"
@@ -23,7 +24,8 @@ MOCK_MESAN_PARAMETERS = MesanParameter(
     parameter=[
         MesanParameterItem(
             name="t",
-            key="t_hl_2",
+            shortName="t",
+            description="Temperature",
             levelType="hl",
             level=2,
             unit="Cel",
@@ -31,7 +33,8 @@ MOCK_MESAN_PARAMETERS = MesanParameter(
         ),
         MesanParameterItem(
             name="gust",
-            key="gust_hl_10",
+            shortName="gust",
+            description="Wind gusts",
             levelType="hl",
             level=10,
             unit="m/s",

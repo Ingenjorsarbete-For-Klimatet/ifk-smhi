@@ -6,6 +6,7 @@ from typing import Union
 
 import arrow
 import requests
+
 from smhi.constants import OUT_OF_BOUNDS, STATUS_OK
 
 logger = logging.getLogger(__name__)

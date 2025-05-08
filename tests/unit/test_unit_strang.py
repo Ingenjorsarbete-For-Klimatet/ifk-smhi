@@ -6,6 +6,8 @@ from unittest.mock import patch
 import arrow
 import pandas as pd
 import pytest
+from utils import get_response
+
 from smhi.constants import (
     STRANG_MULTIPOINT_URL,
     STRANG_PARAMETERS,
@@ -13,7 +15,6 @@ from smhi.constants import (
 )
 from smhi.models.strang_model import StrangParameter
 from smhi.strang import Strang
-from utils import get_response
 
 
 @pytest.fixture

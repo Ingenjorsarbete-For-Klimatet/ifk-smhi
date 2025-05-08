@@ -40,7 +40,8 @@ class MesanGeoMultiPoint(BaseModel):
 
 class MesanParameterItem(BaseModel):
     name: str
-    key: str
+    short_name: str = Field(..., alias="shortName")
+    description: str
     level_type: str = Field(..., alias="levelType")
     level: int
     unit: str

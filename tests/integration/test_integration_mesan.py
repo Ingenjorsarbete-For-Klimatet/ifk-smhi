@@ -4,6 +4,7 @@ import time
 
 import arrow
 import pytest
+
 from smhi.constants import MESAN_PARAMETER_DESCRIPTIONS
 from smhi.mesan import Mesan
 

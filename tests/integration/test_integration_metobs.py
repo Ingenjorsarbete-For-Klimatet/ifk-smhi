@@ -5,6 +5,7 @@ import time
 
 import pandas as pd
 import pytest
+
 from smhi.metobs import Data, Parameters, Periods, Stations
 from smhi.models.metobs_model import MetobsVersionItem
 
