@@ -20,7 +20,7 @@ jobs:
           python -m pip install -U pip build
           python -m build
       - name: Store the distribution packages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
           path: dist/
@@ -28,7 +28,7 @@ jobs:
   pypi--build-publish:
     environment: release
     permissions:
-        id-token: write
+      id-token: write
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Download all the dists
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: python-package-distributions
           path: dist/
