@@ -29,11 +29,11 @@ def datetime_between_week(test_time):
 class TestIntegrationMesan:
     """Integration tests for Mesan class."""
 
-    def test_integration_mesan_approved_time(self):
+    def test_integration_mesan_created_time(self):
         """Integration test for approved time property."""
         client = Mesan()
-        approved_time = client.approved_time.approved_time
-        assert datetime_between_day(approved_time)
+        created_time = client.created_time.created_time
+        assert datetime_between_day(created_time)
 
         time.sleep(1)
 
@@ -41,21 +41,21 @@ class TestIntegrationMesan:
         """Integration test for parameters property."""
         client = Mesan()
         parameters = client.parameters
-        assert all(
-            [x.name in MESAN_PARAMETER_DESCRIPTIONS for x in parameters.parameter]
-        )
+ 
+        for parameter in parameters.parameter:
+            assert parameter.short_name in MESAN_PARAMETER_DESCRIPTIONS, f"Parameter '{parameter.short_name}' not found in MESAN_PARAMETER_DESCRIPTIONS"
         assert len(parameters.parameter) > NUM_PARAMETERS
 
         time.sleep(1)
 
-    def test_integration_mesan_valid_time(self):
+    def test_integration_mesan_times(self):
         """Integration test for approved time property."""
         client = Mesan()
-        valid_time = client.valid_time.valid_time
-        for test_time in valid_time:
+        times = client.times.times
+        for test_time in times:
             assert datetime_between_week(test_time)
 
-        assert len(valid_time) == NUM_VALID_TIME
+        assert len(times) == NUM_VALID_TIME
 
         time.sleep(1)
 

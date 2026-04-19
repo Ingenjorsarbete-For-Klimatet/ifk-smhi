@@ -11,14 +11,14 @@ class MesanValidTime(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    valid_time: List[datetime]
+    times: List[datetime]
 
 
 class MesanApprovedTime(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    approved_time: datetime
+    created_time: datetime
     reference_time: datetime
 
 
@@ -81,7 +81,7 @@ class MesanPoint(BaseModel):
     longitude: float
     latitude: float
     url: str
-    approved_time: datetime
+    created_time: datetime
     reference_time: datetime
     level_unit: str
     geometry: MesanGeometry
@@ -99,9 +99,9 @@ class MesanMultiPoint(BaseModel):
     geo: bool
     downsample: int
     url: str
-    approved_time: datetime
+    created_time: datetime
     reference_time: datetime
-    valid_time: datetime
+    times: datetime
     status: int
     headers: Dict[str, str]
     df: DataFrame[MesanMultiPointSchema]

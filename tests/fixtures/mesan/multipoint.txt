@@ -15,4 +15,4 @@ Via: 1.1 varnish (Varnish/6.6)
 X-Varnish: 681874038
 X-hits: 0
 
-{"approvedTime":"2024-03-31T08:39:25Z","referenceTime":"2024-03-31T08:00:00Z","geometry":{"type":"MultiPoint","coordinates":[[2.250475,52.500440]]},"timeSeries":[{"validTime":"2024-03-31T08:00:00Z","parameters":[{"name":"t","levelType":"hl","level":2,"unit":"Cel","values":[8.3]}]}]}
+{"createdTime":"2024-03-31T08:39:25Z","referenceTime":"2024-03-31T08:00:00Z","geometry":{"type":"MultiPoint","coordinates":[[2.250475,52.500440]]},"timeSeries":[{"times":"2024-03-31T08:00:00Z","parameters":[{"name":"t","levelType":"hl","level":2,"unit":"Cel","values":[8.3]}]}]}

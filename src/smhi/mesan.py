@@ -41,15 +41,15 @@ class Mesan:
     """SMHI Mesan module."""
 
     __parameters_model: Parameter = MesanParameter
-    __approved_time_model: ApprovedTime = MesanApprovedTime
-    __valid_time_model: ValidTime = MesanValidTime
+    __created_time_model: ApprovedTime = MesanApprovedTime
+    __times_model: ValidTime = MesanValidTime
     __geo_polygon_model: GeoPolygon = MesanGeoPolygon
     __geo_multipoint_model: GeoMultiPoint = MesanGeoMultiPoint
     __point_data_model: Point = MesanPoint
     __multipoint_data_model: MultiPoint = MesanMultiPoint
 
     _category: str = "mesan2g"
-    _version: int = 1
+    _version: int = 2
     _base_url: str = MESAN_URL
     _parameter_descriptions: Dict[str, str] = MESAN_PARAMETER_DESCRIPTIONS
 
@@ -92,35 +92,35 @@ class Mesan:
         )
 
     @property
-    def approved_time(self) -> ApprovedTime:
+    def created_time(self) -> ApprovedTime:
         """Get approved time.
 
         Returns:
             approved time model
         """
-        url = self._base_url + "approvedtime.json"
+        url = self._base_url + "createdtime.json"
         data, headers, status = self._get_data(url)
 
-        return self.__approved_time_model(
+        return self.__created_time_model(
             url=url,
             status=status,
             headers=headers,
-            approved_time=data["approvedTime"],
+            created_time=data["createdTime"],
             reference_time=data["referenceTime"],
         )
 
     @property
-    def valid_time(self) -> ValidTime:
+    def times(self) -> ValidTime:
         """Get valid time.
 
         Returns:
             valid time model
         """
-        url = self._base_url + "validtime.json"
+        url = self._base_url + "times.json"
         data, headers, status = self._get_data(url)
 
-        return self.__valid_time_model(
-            url=url, status=status, headers=headers, valid_time=data["validTime"]
+        return self.__times_model(
+            url=url, status=status, headers=headers, times=data["time"]
         )
 
     @property
@@ -184,7 +184,7 @@ class Mesan:
             longitude=longitude,
             latitude=latitude,
             url=url,
-            approved_time=data["approvedTime"],
+            created_time=data["createdTime"],
             reference_time=data["referenceTime"],
             geometry=data["geometry"],
             level_unit=MESAN_LEVELS_UNIT,
@@ -196,7 +196,7 @@ class Mesan:
 
     def get_multipoint(
         self,
-        valid_time: Union[str, datetime],
+        times: Union[str, datetime],
         parameter: str,
         level_type: str,
         level: int,
@@ -206,7 +206,7 @@ class Mesan:
         """Get multipoint data.
 
         Args:
-            valid_time: valid time
+            times: valid time
             parameter: parameter
             level_type: level type
             level: level
@@ -219,12 +219,12 @@ class Mesan:
         Raises:
             ValueError
         """
-        valid_time = format_datetime(valid_time)
-        if self._check_valid_time(valid_time) is False:
-            raise ValueError(f"Invalid time {valid_time}.")
+        times = format_datetime(times)
+        if self._check_times(times) is False:
+            raise ValueError(f"Invalid time {times}.")
 
         url = self._build_multipoint_url(
-            valid_time, parameter, level_type, level, geo, downsample
+            times, parameter, level_type, level, geo, downsample
         )
         data, headers, status = self._get_data(url)
         data_table = self._format_data_multipoint(data)
@@ -235,9 +235,9 @@ class Mesan:
             geo=geo,
             downsample=downsample,
             url=url,
-            approved_time=data["approvedTime"],
+            created_time=data["createdTime"],
             reference_time=data["referenceTime"],
-            valid_time=data["timeSeries"][0]["validTime"],
+            times=data["timeSeries"][0]["times"],
             status=status,
             headers=headers,
             df=data_table,
@@ -285,27 +285,27 @@ class Mesan:
         Returns:
             data_table: pandas DataFrame
         """
-        df = pd.DataFrame(data["timeSeries"]).explode("parameters")
+        df = pd.DataFrame(data["timeSeries"]).explode("data")
         df_exploded = pd.concat(
             [
-                df.drop("parameters", axis=1),
-                df["parameters"].apply(pd.Series).explode("values"),
+                df.drop("data", axis=1),
+                df["data"].apply(pd.Series).explode("values"),
             ],
             axis=1,
         )
-        df_exploded["validTime"] = df_exploded["validTime"].apply(
+        df_exploded["time"] = df_exploded["time"].apply(
             lambda x: arrow.get(x).datetime
         )
         df_exploded = df_exploded.rename(
             columns={
                 "values": "value",
-                "validTime": "valid_time",
+                "time": "times",
                 "levelType": "level_type",
             }
         )
 
         data_table = df_exploded.pivot_table(
-            index="valid_time", columns="name", values="value", aggfunc="first"
+            index="times", columns="name", values="value", aggfunc="first"
         )
         # https://github.com/pandas-dev/pandas-stubs/issues/885
         info_table = df_exploded.pivot_table(
@@ -326,7 +326,7 @@ class Mesan:
         Returns:
             data_table: pandas DataFrame
         """
-        formatted_data = {"value": data["timeSeries"][0]["parameters"][0]["values"]}
+        formatted_data = {"value": data["timeSeries"][0]["data"][0]["values"]}
         if "geometry" in data:
             formatted_data["lat"] = [x[1] for x in data["geometry"]["coordinates"]]
             formatted_data["lon"] = [x[0] for x in data["geometry"]["coordinates"]]
@@ -335,7 +335,7 @@ class Mesan:
 
     def _build_multipoint_url(
         self,
-        valid_time: Union[str, datetime],
+        times: Union[str, datetime],
         parameter: str,
         level_type: str,
         level: int,
@@ -345,7 +345,7 @@ class Mesan:
         """Build multipoint url.
 
         Args:
-            valid_time: valid time
+            times: valid time
             parameter: parameter
             level_type: level type
             level: level
@@ -355,18 +355,18 @@ class Mesan:
         Returns:
             valid multipoint url
         """
-        valid_time = format_datetime(valid_time)
+        times = format_datetime(times)
         downsample = self._check_downsample(downsample)
         geo_url = "true" if geo is True else "false"
 
         return (
             self._base_url
             + "geotype/multipoint/"
-            + f"validtime/{valid_time}/parameter/{parameter}/leveltype/"
+            + f"validtime/{times}/parameter/{parameter}/leveltype/"
             + f"{level_type}/level/{level}/data.json?with-geo={geo_url}&downsample={downsample}"
         )
 
-    def _check_valid_time(self, test_time: Union[str, datetime]) -> bool:
+    def _check_times(self, test_time: Union[str, datetime]) -> bool:
         """Check if time is valid, that is within a day window.
 
         This might be overly restrictive but avoids an extra API call for each get_multipoint.
@@ -377,5 +377,5 @@ class Mesan:
         Returns
             true if valid and false if not valid
         """
-        valid_time = format_datetime(test_time)
-        return -1 < (arrow.now("Z").shift(hours=-1) - arrow.get(valid_time)).days < 1
+        times = format_datetime(test_time)
+        return -1 < (arrow.now("Z").shift(hours=-1) - arrow.get(times)).days < 1

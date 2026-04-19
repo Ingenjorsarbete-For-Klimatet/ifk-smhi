@@ -10,19 +10,19 @@ To list approved and valid times to
 from smhi.mesan import Mesan
 
 client = Mesan()
-client.approved_time
+client.created_time
 # approved time object
 
-client.valid_time
+client.times
 # valid time object
 
-vt = client.valid_time
-vt.valid_time
+vt = client.times
+vt.times
 # returns a list of valid datetimes
 ```
 
-Notice that `approved_time` is the time when the MESAN analysis was updated.
-On the other hand, `valid_time` are valid time stamps to fetch data for,
+Notice that `created_time` is the time when the MESAN analysis was updated.
+On the other hand, `times` are valid time stamps to fetch data for,
 see below.
 
 ## Parameters and geographic area
@@ -58,7 +58,7 @@ where `get_geo_multipoint` accepts a downsample argument.
 
 To get data, two methods are available.
 `get_point` accepts latitude and longitude arguments.
-`get_multipoint` accepts `validtime`, `parameter`,
+`get_multipoint` accepts `times`, `parameter`,
 `leveltype`, `level`, `geo` and `downsample` arguments.
 See above to acquire a valid time and parameter.
 
