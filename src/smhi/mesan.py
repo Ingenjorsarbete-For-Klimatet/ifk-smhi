@@ -178,8 +178,8 @@ class Mesan:
         """
         url = self._base_url + f"geotype/point/lon/{longitude}/lat/{latitude}/data.json"
         data, headers, status = self._get_data(url)
-        data_table, info_table = self._format_data_point(data)
-
+        data_table = self._format_data_point(data)
+        data["geometry"]["coordinates"] = [[data["geometry"]["coordinates"][0], data["geometry"]["coordinates"][1]]]
         return self.__point_data_model(
             longitude=longitude,
             latitude=latitude,
@@ -191,7 +191,6 @@ class Mesan:
             status=status,
             headers=headers,
             df=data_table,
-            df_info=info_table,
         )
 
     def get_multipoint(
@@ -276,7 +275,7 @@ class Mesan:
 
         return json.loads(response.content), response.headers, response.status_code
 
-    def _format_data_point(self, data: dict) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def _format_data_point(self, data: dict) -> pd.DataFrame:
         """Format data for point request.
 
         Args:
@@ -300,11 +299,8 @@ class Mesan:
         data_table = df_exploded.pivot_table(
             index="times", columns="name", values="value", aggfunc="first"
         )
-        
-        info_table = pd.DataFrame({"name": df_exploded["name"].unique()})
-        info_table = info_table.set_index("name")
 
-        return data_table, info_table
+        return data_table
 
     def _format_data_multipoint(self, data: dict) -> Optional[pd.DataFrame]:
         """Format data for multipoint request.

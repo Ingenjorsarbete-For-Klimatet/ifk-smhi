@@ -54,14 +54,6 @@ class MesanParameter(BaseModel):
     headers: Dict[str, str]
     parameter: List[MesanParameterItem]
 
-
-class MesanPointInfoSchema(pa.DataFrameModel):
-    name: Index[str] = pa.Field(check_name=True, unique=True)
-    level: Series[int]
-    level_type: Series[str]
-    unit: Series[str]
-
-
 class MesanMultiPointSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
@@ -88,7 +80,6 @@ class MesanPoint(BaseModel):
     status: int
     headers: Dict[str, str]
     df: pd.DataFrame
-    df_info: DataFrame[MesanPointInfoSchema]
 
 
 class MesanMultiPoint(BaseModel):

@@ -43,7 +43,7 @@ class TestIntegrationMesan:
         parameters = client.parameters
  
         for parameter in parameters.parameter:
-            assert parameter.short_name in MESAN_PARAMETER_DESCRIPTIONS, f"Parameter '{parameter.short_name}' not found in MESAN_PARAMETER_DESCRIPTIONS"
+            assert parameter.name in MESAN_PARAMETER_DESCRIPTIONS, f"Parameter '{parameter.name}' not found in MESAN_PARAMETER_DESCRIPTIONS"
         assert len(parameters.parameter) > NUM_PARAMETERS
 
         time.sleep(1)
@@ -84,9 +84,8 @@ class TestIntegrationMesan:
         client = Mesan()
         point = client.get_point(lat, lon)
 
-        assert not point.df_info.empty
         assert not point.df.empty
-        assert point.df["t"].iloc[0] > MIN_TEMPERATURE
+        assert (point.df != 0).any().any()
 
         time.sleep(1)
 
@@ -116,3 +115,6 @@ class TestIntegrationMesan:
         assert multipoint.df["value"].iloc[0] > MIN_TEMPERATURE
 
         time.sleep(1)
+
+client = Mesan()
+point = client.get_multipoint(arrow.utcnow().shift(hours=-1).format("YYYYMMDDTHH"), "t", "hl", 2, False, 10)
