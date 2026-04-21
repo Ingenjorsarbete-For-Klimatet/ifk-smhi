@@ -285,34 +285,24 @@ class Mesan:
         Returns:
             data_table: pandas DataFrame
         """
-        df = pd.DataFrame(data["timeSeries"]).explode("data")
-        df_exploded = pd.concat(
-            [
-                df.drop("data", axis=1),
-                df["data"].apply(pd.Series).explode("values"),
-            ],
-            axis=1,
-        )
-        df_exploded["time"] = df_exploded["time"].apply(
+        # Convert timeSeries list to DataFrame
+        records = []
+        for item in data["timeSeries"]:
+            time = item["time"]
+            for key, value in item["data"].items():
+                records.append({"times": time, "name": key, "value": value})
+        
+        df_exploded = pd.DataFrame(records)
+        df_exploded["times"] = df_exploded["times"].apply(
             lambda x: arrow.get(x).datetime
         )
-        df_exploded = df_exploded.rename(
-            columns={
-                "values": "value",
-                "time": "times",
-                "levelType": "level_type",
-            }
-        )
-
+        
         data_table = df_exploded.pivot_table(
             index="times", columns="name", values="value", aggfunc="first"
         )
-        # https://github.com/pandas-dev/pandas-stubs/issues/885
-        info_table = df_exploded.pivot_table(
-            index="name",
-            values=["level_type", "level", "unit"],  # type: ignore
-            aggfunc="first",
-        )
+        
+        info_table = pd.DataFrame({"name": df_exploded["name"].unique()})
+        info_table = info_table.set_index("name")
 
         return data_table, info_table
 
