@@ -197,8 +197,6 @@ class Mesan:
         self,
         times: Union[str, datetime],
         parameter: str,
-        level_type: str,
-        level: int,
         geo: bool = True,
         downsample: int = 2,
     ) -> MultiPoint:
@@ -207,8 +205,6 @@ class Mesan:
         Args:
             times: valid time
             parameter: parameter
-            level_type: level type
-            level: level
             geo: fetch geography data
             downsample: downsample
 
@@ -223,10 +219,10 @@ class Mesan:
             raise ValueError(f"Invalid time {times}.")
 
         url = self._build_multipoint_url(
-            times, parameter, level_type, level, geo, downsample
+            times, parameter, geo, downsample
         )
         data, headers, status = self._get_data(url)
-        data_table = self._format_data_multipoint(data)
+        data_table = self._format_data_multipoint(data, parameter)
 
         return self.__multipoint_data_model(
             parameter=parameter,
@@ -236,7 +232,7 @@ class Mesan:
             url=url,
             created_time=data["createdTime"],
             reference_time=data["referenceTime"],
-            times=data["timeSeries"][0]["times"],
+            times=data["timeSeries"][0]["time"],
             status=status,
             headers=headers,
             df=data_table,
@@ -302,17 +298,17 @@ class Mesan:
 
         return data_table
 
-    def _format_data_multipoint(self, data: dict) -> Optional[pd.DataFrame]:
+    def _format_data_multipoint(self, data: dict, param: str) -> Optional[pd.DataFrame]:
         """Format data for multipoint request.
 
         Args:
-            key: key in dictionary holding data
             data: data in dictionary
+            param: parameter to extract
 
         Returns:
             data_table: pandas DataFrame
         """
-        formatted_data = {"value": data["timeSeries"][0]["data"][0]["values"]}
+        formatted_data = {"value": data["timeSeries"][0]["data"][param]}
         if "geometry" in data:
             formatted_data["lat"] = [x[1] for x in data["geometry"]["coordinates"]]
             formatted_data["lon"] = [x[0] for x in data["geometry"]["coordinates"]]
@@ -323,8 +319,6 @@ class Mesan:
         self,
         times: Union[str, datetime],
         parameter: str,
-        level_type: str,
-        level: int,
         geo: bool,
         downsample: int,
     ) -> str:
@@ -333,8 +327,6 @@ class Mesan:
         Args:
             times: valid time
             parameter: parameter
-            level_type: level type
-            level: level
             geo: geo
             downsample downsample
 
@@ -348,8 +340,8 @@ class Mesan:
         return (
             self._base_url
             + "geotype/multipoint/"
-            + f"validtime/{times}/parameter/{parameter}/leveltype/"
-            + f"{level_type}/level/{level}/data.json?with-geo={geo_url}&downsample={downsample}"
+            + f"time/{times}/parameter/{parameter}/"
+            + f"data.json?with-geo={geo_url}&downsample={downsample}"
         )
 
     def _check_times(self, test_time: Union[str, datetime]) -> bool:

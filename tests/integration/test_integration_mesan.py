@@ -90,31 +90,26 @@ class TestIntegrationMesan:
         time.sleep(1)
 
     @pytest.mark.parametrize(
-        "validtime, parameter, level_type, level, geo, downsample",
+        "time_, parameter, geo, downsample",
         [
             (
                 arrow.utcnow().shift(hours=-1).format("YYYYMMDDTHH"),
-                "t",
-                "hl",
-                2,
+                "air_temperature",
                 False,
                 10,
             )
         ],
     )
     def test_integration_mesan_get_multipoint(
-        self, validtime, parameter, level_type, level, geo, downsample
+        self, time_, parameter, geo, downsample
     ):
         """Integration test for get_multipoint method."""
         client = Mesan()
         multipoint = client.get_multipoint(
-            validtime, parameter, level_type, level, geo, downsample
+            time_, parameter, geo, downsample
         )
 
         assert not multipoint.df.empty
         assert multipoint.df["value"].iloc[0] > MIN_TEMPERATURE
 
         time.sleep(1)
-
-client = Mesan()
-point = client.get_multipoint(arrow.utcnow().shift(hours=-1).format("YYYYMMDDTHH"), "t", "hl", 2, False, 10)
