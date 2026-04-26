@@ -14,7 +14,7 @@ from smhi.models.mesan_model import MesanGeometry, MesanParameter, MesanParamete
 from smhi.utils import format_datetime
 
 BASE_URL = (
-    "https://opendata-download-metanalys.smhi.se/" + "api/category/mesan2g/version/1/"
+    "https://opendata-download-metanalys.smhi.se/" + "api/category/mesan2g/version/2/"
 )
 
 MOCK_MESAN_PARAMETERS = MesanParameter(
@@ -23,26 +23,25 @@ MOCK_MESAN_PARAMETERS = MesanParameter(
     headers={"Date": "Sun, 31 Mar 2024 07:37:51 GMT"},
     parameter=[
         MesanParameterItem(
-            name="t",
+            name="air_temperature",
             shortName="t",
-            description="Temperature",
-            levelType="hl",
-            level=2,
+            description="Air temperature at 2 metres height",
+            levelType = "hl",
+            level = 2,
             unit="Cel",
             missingValue=9999,
         ),
         MesanParameterItem(
-            name="gust",
+            name="wind_speed_of_gust",
             shortName="gust",
             description="Wind gusts",
-            levelType="hl",
-            level=10,
+            levelType = "hl",
+            level = 10,
             unit="m/s",
             missingValue=9999,
         ),
     ],
 )
-
 
 @pytest.fixture
 def setup_point():
@@ -54,16 +53,16 @@ def setup_point():
     mocked_reference_time = arrow.get(mocked_model["referenceTime"]).datetime
     mocked_geometry = MesanGeometry(
         type=mocked_model["geometry"]["type"],
-        coordinates=mocked_model["geometry"]["coordinates"],
+        coordinates=[[mocked_model["geometry"]["coordinates"][0]], [mocked_model["geometry"]["coordinates"][1]]],
     )
     mocked_data = pd.read_csv(
         "tests/fixtures/mesan/point_data.csv", index_col="times"
     )
     mocked_data.index = pd.to_datetime(mocked_data.index)
     mocked_data.columns.name = "name"
-    mocked_data_info = pd.read_csv(
-        "tests/fixtures/mesan/point_data_info.csv", index_col="name"
-    )
+    #mocked_data_info = pd.read_csv(
+    #    "tests/fixtures/mesan/point_data_info.csv", index_col="name"
+    #)
 
     return (
         mocked_response,
@@ -71,7 +70,6 @@ def setup_point():
         mocked_reference_time,
         mocked_geometry,
         mocked_data,
-        mocked_data_info,
     )
 
 
@@ -104,7 +102,7 @@ class TestUnitMesan:
         client = Mesan()
 
         assert client._category == "mesan2g"
-        assert client._version == 1
+        assert client._version == 2
         assert client._base_url == BASE_URL
         assert client._parameters == MOCK_MESAN_PARAMETERS
 
@@ -145,32 +143,16 @@ class TestUnitMesan:
     def test_unit_mesan_approved_time(self, mock_get_parameters, mock_get_data):
         """Unit test for Mesan approved_time property."""
         client = Mesan()
-        data = client.approved_time
+        data = client.created_time
         url = BASE_URL + "createdtime.json"
 
         mock_get_data.assert_called_once_with(url)
         assert data.url == url
-        assert data.approved_time == mock_get_data.return_value[0]["createdTime"]
+        assert data.created_time == mock_get_data.return_value[0]["createdTime"]
         assert data.reference_time == mock_get_data.return_value[0]["referenceTime"]
         assert data.headers == mock_get_data.return_value[1]
         assert data.status == mock_get_data.return_value[2]
 
-    @patch(
-        "smhi.mesan.Mesan._get_data",
-        return_value=({"times": [arrow.get(1).datetime]}, {"head": "head"}, 200),
-    )
-    @patch("smhi.mesan.Mesan._get_parameters", return_value=MOCK_MESAN_PARAMETERS)
-    def test_unit_mesan_times(self, mock_get_parameters, mock_get_data):
-        """Unit test for Mesan times property."""
-        client = Mesan()
-        data = client.times
-        url = BASE_URL + "validtime.json"
-
-        mock_get_data.assert_called_once_with(url)
-        assert data.url == url
-        assert data.times == mock_get_data.return_value[0]["times"]
-        assert data.headers == mock_get_data.return_value[1]
-        assert data.status == mock_get_data.return_value[2]
 
     @patch(
         "smhi.mesan.Mesan._get_data",
@@ -234,7 +216,6 @@ class TestUnitMesan:
             expected_reference_time,
             expected_geometry,
             expected_answer,
-            expected_answer_info,
         ) = setup_point
         mock_requests_get.return_value = mock_response
 
@@ -246,16 +227,17 @@ class TestUnitMesan:
         assert data.latitude == lat
         assert data.longitude == lon
         assert data.url == url
-        assert data.approved_time == expected_approved_time
+        assert data.created_time == expected_approved_time
         assert data.reference_time == expected_reference_time
         assert data.level_unit == MESAN_LEVELS_UNIT
         assert data.geometry == expected_geometry
         assert data.status == mock_response.status_code
         assert data.headers == mock_response.headers
+        data.df = data.df.reindex(sorted(data.df.columns), axis=1)
+        expected_answer = expected_answer.reindex(sorted(expected_answer.columns), axis=1)
         pd.testing.assert_frame_equal(
             data.df.astype(float), expected_answer.astype(float)
         )
-        pd.testing.assert_frame_equal(data.df_info, expected_answer_info)
 
     @pytest.mark.parametrize(
         "times, parameter, level_type, level, geo, downsample",

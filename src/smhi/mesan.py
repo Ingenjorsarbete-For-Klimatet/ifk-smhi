@@ -179,7 +179,7 @@ class Mesan:
         url = self._base_url + f"geotype/point/lon/{longitude}/lat/{latitude}/data.json"
         data, headers, status = self._get_data(url)
         data_table = self._format_data_point(data)
-        data["geometry"]["coordinates"] = [[data["geometry"]["coordinates"][0], data["geometry"]["coordinates"][1]]]
+        data["geometry"]["coordinates"] = [[data["geometry"]["coordinates"][0]], [data["geometry"]["coordinates"][1]]] # consider to remove one list
         return self.__point_data_model(
             longitude=longitude,
             latitude=latitude,

@@ -62,7 +62,7 @@ class MesanMultiPointSchema(pa.DataFrameModel):
 
 class MesanGeometry(BaseModel):
     type_: str = Field(..., alias="type")
-    coordinates: List[List[float]]
+    coordinates: List[List[float]] #consider to remove on list
 
 
 class MesanPoint(BaseModel):
