@@ -81,7 +81,7 @@ def setup_multipoint():
 
     mocked_approved_time = arrow.get(mocked_model["createdTime"]).datetime
     mocked_reference_time = arrow.get(mocked_model["referenceTime"]).datetime
-    mocked_times = arrow.get(mocked_model["timeSeries"][0]["times"]).datetime
+    mocked_times = arrow.get(mocked_model["timeSeries"][0]["time"]).datetime
     mocked_data = pd.read_csv("tests/fixtures/mesan/multipoint_data.csv", index_col=0)
 
     return (
@@ -240,8 +240,8 @@ class TestUnitMesan:
         )
 
     @pytest.mark.parametrize(
-        "times, parameter, level_type, level, geo, downsample",
-        [("2024-03-31T06", "t", "hl", 2, True, 1)],
+        "times, parameter, geo, downsample",
+        [("2024-03-31T06", "air_temperature", True, 1)],
     )
     @patch("smhi.utils.requests.get")
     @patch("smhi.mesan.Mesan._get_parameters", return_value=MOCK_MESAN_PARAMETERS)
@@ -253,8 +253,6 @@ class TestUnitMesan:
         mock_requests_get,
         times,
         parameter,
-        level_type,
-        level,
         geo,
         downsample,
         setup_multipoint,
@@ -271,7 +269,7 @@ class TestUnitMesan:
 
         client = Mesan()
         data = client.get_multipoint(
-            times, parameter, level_type, level, geo, downsample
+            times, parameter, geo, downsample
         )
         times = format_datetime(times)
 
@@ -280,7 +278,7 @@ class TestUnitMesan:
         assert data.geo == geo
         assert data.downsample == downsample
         assert data.url is not None
-        assert data.approved_time == expected_approved_time
+        assert data.created_time == expected_approved_time
         assert data.reference_time == expected_reference_time
         assert data.times == expected_times
         assert data.status == mock_response.status_code
@@ -288,55 +286,35 @@ class TestUnitMesan:
         pd.testing.assert_frame_equal(data.df, expected_answer)
 
     @pytest.mark.parametrize(
-        "times, parameter, level_type, level, geo, downsample, expected_answer",
+        "times, parameter, geo, downsample, expected_answer",
         [
             (
                 "2024-03-31T06",
-                "t",
-                "hl",
-                2,
+                "air_temperature",
                 True,
                 1,
-                "https://opendata-download-metanalys.smhi.se/api/category/"
-                + "mesan2g/version/1/geotype/multipoint/"
-                + "validtime/20240331T060000Z/parameter/t/leveltype/"
-                + "hl/level/2/data.json?with-geo=true&downsample=1",
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=1"
             ),
             (
                 "2024-03-31T06",
-                "t",
-                "hl",
-                2,
+                "air_temperature",
                 True,
                 0,
-                "https://opendata-download-metanalys.smhi.se/api/category/"
-                + "mesan2g/version/1/geotype/multipoint/"
-                + "validtime/20240331T060000Z/parameter/t/leveltype/"
-                + "hl/level/2/data.json?with-geo=true&downsample=1",
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=1"
             ),
             (
                 "2024-03-31T06",
-                "t",
-                "hl",
-                2,
+                "air_temperature",
                 True,
                 20,
-                "https://opendata-download-metanalys.smhi.se/api/category/"
-                + "mesan2g/version/1/geotype/multipoint/"
-                + "validtime/20240331T060000Z/parameter/t/leveltype/"
-                + "hl/level/2/data.json?with-geo=true&downsample=20",
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=20"
             ),
             (
                 "2024-03-31T06",
-                "t",
-                "hl",
-                2,
+                "air_temperature",
                 False,
                 21,
-                "https://opendata-download-metanalys.smhi.se/api/category/"
-                + "mesan2g/version/1/geotype/multipoint/"
-                + "validtime/20240331T060000Z/parameter/t/leveltype/"
-                + "hl/level/2/data.json?with-geo=false&downsample=20",
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=false&downsample=20"
             ),
         ],
     )
@@ -346,8 +324,6 @@ class TestUnitMesan:
         mock_get_parameters,
         times,
         parameter,
-        level_type,
-        level,
         geo,
         downsample,
         expected_answer,
@@ -358,8 +334,6 @@ class TestUnitMesan:
             client._build_multipoint_url(
                 times,
                 parameter,
-                level_type,
-                level,
                 geo,
                 downsample,
             )
