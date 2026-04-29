@@ -41,9 +41,11 @@ class TestIntegrationMesan:
         """Integration test for parameters property."""
         client = Mesan()
         parameters = client.parameters
- 
+
         for parameter in parameters.parameter:
-            assert parameter.name in MESAN_PARAMETER_DESCRIPTIONS, f"Parameter '{parameter.name}' not found in MESAN_PARAMETER_DESCRIPTIONS"
+            assert parameter.name in MESAN_PARAMETER_DESCRIPTIONS, (
+                f"Parameter '{parameter.name}' not found in MESAN_PARAMETER_DESCRIPTIONS"
+            )
         assert len(parameters.parameter) > NUM_PARAMETERS
 
         time.sleep(1)
@@ -100,14 +102,10 @@ class TestIntegrationMesan:
             )
         ],
     )
-    def test_integration_mesan_get_multipoint(
-        self, time_, parameter, geo, downsample
-    ):
+    def test_integration_mesan_get_multipoint(self, time_, parameter, geo, downsample):
         """Integration test for get_multipoint method."""
         client = Mesan()
-        multipoint = client.get_multipoint(
-            time_, parameter, geo, downsample
-        )
+        multipoint = client.get_multipoint(time_, parameter, geo, downsample)
 
         assert not multipoint.df.empty
         assert multipoint.df["value"].iloc[0] > MIN_TEMPERATURE

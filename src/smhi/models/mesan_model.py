@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 import pandera as pa
-from pandera.typing import DataFrame, Index, Series
+from pandera.typing import DataFrame, Series
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -54,6 +54,7 @@ class MesanParameter(BaseModel):
     headers: Dict[str, str]
     parameter: List[MesanParameterItem]
 
+
 class MesanMultiPointSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
@@ -62,7 +63,7 @@ class MesanMultiPointSchema(pa.DataFrameModel):
 
 class MesanGeometry(BaseModel):
     type_: str = Field(..., alias="type")
-    coordinates: List[List[float]] #consider to remove on list
+    coordinates: List[List[float]]  # consider to remove on list
 
 
 class MesanPoint(BaseModel):

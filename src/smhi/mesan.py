@@ -3,7 +3,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Union
 
 import arrow
 import pandas as pd
@@ -179,7 +179,10 @@ class Mesan:
         url = self._base_url + f"geotype/point/lon/{longitude}/lat/{latitude}/data.json"
         data, headers, status = self._get_data(url)
         data_table = self._format_data_point(data)
-        data["geometry"]["coordinates"] = [[data["geometry"]["coordinates"][0]], [data["geometry"]["coordinates"][1]]] # consider to remove one list
+        data["geometry"]["coordinates"] = [
+            [data["geometry"]["coordinates"][0]],
+            [data["geometry"]["coordinates"][1]],
+        ]  # consider to remove one list
         return self.__point_data_model(
             longitude=longitude,
             latitude=latitude,
@@ -218,9 +221,7 @@ class Mesan:
         if self._check_times(times) is False:
             raise ValueError(f"Invalid time {times}.")
 
-        url = self._build_multipoint_url(
-            times, parameter, geo, downsample
-        )
+        url = self._build_multipoint_url(times, parameter, geo, downsample)
         data, headers, status = self._get_data(url)
         data_table = self._format_data_multipoint(data, parameter)
 
@@ -286,12 +287,12 @@ class Mesan:
             time = item["time"]
             for key, value in item["data"].items():
                 records.append({"times": time, "name": key, "value": value})
-        
+
         df_exploded = pd.DataFrame(records)
         df_exploded["times"] = df_exploded["times"].apply(
             lambda x: arrow.get(x).datetime
         )
-        
+
         data_table = df_exploded.pivot_table(
             index="times", columns="name", values="value", aggfunc="first"
         )

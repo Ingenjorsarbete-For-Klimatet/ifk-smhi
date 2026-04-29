@@ -26,8 +26,8 @@ MOCK_MESAN_PARAMETERS = MesanParameter(
             name="air_temperature",
             shortName="t",
             description="Air temperature at 2 metres height",
-            levelType = "hl",
-            level = 2,
+            levelType="hl",
+            level=2,
             unit="Cel",
             missingValue=9999,
         ),
@@ -35,13 +35,14 @@ MOCK_MESAN_PARAMETERS = MesanParameter(
             name="wind_speed_of_gust",
             shortName="gust",
             description="Wind gusts",
-            levelType = "hl",
-            level = 10,
+            levelType="hl",
+            level=10,
             unit="m/s",
             missingValue=9999,
         ),
     ],
 )
+
 
 @pytest.fixture
 def setup_point():
@@ -53,16 +54,17 @@ def setup_point():
     mocked_reference_time = arrow.get(mocked_model["referenceTime"]).datetime
     mocked_geometry = MesanGeometry(
         type=mocked_model["geometry"]["type"],
-        coordinates=[[mocked_model["geometry"]["coordinates"][0]], [mocked_model["geometry"]["coordinates"][1]]],
+        coordinates=[
+            [mocked_model["geometry"]["coordinates"][0]],
+            [mocked_model["geometry"]["coordinates"][1]],
+        ],
     )
-    mocked_data = pd.read_csv(
-        "tests/fixtures/mesan/point_data.csv", index_col="times"
-    )
+    mocked_data = pd.read_csv("tests/fixtures/mesan/point_data.csv", index_col="times")
     mocked_data.index = pd.to_datetime(mocked_data.index)
     mocked_data.columns.name = "name"
-    #mocked_data_info = pd.read_csv(
+    # mocked_data_info = pd.read_csv(
     #    "tests/fixtures/mesan/point_data_info.csv", index_col="name"
-    #)
+    # )
 
     return (
         mocked_response,
@@ -153,7 +155,6 @@ class TestUnitMesan:
         assert data.headers == mock_get_data.return_value[1]
         assert data.status == mock_get_data.return_value[2]
 
-
     @patch(
         "smhi.mesan.Mesan._get_data",
         return_value=(
@@ -234,7 +235,9 @@ class TestUnitMesan:
         assert data.status == mock_response.status_code
         assert data.headers == mock_response.headers
         data.df = data.df.reindex(sorted(data.df.columns), axis=1)
-        expected_answer = expected_answer.reindex(sorted(expected_answer.columns), axis=1)
+        expected_answer = expected_answer.reindex(
+            sorted(expected_answer.columns), axis=1
+        )
         pd.testing.assert_frame_equal(
             data.df.astype(float), expected_answer.astype(float)
         )
@@ -268,9 +271,7 @@ class TestUnitMesan:
         mock_requests_get.return_value = mock_response
 
         client = Mesan()
-        data = client.get_multipoint(
-            times, parameter, geo, downsample
-        )
+        data = client.get_multipoint(times, parameter, geo, downsample)
         times = format_datetime(times)
 
         assert data.parameter == parameter
@@ -293,28 +294,28 @@ class TestUnitMesan:
                 "air_temperature",
                 True,
                 1,
-                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=1"
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=1",
             ),
             (
                 "2024-03-31T06",
                 "air_temperature",
                 True,
                 0,
-                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=1"
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=1",
             ),
             (
                 "2024-03-31T06",
                 "air_temperature",
                 True,
                 20,
-                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=20"
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=20",
             ),
             (
                 "2024-03-31T06",
                 "air_temperature",
                 False,
                 21,
-                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=false&downsample=20"
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=false&downsample=20",
             ),
         ],
     )
