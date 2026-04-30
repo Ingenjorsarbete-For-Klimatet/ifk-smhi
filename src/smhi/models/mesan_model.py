@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 import pandas as pd
-import pandera as pa
+import pandera.pandas as pa
 from pandera.typing import DataFrame, Series
 from pydantic import BaseModel, ConfigDict, Field
 
