@@ -99,7 +99,13 @@ class TestIntegrationMesan:
                 "air_temperature",
                 False,
                 10,
-            )
+            ),
+            (
+                arrow.utcnow().shift(hours=-1).format("YYYYMMDDTHH"),
+                "air_temperature",
+                True,
+                10,
+            ),
         ],
     )
     def test_integration_mesan_get_multipoint(self, time_, parameter, geo, downsample):
@@ -109,5 +115,9 @@ class TestIntegrationMesan:
 
         assert not multipoint.df.empty
         assert multipoint.df["value"].iloc[0] > MIN_TEMPERATURE
+
+        if geo:
+            assert multipoint.df["lon"].iloc[0] > 0
+            assert multipoint.df["lat"].iloc[0] > 0
 
         time.sleep(1)

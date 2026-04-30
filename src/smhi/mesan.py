@@ -15,7 +15,7 @@ from smhi.constants import (
     MESAN_URL,
 )
 from smhi.models.mesan_model import (
-    MesanApprovedTime,
+    MesanCreatedTime,
     MesanGeoMultiPoint,
     MesanGeoPolygon,
     MesanMultiPoint,
@@ -41,7 +41,7 @@ class Mesan:
     """SMHI Mesan module."""
 
     __parameters_model: Parameter = MesanParameter
-    __created_time_model: ApprovedTime = MesanApprovedTime
+    __created_time_model: ApprovedTime = MesanCreatedTime
     __times_model: ValidTime = MesanValidTime
     __geo_polygon_model: GeoPolygon = MesanGeoPolygon
     __geo_multipoint_model: GeoMultiPoint = MesanGeoMultiPoint
@@ -93,10 +93,10 @@ class Mesan:
 
     @property
     def created_time(self) -> ApprovedTime:
-        """Get approved time.
+        """Get created time.
 
         Returns:
-            approved time model
+            created time model
         """
         url = self._base_url + "createdtime.json"
         data, headers, status = self._get_data(url)
