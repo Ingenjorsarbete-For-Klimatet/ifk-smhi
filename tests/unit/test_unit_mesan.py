@@ -62,9 +62,6 @@ def setup_point():
     mocked_data = pd.read_csv("tests/fixtures/mesan/point_data.csv", index_col="times")
     mocked_data.index = pd.to_datetime(mocked_data.index)
     mocked_data.columns.name = "name"
-    # mocked_data_info = pd.read_csv(
-    #    "tests/fixtures/mesan/point_data_info.csv", index_col="name"
-    # )
 
     return (
         mocked_response,
@@ -234,10 +231,11 @@ class TestUnitMesan:
         assert data.geometry == expected_geometry
         assert data.status == mock_response.status_code
         assert data.headers == mock_response.headers
-        data.df = data.df.reindex(sorted(data.df.columns), axis=1)
+        data.df = data.df.reindex(sorted(data.df.columns), axis=1).sort_index()
         expected_answer = expected_answer.reindex(
             sorted(expected_answer.columns), axis=1
-        )
+        ).sort_index()
+
         pd.testing.assert_frame_equal(
             data.df.astype(float), expected_answer.astype(float)
         )

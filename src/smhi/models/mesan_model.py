@@ -63,7 +63,9 @@ class MesanMultiPointSchema(pa.DataFrameModel):
 
 class MesanGeometry(BaseModel):
     type_: str = Field(..., alias="type")
-    coordinates: List[List[float]]  # consider to remove on list
+    coordinates: List[
+        List[float]
+    ]  # TODO: consider to remove one list (depedency in smhi module)
 
 
 class MesanPoint(BaseModel):

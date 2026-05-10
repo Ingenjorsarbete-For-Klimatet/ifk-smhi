@@ -182,7 +182,7 @@ class Mesan:
         data["geometry"]["coordinates"] = [
             [data["geometry"]["coordinates"][0]],
             [data["geometry"]["coordinates"][1]],
-        ]  # consider to remove one list
+        ]  # TODO: consider to remove one list (depedency in smhi module)
         return self.__point_data_model(
             longitude=longitude,
             latitude=latitude,
