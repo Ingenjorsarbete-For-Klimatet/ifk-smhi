@@ -154,6 +154,23 @@ class TestUnitMesan:
 
     @patch(
         "smhi.mesan.Mesan._get_data",
+        return_value=({"time": [arrow.get(1).datetime]}, {"head": "head"}, 200),
+    )
+    @patch("smhi.mesan.Mesan._get_parameters", return_value=MOCK_MESAN_PARAMETERS)
+    def test_unit_mesan_times(self, mock_get_parameters, mock_get_data):
+        """Unit test for Mesan times property."""
+        client = Mesan()
+        data = client.times
+        url = BASE_URL + "times.json"
+
+        mock_get_data.assert_called_once_with(url)
+        assert data.url == url
+        assert data.times == mock_get_data.return_value[0]["time"]
+        assert data.headers == mock_get_data.return_value[1]
+        assert data.status == mock_get_data.return_value[2]
+
+    @patch(
+        "smhi.mesan.Mesan._get_data",
         return_value=(
             {"type": "Polygon", "coordinates": [[[1.0, 2.0]]]},
             {"head": "head"},
