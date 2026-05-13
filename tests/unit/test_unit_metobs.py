@@ -216,7 +216,7 @@ class TestUnitBaseMetobs:
 
         mock_model = MagicMock()
         model = base._get_and_parse_request(url, mock_model)
-        mock_requests_get.assert_called_once()
+        mock_requests_get.called_once()
 
         assert base.headers == mock_requests_get.return_value.headers
         assert base.key == model.key
