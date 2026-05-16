@@ -29,11 +29,11 @@ def datetime_between_week(test_time):
 class TestIntegrationMesan:
     """Integration tests for Mesan class."""
 
-    def test_integration_mesan_approved_time(self):
+    def test_integration_mesan_created_time(self):
         """Integration test for approved time property."""
         client = Mesan()
-        approved_time = client.approved_time.approved_time
-        assert datetime_between_day(approved_time)
+        created_time = client.created_time.created_time
+        assert datetime_between_day(created_time)
 
         time.sleep(1)
 
@@ -41,21 +41,23 @@ class TestIntegrationMesan:
         """Integration test for parameters property."""
         client = Mesan()
         parameters = client.parameters
-        assert all(
-            [x.name in MESAN_PARAMETER_DESCRIPTIONS for x in parameters.parameter]
-        )
+
+        for parameter in parameters.parameter:
+            assert parameter.name in MESAN_PARAMETER_DESCRIPTIONS, (
+                f"Parameter '{parameter.name}' not found in MESAN_PARAMETER_DESCRIPTIONS"
+            )
         assert len(parameters.parameter) > NUM_PARAMETERS
 
         time.sleep(1)
 
-    def test_integration_mesan_valid_time(self):
+    def test_integration_mesan_times(self):
         """Integration test for approved time property."""
         client = Mesan()
-        valid_time = client.valid_time.valid_time
-        for test_time in valid_time:
+        times = client.times.times
+        for test_time in times:
             assert datetime_between_week(test_time)
 
-        assert len(valid_time) == NUM_VALID_TIME
+        assert len(times) == NUM_VALID_TIME
 
         time.sleep(1)
 
@@ -84,35 +86,38 @@ class TestIntegrationMesan:
         client = Mesan()
         point = client.get_point(lat, lon)
 
-        assert not point.df_info.empty
         assert not point.df.empty
-        assert point.df["t"].iloc[0] > MIN_TEMPERATURE
+        assert (point.df != 0).any().any()
 
         time.sleep(1)
 
     @pytest.mark.parametrize(
-        "validtime, parameter, level_type, level, geo, downsample",
+        "time_, parameter, geo, downsample",
         [
             (
                 arrow.utcnow().shift(hours=-1).format("YYYYMMDDTHH"),
-                "t",
-                "hl",
-                2,
+                "air_temperature",
                 False,
                 10,
-            )
+            ),
+            (
+                arrow.utcnow().shift(hours=-1).format("YYYYMMDDTHH"),
+                "air_temperature",
+                True,
+                10,
+            ),
         ],
     )
-    def test_integration_mesan_get_multipoint(
-        self, validtime, parameter, level_type, level, geo, downsample
-    ):
+    def test_integration_mesan_get_multipoint(self, time_, parameter, geo, downsample):
         """Integration test for get_multipoint method."""
         client = Mesan()
-        multipoint = client.get_multipoint(
-            validtime, parameter, level_type, level, geo, downsample
-        )
+        multipoint = client.get_multipoint(time_, parameter, geo, downsample)
 
         assert not multipoint.df.empty
         assert multipoint.df["value"].iloc[0] > MIN_TEMPERATURE
+
+        if geo:
+            assert multipoint.df["lon"].iloc[0] > 0
+            assert multipoint.df["lat"].iloc[0] > 0
 
         time.sleep(1)

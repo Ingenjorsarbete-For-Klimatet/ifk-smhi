@@ -3,7 +3,7 @@
 from typing import TypeVar
 
 from smhi.models.mesan_model import (
-    MesanApprovedTime,
+    MesanCreatedTime,
     MesanGeoMultiPoint,
     MesanGeoPolygon,
     MesanMultiPoint,
@@ -40,7 +40,7 @@ MetobsModels = TypeVar(
 )
 
 Parameter = TypeVar("Parameter", MesanParameter, MetfctsParameter)
-ApprovedTime = TypeVar("ApprovedTime", MesanApprovedTime, MetfctsApprovedTime)
+ApprovedTime = TypeVar("ApprovedTime", MesanCreatedTime, MetfctsApprovedTime)
 ValidTime = TypeVar("ValidTime", MesanValidTime, MetfctsValidTime)
 GeoPolygon = TypeVar("GeoPolygon", MesanGeoPolygon, MetfctsGeoPolygon)
 GeoMultiPoint = TypeVar("GeoMultiPoint", MesanGeoMultiPoint, MetfctsGeoMultiPoint)

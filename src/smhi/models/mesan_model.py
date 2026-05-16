@@ -2,8 +2,8 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 import pandas as pd
-import pandera as pa
-from pandera.typing import DataFrame, Index, Series
+import pandera.pandas as pa
+from pandera.typing import DataFrame, Series
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -11,14 +11,14 @@ class MesanValidTime(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    valid_time: List[datetime]
+    times: List[datetime]
 
 
-class MesanApprovedTime(BaseModel):
+class MesanCreatedTime(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    approved_time: datetime
+    created_time: datetime
     reference_time: datetime
 
 
@@ -55,13 +55,6 @@ class MesanParameter(BaseModel):
     parameter: List[MesanParameterItem]
 
 
-class MesanPointInfoSchema(pa.DataFrameModel):
-    name: Index[str] = pa.Field(check_name=True, unique=True)
-    level: Series[int]
-    level_type: Series[str]
-    unit: Series[str]
-
-
 class MesanMultiPointSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
@@ -70,7 +63,9 @@ class MesanMultiPointSchema(pa.DataFrameModel):
 
 class MesanGeometry(BaseModel):
     type_: str = Field(..., alias="type")
-    coordinates: List[List[float]]
+    coordinates: List[
+        List[float]
+    ]  # TODO: consider to remove one list (depedency in smhi module)
 
 
 class MesanPoint(BaseModel):
@@ -81,14 +76,13 @@ class MesanPoint(BaseModel):
     longitude: float
     latitude: float
     url: str
-    approved_time: datetime
+    created_time: datetime
     reference_time: datetime
     level_unit: str
     geometry: MesanGeometry
     status: int
     headers: Dict[str, str]
     df: pd.DataFrame
-    df_info: DataFrame[MesanPointInfoSchema]
 
 
 class MesanMultiPoint(BaseModel):
@@ -99,9 +93,9 @@ class MesanMultiPoint(BaseModel):
     geo: bool
     downsample: int
     url: str
-    approved_time: datetime
+    created_time: datetime
     reference_time: datetime
-    valid_time: datetime
+    times: datetime
     status: int
     headers: Dict[str, str]
     df: DataFrame[MesanMultiPointSchema]
