@@ -8,7 +8,6 @@ from typing import Any, Dict, Optional, Union
 import arrow
 import pandas as pd
 from requests.structures import CaseInsensitiveDict
-
 from smhi.constants import (
     MESAN_LEVELS_UNIT,
     MESAN_PARAMETER_DESCRIPTIONS,
@@ -49,7 +48,7 @@ class Mesan:
     __multipoint_data_model: MultiPoint = MesanMultiPoint
 
     _category: str = "mesan2g"
-    _version: int = 2
+    _version: int = 3
     _base_url: str = MESAN_URL
     _parameter_descriptions: Dict[str, str] = MESAN_PARAMETER_DESCRIPTIONS
 

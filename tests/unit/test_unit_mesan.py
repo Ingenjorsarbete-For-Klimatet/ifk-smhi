@@ -6,15 +6,14 @@ from unittest.mock import patch
 import arrow
 import pandas as pd
 import pytest
-from utils import get_response
-
 from smhi.constants import MESAN_LEVELS_UNIT, MESAN_PARAMETER_DESCRIPTIONS
 from smhi.mesan import Mesan
 from smhi.models.mesan_model import MesanGeometry, MesanParameter, MesanParameterItem
 from smhi.utils import format_datetime
+from utils import get_response
 
 BASE_URL = (
-    "https://opendata-download-metanalys.smhi.se/" + "api/category/mesan2g/version/2/"
+    "https://opendata-download-metanalys.smhi.se/" + "api/category/mesan2g/version/3/"
 )
 
 MOCK_MESAN_PARAMETERS = MesanParameter(
@@ -101,7 +100,7 @@ class TestUnitMesan:
         client = Mesan()
 
         assert client._category == "mesan2g"
-        assert client._version == 2
+        assert client._version == 3
         assert client._base_url == BASE_URL
         assert client._parameters == MOCK_MESAN_PARAMETERS
 
@@ -309,28 +308,28 @@ class TestUnitMesan:
                 "air_temperature",
                 True,
                 1,
-                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=1",
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/3/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=1",
             ),
             (
                 "2024-03-31T06",
                 "air_temperature",
                 True,
                 0,
-                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=1",
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/3/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=1",
             ),
             (
                 "2024-03-31T06",
                 "air_temperature",
                 True,
                 20,
-                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=20",
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/3/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=true&downsample=20",
             ),
             (
                 "2024-03-31T06",
                 "air_temperature",
                 False,
                 21,
-                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/2/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=false&downsample=20",
+                "https://opendata-download-metanalys.smhi.se/api/category/mesan2g/version/3/geotype/multipoint/time/20240331T060000Z/parameter/air_temperature/data.json?with-geo=false&downsample=20",
             ),
         ],
     )
