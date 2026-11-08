@@ -3,26 +3,26 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 import pandera.pandas as pa
-from pandera.typing import DataFrame, Index, Series
+from pandera.typing import DataFrame, Series
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class MetfctsValidTime(BaseModel):
+class SnowValidTime(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    valid_time: List[str]
+    times: List[datetime]
 
 
-class MetfctsApprovedTime(BaseModel):
+class SnowCreatedTime(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    approved_time: datetime
+    created_time: datetime
     reference_time: datetime
 
 
-class MetfctsGeoPolygon(BaseModel):
+class SnowGeoPolygon(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
@@ -30,7 +30,7 @@ class MetfctsGeoPolygon(BaseModel):
     coordinates: List[List[List[float]]]
 
 
-class MetfctsGeoMultiPoint(BaseModel):
+class SnowGeoMultiPoint(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
@@ -38,36 +38,37 @@ class MetfctsGeoMultiPoint(BaseModel):
     coordinates: List[List[float]]
 
 
-class MetfctsParameterItem(BaseModel):
+class SnowParameterItem(BaseModel):
     name: str
-    key: str
+    short_name: str = Field(..., alias="shortName")
+    description: str
     level_type: str = Field(..., alias="levelType")
     level: int
     unit: str
     missing_value: int = Field(..., alias="missingValue")
 
 
-class MetfctsParameter(BaseModel):
+class SnowParameter(BaseModel):
     url: str
     status: int
     headers: Dict[str, str]
-    parameter: List[MetfctsParameterItem]
+    parameter: List[SnowParameterItem]
 
 
-class MetfctsPointInfoSchema(pa.DataFrameModel):
-    name: Index[str] = pa.Field(check_name=True, unique=True)
-    level: Series[int]
-    level_type: Series[str]
-    unit: Series[str]
-
-
-class MetfctsMultiPointSchema(pa.DataFrameModel):
+class SnowMultiPointSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
     value: Series[float]
 
 
-class MetfctsPoint(BaseModel):
+class SnowGeometry(BaseModel):
+    type_: str = Field(..., alias="type")
+    coordinates: List[
+        List[float]
+    ]  # TODO: consider to remove one list (depedency in smhi module)
+
+
+class SnowPoint(BaseModel):
     """Point model."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -75,17 +76,16 @@ class MetfctsPoint(BaseModel):
     longitude: float
     latitude: float
     url: str
-    approved_time: datetime
+    created_time: datetime
     reference_time: datetime
     level_unit: str
-    geometry: MetfctsGeoPolygon
+    geometry: SnowGeometry
     status: int
     headers: Dict[str, str]
     df: pd.DataFrame
-    df_info: DataFrame[MetfctsPointInfoSchema]
 
 
-class MetfctsMultiPoint(BaseModel):
+class SnowMultiPoint(BaseModel):
     """Multi point model."""
 
     parameter: str
@@ -93,9 +93,9 @@ class MetfctsMultiPoint(BaseModel):
     geo: bool
     downsample: int
     url: str
-    approved_time: datetime
+    created_time: datetime
     reference_time: datetime
-    valid_time: datetime
+    times: datetime
     status: int
     headers: Dict[str, str]
-    df: DataFrame[MetfctsMultiPointSchema]
+    df: DataFrame[SnowMultiPointSchema]

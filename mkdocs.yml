@@ -8,20 +8,20 @@ nav:
   - Home: index.md
   - Examples:
       - "Metobs": metobs-example.md
-      - "Metfcts": metfcts-example.md
+      - "Snow": snow-example.md
       - "Mesan": mesan-example.md
       - "Strang": strang-example.md
       - "SMHI": smhi-example.md
   - Reference:
       - "Clients":
           - "Metobs reference": metobs-reference.md
-          - "Metfcts reference": metfcts-reference.md
+          - "Snow reference": snow-reference.md
           - "Mesan reference": mesan-reference.md
           - "Strang reference": strang-reference.md
           - "SMHI reference": smhi-reference.md
       - "Models":
           - "Metobs model": metobs-model.md
-          - "Metfcts model": metfcts-model.md
+          - "Snow model": snow-model.md
           - "Mesan model": mesan-model.md
           - "Strang model": strang-model.md
 

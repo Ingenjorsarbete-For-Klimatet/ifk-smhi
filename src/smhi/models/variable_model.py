@@ -11,15 +11,6 @@ from smhi.models.mesan_model import (
     MesanPoint,
     MesanValidTime,
 )
-from smhi.models.metfcts_model import (
-    MetfctsApprovedTime,
-    MetfctsGeoMultiPoint,
-    MetfctsGeoPolygon,
-    MetfctsMultiPoint,
-    MetfctsParameter,
-    MetfctsPoint,
-    MetfctsValidTime,
-)
 from smhi.models.metobs_model import (
     MetobsCategoryModel,
     MetobsDataModel,
@@ -27,6 +18,15 @@ from smhi.models.metobs_model import (
     MetobsPeriodModel,
     MetobsStationModel,
     MetobsVersionModel,
+)
+from smhi.models.snow_model import (
+    SnowCreatedTime,
+    SnowGeoMultiPoint,
+    SnowGeoPolygon,
+    SnowMultiPoint,
+    SnowParameter,
+    SnowPoint,
+    SnowValidTime,
 )
 
 MetobsModels = TypeVar(
@@ -39,10 +39,10 @@ MetobsModels = TypeVar(
     MetobsDataModel,
 )
 
-Parameter = TypeVar("Parameter", MesanParameter, MetfctsParameter)
-ApprovedTime = TypeVar("ApprovedTime", MesanCreatedTime, MetfctsApprovedTime)
-ValidTime = TypeVar("ValidTime", MesanValidTime, MetfctsValidTime)
-GeoPolygon = TypeVar("GeoPolygon", MesanGeoPolygon, MetfctsGeoPolygon)
-GeoMultiPoint = TypeVar("GeoMultiPoint", MesanGeoMultiPoint, MetfctsGeoMultiPoint)
-Point = TypeVar("Point", MesanPoint, MetfctsPoint)
-MultiPoint = TypeVar("MultiPoint", MesanMultiPoint, MetfctsMultiPoint)
+Parameter = TypeVar("Parameter", MesanParameter, SnowParameter)
+ApprovedTime = TypeVar("ApprovedTime", MesanCreatedTime, SnowCreatedTime)
+ValidTime = TypeVar("ValidTime", MesanValidTime, SnowValidTime)
+GeoPolygon = TypeVar("GeoPolygon", MesanGeoPolygon, SnowGeoPolygon)
+GeoMultiPoint = TypeVar("GeoMultiPoint", MesanGeoMultiPoint, SnowGeoMultiPoint)
+Point = TypeVar("Point", MesanPoint, SnowPoint)
+MultiPoint = TypeVar("MultiPoint", MesanMultiPoint, SnowMultiPoint)

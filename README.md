@@ -39,7 +39,7 @@ Python SMHI (Swedish Meteorological and Hydrological Institute) client.
 Currently supports these APIs
 
 - Meteorological Observations Metobs
-- Meteorological Forecasts Metfcts
+- Meteorological Forecasts Snow
 - Meteorological Analysis Mesan
 - Meteorological Analysis Strang
 

@@ -1,6 +1,6 @@
 # Example of Mesan direct use
 
-Direct usage of `Mesan`. Note that `Metfcts` and `Mesan` have identical interfaces.
+Direct usage of `Mesan`.
 
 ## Time listing
 
