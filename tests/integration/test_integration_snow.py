@@ -4,6 +4,7 @@ import time
 
 import arrow
 import pytest
+
 from smhi.constants import SNOW_PARAMETER_DESCRIPTIONS
 from smhi.snow import Snow
 
@@ -42,9 +43,9 @@ class TestIntegrationSnow:
         parameters = client.parameters
 
         for parameter in parameters.parameter:
-            assert (
-                parameter.name in SNOW_PARAMETER_DESCRIPTIONS
-            ), f"Parameter '{parameter.name}' not found in SNOW_PARAMETER_DESCRIPTIONS"
+            assert parameter.name in SNOW_PARAMETER_DESCRIPTIONS, (
+                f"Parameter '{parameter.name}' not found in SNOW_PARAMETER_DESCRIPTIONS"
+            )
         assert len(parameters.parameter) > NUM_PARAMETERS
 
         time.sleep(1)

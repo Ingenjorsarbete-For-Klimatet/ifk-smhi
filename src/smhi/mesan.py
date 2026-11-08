@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Union
 import arrow
 import pandas as pd
 from requests.structures import CaseInsensitiveDict
+
 from smhi.constants import (
     MESAN_LEVELS_UNIT,
     MESAN_PARAMETER_DESCRIPTIONS,

@@ -6,11 +6,12 @@ from unittest.mock import patch
 import arrow
 import pandas as pd
 import pytest
+from utils import get_response
+
 from smhi.constants import SNOW_LEVELS_UNIT, SNOW_PARAMETER_DESCRIPTIONS
 from smhi.models.snow_model import SnowGeometry, SnowParameter, SnowParameterItem
 from smhi.snow import Snow
 from smhi.utils import format_datetime
-from utils import get_response
 
 BASE_URL = (
     "https://opendata-download-metfcst.smhi.se/" + "api/category/snow1g/version/1/"
