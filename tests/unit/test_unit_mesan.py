@@ -8,7 +8,11 @@ import pandas as pd
 import pytest
 from utils import get_response
 
-from smhi.constants import MESAN_LEVELS_UNIT, MESAN_PARAMETER_DESCRIPTIONS
+from smhi.constants import (
+    MESAN_LEVELS_UNIT,
+    MESAN_PARAMETER_CATEGORIES,
+    MESAN_PARAMETER_DESCRIPTIONS,
+)
 from smhi.mesan import Mesan
 from smhi.models.mesan_model import MesanGeometry, MesanParameter, MesanParameterItem
 from smhi.utils import format_datetime
@@ -38,6 +42,33 @@ MOCK_MESAN_PARAMETERS = MesanParameter(
             levelType="hl",
             level=10,
             unit="m/s",
+            missingValue=9999,
+        ),
+        MesanParameterItem(
+            name="wind_from_direction",
+            shortName="wd",
+            description="Wind from direction at 10 metre",
+            levelType="hl",
+            level=10,
+            unit="degree",
+            missingValue=9999,
+        ),
+        MesanParameterItem(
+            name="precipitation_frozen_part",
+            shortName="spp",
+            description="Frozen part of precipitation.",
+            levelType="hl",
+            level=0,
+            unit="percent",
+            missingValue=9999,
+        ),
+        MesanParameterItem(
+            name="predominant_precipitation_type_at_surface",
+            shortName="ptype",
+            description="Type of precipitation",
+            levelType="hl",
+            level=0,
+            unit="category",
             missingValue=9999,
         ),
     ],
@@ -111,6 +142,13 @@ class TestUnitMesan:
         client = Mesan()
 
         assert client.parameter_descriptions == MESAN_PARAMETER_DESCRIPTIONS
+
+    @patch("smhi.mesan.Mesan._get_parameters", return_value=MOCK_MESAN_PARAMETERS)
+    def test_unit_mesan_parameter_categories(self, mock_get_data):
+        """Unit test for Mesan parameter_categories property."""
+        client = Mesan()
+
+        assert client.parameter_categories == MESAN_PARAMETER_CATEGORIES
 
     @patch(
         "smhi.mesan.Mesan._get_data",
@@ -373,3 +411,99 @@ class TestUnitMesan:
         """Unit test _ceck_times."""
         client = Mesan()
         assert client._check_times(test_time) is expected_answer
+
+    @patch("smhi.mesan.Mesan._get_data")
+    @patch("smhi.mesan.Mesan._get_parameters", return_value=MOCK_MESAN_PARAMETERS)
+    def test_unit_mesan_get_point_masks_missing_values(
+        self, mock_get_parameters, mock_get_data
+    ):
+        """Unit test for Mesan get_point missing value masking."""
+        data = {
+            "createdTime": "2024-03-31T07:37:51Z",
+            "referenceTime": "2024-03-31T07:00:00Z",
+            "geometry": {"type": "Point", "coordinates": [16.0, 58.0]},
+            "timeSeries": [
+                {
+                    "time": "2024-03-31T06:00:00Z",
+                    "data": {
+                        "air_temperature": 9999,
+                        "wind_from_direction": 300,
+                        "precipitation_frozen_part": -9,
+                    },
+                },
+            ],
+        }
+        mock_get_data.return_value = (data, {"head": "head"}, 200)
+
+        client = Mesan()
+        point = client.get_point(58, 16)
+
+        assert pd.isna(point.df["air_temperature"].iloc[0])
+        assert point.df["wind_from_direction"].iloc[0] == 300.0
+        assert pd.isna(point.df["precipitation_frozen_part"].iloc[0])
+
+    @patch("smhi.mesan.Mesan._get_data")
+    @patch("smhi.mesan.Mesan._get_parameters", return_value=MOCK_MESAN_PARAMETERS)
+    @patch("smhi.mesan.arrow.now", return_value=arrow.get("2024-03-31T07:14:10Z"))
+    def test_unit_mesan_get_multipoint_coerces_and_masks(
+        self, mock_arrow_now, mock_get_parameters, mock_get_data
+    ):
+        """Unit test for Mesan get_multipoint dtype coercion and masking."""
+        data = {
+            "createdTime": "2024-03-31T07:37:51Z",
+            "referenceTime": "2024-03-31T07:00:00Z",
+            "geometry": {"type": "MultiPoint", "coordinates": [[1.0, 2.0], [3.0, 4.0]]},
+            "timeSeries": [
+                {
+                    "time": "2024-03-31T06:00:00Z",
+                    "data": {"wind_from_direction": [300, 9999]},
+                },
+            ],
+        }
+        mock_get_data.return_value = (data, {"head": "head"}, 200)
+
+        client = Mesan()
+        multipoint = client.get_multipoint(
+            "2024-03-31T06", "wind_from_direction", True, 1
+        )
+
+        assert multipoint.df["value"].dtype == "float64"
+        assert multipoint.df["value"].iloc[0] == 300.0
+        assert pd.isna(multipoint.df["value"].iloc[1])
+        assert multipoint.df["lat"].iloc[0] == 2.0
+
+    @patch("smhi.mesan.Mesan._get_data")
+    @patch("smhi.mesan.Mesan._get_parameters", return_value=MOCK_MESAN_PARAMETERS)
+    @patch("smhi.mesan.arrow.now", return_value=arrow.get("2024-03-31T07:14:10Z"))
+    def test_unit_mesan_get_multipoint_maps_categories(
+        self, mock_arrow_now, mock_get_parameters, mock_get_data
+    ):
+        """Unit test for Mesan get_multipoint category value mapping."""
+        parameter = "predominant_precipitation_type_at_surface"
+        data = {
+            "createdTime": "2024-03-31T07:37:51Z",
+            "referenceTime": "2024-03-31T07:00:00Z",
+            "geometry": {
+                "type": "MultiPoint",
+                "coordinates": [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]],
+            },
+            "timeSeries": [
+                {
+                    "time": "2024-03-31T06:00:00Z",
+                    "data": {parameter: [5, 1, 9999]},
+                },
+            ],
+        }
+        mock_get_data.return_value = (data, {"head": "head"}, 200)
+
+        client = Mesan()
+        multipoint = client.get_multipoint("2024-03-31T06", parameter, True, 1)
+
+        assert multipoint.df["value"].dtype == "float64"
+        descriptions = multipoint.df["value"].map(
+            client.parameter_categories[parameter]
+        )
+
+        assert descriptions.iloc[0] == "Snow"
+        assert descriptions.iloc[1] == "Rain"
+        assert pd.isna(descriptions.iloc[2])

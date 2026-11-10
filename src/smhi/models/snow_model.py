@@ -58,7 +58,7 @@ class SnowParameter(BaseModel):
 class SnowMultiPointSchema(pa.DataFrameModel):
     lat: Optional[Series[float]]
     lon: Optional[Series[float]]
-    value: Series[float]
+    value: Series[float] = pa.Field(coerce=True, nullable=True)
 
 
 class SnowGeometry(BaseModel):

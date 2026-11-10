@@ -8,7 +8,11 @@ import pandas as pd
 import pytest
 from utils import get_response
 
-from smhi.constants import SNOW_LEVELS_UNIT, SNOW_PARAMETER_DESCRIPTIONS
+from smhi.constants import (
+    SNOW_LEVELS_UNIT,
+    SNOW_PARAMETER_CATEGORIES,
+    SNOW_PARAMETER_DESCRIPTIONS,
+)
 from smhi.models.snow_model import SnowGeometry, SnowParameter, SnowParameterItem
 from smhi.snow import Snow
 from smhi.utils import format_datetime
@@ -38,6 +42,42 @@ MOCK_SNOW_PARAMETERS = SnowParameter(
             levelType="hl",
             level=10,
             unit="degree",
+            missingValue=9999,
+        ),
+        SnowParameterItem(
+            name="cloud_base_altitude",
+            shortName="cdcb",
+            description="Cloud base altitude.",
+            levelType="hl",
+            level=0,
+            unit="m",
+            missingValue=9999,
+        ),
+        SnowParameterItem(
+            name="cloud_top_altitude",
+            shortName="cdct",
+            description="Cloud top altitude.",
+            levelType="hl",
+            level=0,
+            unit="m",
+            missingValue=9999,
+        ),
+        SnowParameterItem(
+            name="precipitation_frozen_part",
+            shortName="spp",
+            description="Frozen part of precipitation.",
+            levelType="hl",
+            level=0,
+            unit="percent",
+            missingValue=9999,
+        ),
+        SnowParameterItem(
+            name="predominant_precipitation_type_at_surface",
+            shortName="ptype",
+            description="Precipitation type",
+            levelType="hl",
+            level=0,
+            unit="category",
             missingValue=9999,
         ),
     ],
@@ -111,6 +151,13 @@ class TestUnitSnow:
         client = Snow()
 
         assert client.parameter_descriptions == SNOW_PARAMETER_DESCRIPTIONS
+
+    @patch("smhi.snow.Snow._get_parameters", return_value=MOCK_SNOW_PARAMETERS)
+    def test_unit_snow_parameter_categories(self, mock_get_data):
+        """Unit test for Snow parameter_categories property."""
+        client = Snow()
+
+        assert client.parameter_categories == SNOW_PARAMETER_CATEGORIES
 
     @patch(
         "smhi.snow.Snow._get_data",
@@ -355,6 +402,102 @@ class TestUnitSnow:
             )
             == expected_answer
         )
+
+    @patch("smhi.snow.Snow._get_data")
+    @patch("smhi.snow.Snow._get_parameters", return_value=MOCK_SNOW_PARAMETERS)
+    def test_unit_snow_get_point_masks_missing_values(
+        self, mock_get_parameters, mock_get_data
+    ):
+        """Unit test for Snow get_point missing value masking."""
+        data = {
+            "createdTime": "2026-11-08T21:34:03Z",
+            "referenceTime": "2026-11-08T21:15:00Z",
+            "geometry": {"type": "Point", "coordinates": [16.0, 58.0]},
+            "timeSeries": [
+                {
+                    "time": "2026-11-08T22:00:00Z",
+                    "data": {
+                        "air_temperature": 9999,
+                        "wind_from_direction": 300,
+                        "precipitation_frozen_part": -9,
+                    },
+                },
+            ],
+        }
+        mock_get_data.return_value = (data, {"head": "head"}, 200)
+
+        client = Snow()
+        point = client.get_point(58, 16)
+
+        assert pd.isna(point.df["air_temperature"].iloc[0])
+        assert point.df["wind_from_direction"].iloc[0] == 300.0
+        assert pd.isna(point.df["precipitation_frozen_part"].iloc[0])
+
+    @patch("smhi.snow.Snow._get_data")
+    @patch("smhi.snow.Snow._get_parameters", return_value=MOCK_SNOW_PARAMETERS)
+    @patch("smhi.snow.arrow.now", return_value=arrow.get("2026-11-08T21:14:10Z"))
+    def test_unit_snow_get_multipoint_coerces_and_masks(
+        self, mock_arrow_now, mock_get_parameters, mock_get_data
+    ):
+        """Unit test for Snow get_multipoint dtype coercion and masking."""
+        data = {
+            "createdTime": "2026-11-08T21:34:03Z",
+            "referenceTime": "2026-11-08T21:15:00Z",
+            "geometry": {"type": "MultiPoint", "coordinates": [[1.0, 2.0], [3.0, 4.0]]},
+            "timeSeries": [
+                {
+                    "time": "2026-11-08T22:00:00Z",
+                    "data": {"wind_from_direction": [300, 9999]},
+                },
+            ],
+        }
+        mock_get_data.return_value = (data, {"head": "head"}, 200)
+
+        client = Snow()
+        multipoint = client.get_multipoint(
+            "2026-11-08T22", "wind_from_direction", True, 1
+        )
+
+        assert multipoint.df["value"].dtype == "float64"
+        assert multipoint.df["value"].iloc[0] == 300.0
+        assert pd.isna(multipoint.df["value"].iloc[1])
+        assert multipoint.df["lat"].iloc[0] == 2.0
+
+    @patch("smhi.snow.Snow._get_data")
+    @patch("smhi.snow.Snow._get_parameters", return_value=MOCK_SNOW_PARAMETERS)
+    @patch("smhi.snow.arrow.now", return_value=arrow.get("2026-11-08T21:14:10Z"))
+    def test_unit_snow_get_multipoint_maps_categories(
+        self, mock_arrow_now, mock_get_parameters, mock_get_data
+    ):
+        """Unit test for Snow get_multipoint category value mapping."""
+        parameter = "predominant_precipitation_type_at_surface"
+        data = {
+            "createdTime": "2026-11-08T21:34:03Z",
+            "referenceTime": "2026-11-08T21:15:00Z",
+            "geometry": {
+                "type": "MultiPoint",
+                "coordinates": [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]],
+            },
+            "timeSeries": [
+                {
+                    "time": "2026-11-08T22:00:00Z",
+                    "data": {parameter: [5, 1, 9999]},
+                },
+            ],
+        }
+        mock_get_data.return_value = (data, {"head": "head"}, 200)
+
+        client = Snow()
+        multipoint = client.get_multipoint("2026-11-08T22", parameter, True, 1)
+
+        assert multipoint.df["value"].dtype == "float64"
+        descriptions = multipoint.df["value"].map(
+            client.parameter_categories[parameter]
+        )
+
+        assert descriptions.iloc[0] == "Snow"
+        assert descriptions.iloc[1] == "Rain"
+        assert pd.isna(descriptions.iloc[2])
 
     @pytest.mark.parametrize(
         "test_time, expected_answer",

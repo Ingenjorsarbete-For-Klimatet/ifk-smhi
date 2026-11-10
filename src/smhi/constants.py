@@ -63,6 +63,37 @@ SNOW_PARAMETER_DESCRIPTIONS = {
     "symbol_code": "Weather symbol code with 27 different codes.",
 }
 
+# The SNOW1g API sets precipitation_frozen_part to this value when there
+# is no precipitation, see the parameter documentation on opendata.smhi.se.
+SNOW_PRECIPITATION_FROZEN_PART_NO_PRECIPITATION = -9
+
+# Category value codes per parameter, from the SNOW1g parameter
+# documentation at opendata.smhi.se/metfcst/snow1gv1/parameters. The codes
+# are exact integers and appear in the data as whole-number floats or ints.
+SNOW_PARAMETER_CATEGORIES = {
+    "predominant_precipitation_type_at_surface": {
+        0: "No precipitation",
+        1: "Rain",
+        2: "Thunderstorm",
+        3: (
+            "Freezing rain (i.e. supercooled raindrops which freeze on "
+            "contact with the ground and other surfaces)"
+        ),
+        4: "Mixed/ice",
+        5: "Snow",
+        6: "Wet snow (i.e. snow particles which are starting to melt)",
+        7: "Mixture of rain and snow",
+        8: "Ice pellets",
+        9: "Graupel",
+        10: "Hail",
+        11: "Drizzle",
+        12: (
+            "Freezing drizzle (i.e. supercooled drizzle which freezes on "
+            "contact with the ground and other surfaces)"
+        ),
+    },
+}
+
 MESAN_URL = (
     "https://opendata-download-metanalys.smhi.se/"
     + "api/category/{category}/version/{version}/"
@@ -96,6 +127,37 @@ MESAN_PARAMETER_DESCRIPTIONS = {
     "wind_from_direction": "Wind from direction at 10 metre.",
     "wind_speed": "Wind speed at 10 metre.",
     "symbol_code": "Weather symbol code with 27 different codes.",
+}
+
+# The MESAN2g API sets precipitation_frozen_part to this value when there
+# is no precipitation, see the parameter documentation on opendata.smhi.se.
+MESAN_PRECIPITATION_FROZEN_PART_NO_PRECIPITATION = -9
+
+# Category value codes per parameter, from the MESAN2g parameter
+# documentation on opendata.smhi.se. The codes are exact integers and
+# appear in the data as whole-number floats or ints.
+MESAN_PARAMETER_CATEGORIES = {
+    "predominant_precipitation_type_at_surface": {
+        0: "No precipitation",
+        1: "Rain",
+        2: "Thunderstorm",
+        3: (
+            "Freezing rain (i.e. supercooled raindrops which freeze on "
+            "contact with the ground and other surfaces)"
+        ),
+        4: "Mixed/ice",
+        5: "Snow",
+        6: "Wet snow (i.e. snow particles which are starting to melt)",
+        7: "Mixture of rain and snow",
+        8: "Ice pellets",
+        9: "Graupel",
+        10: "Hail",
+        11: "Drizzle",
+        12: (
+            "Freezing drizzle (i.e. supercooled drizzle which freezes on "
+            "contact with the ground and other surfaces)"
+        ),
+    },
 }
 
 STRANG_EMPTY = StrangParameter(
