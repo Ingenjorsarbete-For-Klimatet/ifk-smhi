@@ -75,8 +75,6 @@ point.df
 # dataframe of actual data
 
 multipoint = client.get_multipoint(
-    "2026-11-09T12:00:00Z", "air_temperature", True, 10
+    client.times.times[0], "air_temperature", True, 10
 )
 ```
-
-Note that, the above valid time is outdated.

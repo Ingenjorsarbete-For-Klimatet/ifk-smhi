@@ -19,8 +19,7 @@ client = SMHI()
 client.parameters.data #List all available parameters
 #Parameter 1 is hourly air temperature
 
-stations = client.get_stations(1)
-stations.data #List all available stations for parameter 1
+stations = client.get_stations(1) #List all available stations for parameter 1
 
 data = client.get_data(1, 72630) #Get data from specific station
 #Station 72630 is Gothenburg
