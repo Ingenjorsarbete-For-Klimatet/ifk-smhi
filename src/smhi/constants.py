@@ -29,30 +29,69 @@ METOBS_AVAILABLE_PERIODS = {
     "latest-hour": 3,
 }
 
-METFCTS_URL = (
+SNOW_URL = (
     "https://opendata-download-metfcst.smhi.se/"
     + "api/category/{category}/version/{version}/"
 )
 
-METFCTS_PARAMETER_DESCRIPTIONS = {
-    "msl": "Air pressure",
-    "t": "Air temperature",
-    "vis": "Horizontal visibility",
-    "wd": "Wind direction",
-    "ws": "Wind speed",
-    "r": "Relative humidity",
-    "tstm": "Thunder probability",
-    "tcc_mean": "Mean value of total cloud cover",
-    "lcc_mean": "Mean value of low level cloud cover",
-    "mcc_mean": "Mean value of medium level cloud cover",
-    "hcc_mean": "Mean value of high level cloud cover",
-    "gust": "Wind gust speed",
-    "pmin": "Minimum precipitation intensity",
-    "pmax": "Maximum precipitation intensity",
-    "spp": "Percent of precipitation in frozen form",
-    "pmean": "Mean precipitation intensity",
-    "pmedian": "Median precipitation intensity",
-    "Wsymb2": "Weather Symbol",
+SNOW_LEVELS_UNIT = "m"
+
+SNOW_PARAMETER_DESCRIPTIONS = {
+    "air_temperature": "Air temperature at 2 metres height.",
+    "wind_from_direction": "Wind from direction at 10 metre.",
+    "wind_speed": "Wind speed at 10 metre.",
+    "wind_speed_of_gust": "Instantaneous 10 metre wind gust",
+    "relative_humidity": "Relative humidity at 2 metres height.",
+    "air_pressure_at_mean_sea_level": "Air pressure at mean sea level.",
+    "visibility_in_air": "Visibility in air.",
+    "thunderstorm_probability": "Thunderstorm probability",
+    "probability_of_frozen_precipitation": "Probability of frozen precipitation.",
+    "cloud_area_fraction": "Total Cloud Cover",
+    "low_type_cloud_area_fraction": "Low cloud cover",
+    "medium_type_cloud_area_fraction": "Medium cloud cover",
+    "high_type_cloud_area_fraction": "High cloud cover",
+    "cloud_base_altitude": "Cloud base altitude.",
+    "cloud_top_altitude": "Cloud top altitude.",
+    "precipitation_amount_mean_deterministic": "Deterministic mean total precipitation amount",
+    "precipitation_amount_mean": "Mean total precipitation amount",
+    "precipitation_amount_min": "Minimum total precipitation amount",
+    "precipitation_amount_max": "Maximum total precipitation amount",
+    "precipitation_amount_median": "Median total precipitation amount",
+    "probability_of_precipitation": "Propability of precipitation of at least 0.1 mm",
+    "precipitation_frozen_part": "Frozen part of precipitation.",
+    "predominant_precipitation_type_at_surface": "Precipitation type",
+    "symbol_code": "Weather symbol code with 27 different codes.",
+}
+
+# The SNOW1g API sets precipitation_frozen_part to this value when there
+# is no precipitation, see the parameter documentation on opendata.smhi.se.
+SNOW_PRECIPITATION_FROZEN_PART_NO_PRECIPITATION = -9
+
+# Category value codes per parameter, from the SNOW1g parameter
+# documentation at opendata.smhi.se/metfcst/snow1gv1/parameters. The codes
+# are exact integers and appear in the data as whole-number floats or ints.
+SNOW_PARAMETER_CATEGORIES = {
+    "predominant_precipitation_type_at_surface": {
+        0: "No precipitation",
+        1: "Rain",
+        2: "Thunderstorm",
+        3: (
+            "Freezing rain (i.e. supercooled raindrops which freeze on "
+            "contact with the ground and other surfaces)"
+        ),
+        4: "Mixed/ice",
+        5: "Snow",
+        6: "Wet snow (i.e. snow particles which are starting to melt)",
+        7: "Mixture of rain and snow",
+        8: "Ice pellets",
+        9: "Graupel",
+        10: "Hail",
+        11: "Drizzle",
+        12: (
+            "Freezing drizzle (i.e. supercooled drizzle which freezes on "
+            "contact with the ground and other surfaces)"
+        ),
+    },
 }
 
 MESAN_URL = (
@@ -66,37 +105,60 @@ MESAN_PARAMETER_DESCRIPTIONS = {
     "air_temperature": "Air temperature at 2 metres height.",
     "wind_speed_of_gust": "Wind gusts",
     "relative_humidity": "Relative humidity at 2 metres height.",
+    "air_pressure": "Air pressure.",
     "air_pressure_at_mean_sea_level": "Air pressure at mean sea level.",
+    "dew_point_temperature": "2 metre dewpoint temperature.",
     "wet_bulb_temperature": "Wet bulb temperature",
-    "air_temperature_min": "Minimum air temperature at 2 metres height.",
-    "air_temperature_max": "Maximum air temperature at 2 metres height.",
     "cloud_base_altitude": "Cloud base altitude.",
-    "cloud_are_fraction_significant": "Fraction of significant clouds",
     "cloud_area_fraction": "Total cloud cover",
     "cloud_top_altitude": "Cloud top altitude.",
     "low_type_cloud_area_fraction": "Low cloud cover",
     "high_type_cloud_area_fraction": "High cloud cover",
     "medium_type_cloud_area_fraction": "Medium cloud cove",
     "predominant_precipitation_type_at_surface": "Type of precipitation",
-    "precipitation_rate_max": "Maximum precipitation rate",
-    "precipitation_rate_min": "Minimum precipitation rate",
-    "precipitation_rate_median": "Median precipitation rate",
-    "precipitation_rate_mean": "Median precipitation rate",
     "precipitation_amount_last_1_hours": "Precipitation amount last hour",
     "precipitation_amount_last_3_hours": "Precipitation amount last 3 hours",
-    "precipitation_amount_last_12_hours": "Precipitation amount last 12 hours",
     "change_over_time_in_surface_snow_amount_1_hours": "Change of snow on surface in last hour",
     "change_over_time_in_surface_snow_amount_3_hours": "Change of snow on surface in last 3 hours",
     "change_over_time_in_surface_snow_amount_12_hours": "Change of snow on surface in last 12 hours",
     "change_over_time_in_surface_snow_amount_24_hours": "Change of snow on surface in last 24 hours",
     "visibility_in_air": "Visibility in air.",
     "precipitation_frozen_part": "Frozen part of precipitation.",
-    "precipitation_sort": "Sort of precipitation",
     "wind_from_direction": "Wind from direction at 10 metre.",
     "wind_speed": "Wind speed at 10 metre.",
     "symbol_code": "Weather symbol code with 27 different codes.",
 }
 
+# The MESAN2g API sets precipitation_frozen_part to this value when there
+# is no precipitation, see the parameter documentation on opendata.smhi.se.
+MESAN_PRECIPITATION_FROZEN_PART_NO_PRECIPITATION = -9
+
+# Category value codes per parameter, from the MESAN2g parameter
+# documentation on opendata.smhi.se. The codes are exact integers and
+# appear in the data as whole-number floats or ints.
+MESAN_PARAMETER_CATEGORIES = {
+    "predominant_precipitation_type_at_surface": {
+        0: "No precipitation",
+        1: "Rain",
+        2: "Thunderstorm",
+        3: (
+            "Freezing rain (i.e. supercooled raindrops which freeze on "
+            "contact with the ground and other surfaces)"
+        ),
+        4: "Mixed/ice",
+        5: "Snow",
+        6: "Wet snow (i.e. snow particles which are starting to melt)",
+        7: "Mixture of rain and snow",
+        8: "Ice pellets",
+        9: "Graupel",
+        10: "Hail",
+        11: "Drizzle",
+        12: (
+            "Freezing drizzle (i.e. supercooled drizzle which freezes on "
+            "contact with the ground and other surfaces)"
+        ),
+    },
+}
 
 STRANG_EMPTY = StrangParameter(
     key=None, meaning="Missing", time_from=None, time_to=lambda: None

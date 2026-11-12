@@ -6,9 +6,10 @@ See validation of model: https://strang.smhi.se/validation/validation.html
 import json
 import logging
 from collections import defaultdict
+from datetime import date, datetime
 from enum import Enum
 from functools import partial
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import arrow
 import pandas as pd
@@ -78,8 +79,8 @@ class Strang:
         latitude: float,
         longitude: float,
         parameter: int,
-        time_from: Optional[str] = None,
-        time_to: Optional[str] = None,
+        time_from: Optional[Union[str, datetime, date]] = None,
+        time_to: Optional[Union[str, datetime, date]] = None,
         time_interval: Optional[str] = None,
     ) -> StrangPoint:
         """Get data for given lon, lat and parameter.
@@ -101,7 +102,7 @@ class Strang:
             NotImplementedError: parameter not supported
         """
         strang_parameter = self._available_parameters[parameter]
-        if strang_parameter.key is None:
+        if strang_parameter.key is None or strang_parameter.meaning is None:
             raise NotImplementedError(
                 "Parameter not implemented."
                 + " Try client.parameters to list available parameters."
@@ -133,7 +134,10 @@ class Strang:
         )
 
     def get_multipoint(
-        self, parameter: int, valid_time: str, time_interval: Optional[str] = None
+        self,
+        parameter: int,
+        valid_time: Union[str, datetime, date],
+        time_interval: Optional[str] = None,
     ) -> StrangMultiPoint:
         """Get full spatial data for given parameter and time.
 
@@ -152,26 +156,26 @@ class Strang:
             NotImplementedError: parameter not supported
         """
         strang_parameter = self._available_parameters[parameter]
-        if strang_parameter.key is None:
+        if strang_parameter.key is None or strang_parameter.meaning is None:
             raise NotImplementedError(
                 "Parameter not implemented."
                 + " Try client.parameters to list available parameters."
             )
 
         try:
-            valid_time = arrow.get(valid_time).isoformat()
+            valid_time_iso = arrow.get(valid_time).isoformat()
         except TypeError:
             raise TypeError("Wrong type of valid time provided. Check valid time.")
 
         raw_url = self._multipoint_raw_url
-        url = self._build_base_multipoint_url(raw_url, strang_parameter, valid_time)
+        url = self._build_base_multipoint_url(raw_url, strang_parameter, valid_time_iso)
         url = self._build_time_multipoint_url(url, time_interval)
         data, header, status = self._get_and_load_data(url, RequestType["MULTIPOINT"])
 
         return StrangMultiPoint(
             parameter_key=strang_parameter.key,
             parameter_meaning=strang_parameter.meaning,
-            valid_time=valid_time,
+            valid_time=valid_time_iso,
             time_interval=time_interval,
             url=url,
             status=status,
@@ -282,7 +286,7 @@ class Strang:
 
     def _get_and_load_data(
         self, url: str, request: RequestType
-    ) -> tuple[pd.DataFrame, CaseInsensitiveDict[str], int]:
+    ) -> tuple[Optional[pd.DataFrame], CaseInsensitiveDict[str], int]:
         """Fetch requested point data and parse it with datetime.
 
         Args:
@@ -304,12 +308,14 @@ class Strang:
         return df, response.headers, response.status_code
 
     def _parse_datetime(
-        self, date_time: Optional[str], parameter: StrangParameter
+        self,
+        date_time: Optional[Union[str, datetime, date]],
+        parameter: StrangParameter,
     ) -> Optional[str]:
         """Parse date into a datetime format given as string and check bounds.
 
         Args:
-            date_time: date as string
+            date_time: date as string, datetime or date
             parameter: strang parameter
 
         Returns:
@@ -325,6 +331,12 @@ class Strang:
             date_time_arrow = arrow.get(format_datetime(date_time))
         except ValueError:
             raise ValueError("Wrong format of date.")
+
+        if parameter.time_from is None or parameter.time_to is None:
+            raise NotImplementedError(
+                "Parameter not implemented."
+                + " Try client.parameters to list available parameters."
+            )
 
         if parameter.time_from < date_time_arrow < parameter.time_to():
             return date_time_arrow.isoformat()

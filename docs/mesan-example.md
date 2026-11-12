@@ -1,6 +1,6 @@
 # Example of Mesan direct use
 
-Direct usage of `Mesan`. Note that `Metfcts` and `Mesan` have identical interfaces.
+Direct usage of `Mesan`.
 
 ## Time listing
 
@@ -59,7 +59,7 @@ where `get_geo_multipoint` accepts a downsample argument.
 To get data, two methods are available.
 `get_point` accepts latitude and longitude arguments.
 `get_multipoint` accepts `times`, `parameter`,
-`leveltype`, `level`, `geo` and `downsample` arguments.
+`geo` and `downsample` arguments.
 See above to acquire a valid time and parameter.
 
 Note that the date input can be in either `str` or `datetime` formats.
@@ -76,12 +76,7 @@ point = client.get_point(58, 16)
 point.df
 # dataframe of actual data
 
-point.df_info
-# dataframe with information about available parameters
-
 multipoint = client.get_multipoint(
-    "2024-04-1206T16:00:00Z", "t", "hl", 2, 2
+    client.times.times[-1], "air_temperature", True, 2
 )
 ```
-
-Note that, the above valid time is outdated.

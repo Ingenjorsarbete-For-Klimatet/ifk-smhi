@@ -114,10 +114,28 @@ class TestIntegrationMesan:
         multipoint = client.get_multipoint(time_, parameter, geo, downsample)
 
         assert not multipoint.df.empty
-        assert multipoint.df["value"].iloc[0] > MIN_TEMPERATURE
+        values = multipoint.df["value"].dropna()
+        assert not values.empty
+        assert values.iloc[0] > MIN_TEMPERATURE
 
         if geo:
             assert multipoint.df["lon"].iloc[0] > 0
             assert multipoint.df["lat"].iloc[0] > 0
+
+        time.sleep(1)
+
+    @pytest.mark.parametrize(
+        "parameter", [("wind_from_direction"), ("precipitation_frozen_part")]
+    )
+    def test_integration_mesan_get_multipoint_integer_and_missing_values(
+        self, parameter
+    ):
+        """Integration test for get_multipoint with integer and missing values."""
+        time_ = arrow.utcnow().shift(hours=-1).format("YYYYMMDDTHH")
+        client = Mesan()
+        multipoint = client.get_multipoint(time_, parameter, False, 10)
+
+        assert multipoint.df["value"].dtype == "float64"
+        assert not (multipoint.df["value"] == 9999).any()
 
         time.sleep(1)

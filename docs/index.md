@@ -11,7 +11,7 @@ Enterprise.
 Currently, only these four APIs are supported
 
 - Metobs - Meteorological Observations
-- Metfcts - Meteorological Forecasts
+- Snow - Meteorological Forecasts SNOW
 - Mesan - Meteorological Analysis MESAN
 - Strang - Meteorological Analysis STRÅNG (sunshine)
 
@@ -22,7 +22,7 @@ are available here:
 
 - [example of Metobs use](/ifk-smhi/metobs-example/)
 - [example of Mesan use](/ifk-smhi/mesan-example/)
-- [example of Metfcts use](/ifk-smhi/metfcts-example/)
+- [example of Snow use](/ifk-smhi/snow-example/)
 - [example of Strang use](/ifk-smhi/strang-example/)
 - [example of SMHI use](/ifk-smhi/smhi-example/)
 
@@ -56,11 +56,11 @@ i.e. recorded data from weather stations scattered over north Europe.
 See [example of Metobs use](/ifk-smhi/metobs-example/)
 for details on how to use the client.
 
-## Metfcts client
+## Snow client
 
 Client to fetch data from meteorological forecasts.
 Use this to access data about _forecasts_, i.e. SMHI weather predictions.
-See [example of Metfcts use](/ifk-smhi/metfcts-example/)
+See [example of Snow use](/ifk-smhi/snow-example/)
 for details on how to use the client.
 
 ## Mesan client

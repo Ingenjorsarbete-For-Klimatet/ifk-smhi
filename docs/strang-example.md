@@ -32,7 +32,7 @@ point = client.get_point(
 )
 ```
 
-Note that the date input can be in either `str` or `datetime` formats.
+Note that the date input can be in `str`, `datetime` or `date` formats.
 The API expects times in UTC but the client expects the user to input
 local datetimes. The local datetimes are converted to UTC before an API request
 is performed.
@@ -48,7 +48,7 @@ point = client.get_point(
     58,
     16,
     118,
-    "2020 01 01",
+    "20200101",
     datetime.strptime("2020-02-01", '%Y-%m-%d').date(),
     "hourly",
 )
@@ -58,13 +58,13 @@ The return object is of type `StrangPoint`. For a full list of available
 fields see [strang model](/ifk-smhi/strang-model/).
 
 ```python
-response.df
+point.df
 ```
 
 while shows what the selected parameter means.
 
 ```python
-response.parameter_meaning
+point.parameter_meaning
 ```
 
 ## Multipoint data
@@ -78,7 +78,7 @@ client = Strang()
 response = client.get_multipoint(116, "2022-01-01", "monthly")
 ```
 
-Also here, the datetime input can be in either `str` or `datetime` formats.
+Also here, the time input can be in `str`, `datetime` or `date` formats.
 
 The return objects is of type `StrangMultiPoint`.
 For a full list of available fields see
