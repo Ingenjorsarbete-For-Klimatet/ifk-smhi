@@ -103,6 +103,13 @@ MESAN_LEVELS_UNIT = "m"
 
 MESAN_PARAMETER_DESCRIPTIONS = {
     "air_temperature": "Air temperature at 2 metres height.",
+    "air_temperature_min": (
+        "Minimum air temperature at 2 metres height, last 12 hours."
+    ),
+    "air_temperature_max": (
+        "Maximum air temperature at 2 metres height, last 12 hours."
+    ),
+    "precipitation_amount_last_12_hours": "Precipitation amount last 12 hours",
     "wind_speed_of_gust": "Wind gusts",
     "relative_humidity": "Relative humidity at 2 metres height.",
     "air_pressure": "Air pressure.",
