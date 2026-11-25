@@ -6,12 +6,15 @@ from datetime import datetime
 from typing import Any, Dict, Optional, Union
 
 import arrow
+import numpy as np
 import pandas as pd
 from requests.structures import CaseInsensitiveDict
 
 from smhi.constants import (
     MESAN_LEVELS_UNIT,
+    MESAN_PARAMETER_CATEGORIES,
     MESAN_PARAMETER_DESCRIPTIONS,
+    MESAN_PRECIPITATION_FROZEN_PART_NO_PRECIPITATION,
     MESAN_URL,
 )
 from smhi.models.mesan_model import (
@@ -49,9 +52,10 @@ class Mesan:
     __multipoint_data_model: MultiPoint = MesanMultiPoint
 
     _category: str = "mesan2g"
-    _version: int = 2
+    _version: int = 3
     _base_url: str = MESAN_URL
     _parameter_descriptions: Dict[str, str] = MESAN_PARAMETER_DESCRIPTIONS
+    _parameter_categories: Dict[str, Dict[int, str]] = MESAN_PARAMETER_CATEGORIES
 
     def __init__(self) -> None:
         """Initialise Mesan."""
@@ -68,6 +72,17 @@ class Mesan:
             parameter model
         """
         return self._parameter_descriptions
+
+    @property
+    def parameter_categories(self) -> Dict[str, Dict[int, str]]:
+        """Get category value descriptions per parameter from object state.
+
+        Only parameters with categorical values have an entry.
+
+        Returns:
+            mapping of parameter name to category value descriptions
+        """
+        return self._parameter_categories
 
     @property
     def parameters(self) -> Parameter:
@@ -297,7 +312,7 @@ class Mesan:
             index="times", columns="name", values="value", aggfunc="first"
         )
 
-        return data_table
+        return self._mask_missing_data_point(data_table)
 
     def _format_data_multipoint(self, data: dict, param: str) -> Optional[pd.DataFrame]:
         """Format data for multipoint request.
@@ -309,12 +324,70 @@ class Mesan:
         Returns:
             data_table: pandas DataFrame
         """
-        formatted_data = {"value": data["timeSeries"][0]["data"][param]}
+        missing_value = self._get_missing_values().get(param)
+        values = data["timeSeries"][0]["data"][param]
+        masked_values = [
+            np.nan if self._is_missing_value(param, value, missing_value) else value
+            for value in values
+        ]
+        formatted_data = {"value": masked_values}
         if "geometry" in data:
             formatted_data["lat"] = [x[1] for x in data["geometry"]["coordinates"]]
             formatted_data["lon"] = [x[0] for x in data["geometry"]["coordinates"]]
 
         return pd.DataFrame(formatted_data)
+
+    def _get_missing_values(self) -> Dict[str, int]:
+        """Get missing value sentinel for each parameter.
+
+        Returns:
+            mapping of parameter name to its missing value
+        """
+        return {p.name: p.missing_value for p in self._parameters.parameter}
+
+    def _is_missing_value(
+        self, param: str, value: Any, missing_value: Optional[int]
+    ) -> bool:
+        """Check if a value is a missing value sentinel.
+
+        The MESAN2g API sets precipitation_frozen_part to -9 when there
+        is no precipitation, per the SMHI parameter documentation.
+
+        Args:
+            param: parameter name
+            value: value to check
+            missing_value: missing value sentinel of the parameter
+
+        Returns:
+            true if the value is a missing value sentinel
+        """
+        if missing_value is not None and value == missing_value:
+            return True
+
+        return (
+            param == "precipitation_frozen_part"
+            and value == MESAN_PRECIPITATION_FROZEN_PART_NO_PRECIPITATION
+        )
+
+    def _mask_missing_data_point(self, data_table: pd.DataFrame) -> pd.DataFrame:
+        """Mask missing value sentinels in a point data table.
+
+        Args:
+            data_table: pandas DataFrame of point data
+
+        Returns:
+            data_table: pandas DataFrame with missing values as NaN
+        """
+        for name, missing_value in self._get_missing_values().items():
+            if name in data_table.columns:
+                data_table[name] = data_table[name].replace(missing_value, np.nan)
+
+        if "precipitation_frozen_part" in data_table.columns:
+            data_table["precipitation_frozen_part"] = data_table[
+                "precipitation_frozen_part"
+            ].replace(MESAN_PRECIPITATION_FROZEN_PART_NO_PRECIPITATION, np.nan)
+
+        return data_table
 
     def _build_multipoint_url(
         self,

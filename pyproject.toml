@@ -12,7 +12,7 @@ authors = [
     { name = "Anders Nord", email = "dr.anders.nord@gmail.com" },
     { name = "Mladen Gibanica", email = "11275336+mgcth@users.noreply.github.com" },
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "requests ~= 2.28",
     "pandas ~= 2.2",

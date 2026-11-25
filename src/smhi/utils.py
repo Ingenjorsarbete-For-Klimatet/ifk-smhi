@@ -1,7 +1,7 @@
 """Utility methods."""
 
 import logging
-from datetime import datetime
+from datetime import date, datetime
 from typing import Union
 
 import arrow
@@ -40,8 +40,8 @@ def get_request(url: str) -> requests.Response:
     return response
 
 
-def format_datetime(test_time: Union[str, datetime]) -> str:
-    """Format str and datetime to accepected time formats.
+def format_datetime(test_time: Union[str, datetime, date]) -> str:
+    """Format str, datetime and date to accepted time formats.
 
     Args:
         test_time: time to format
